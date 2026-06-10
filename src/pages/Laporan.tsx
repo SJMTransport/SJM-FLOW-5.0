@@ -6,7 +6,6 @@ import { ACTION_COLORS, ACTION_LABELS, MODULE_LABELS, type ActionType, type Modu
 import { buildMeta } from "@/src/lib/activityLogger";
 
 import * as XLSX from "xlsx";
-import ExcelJS from "exceljs";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -35,58 +34,21 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
     try {
     const periodText = getPeriodText();
     const now = new Date();
-    const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const footerTS = `Dicetak: ${dateStr} pukul ${timeStr}`;
-    const ncols = columns.length;
-    const lastCol = String.fromCharCode(64 + ncols);
 
-    const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet(title.substring(0, 31));
+    const wsData: any[][] = [
+      ["PT SUGIARTO JAYA MANDIRI"],
+      [title],
+      [`Periode: ${periodText} — Dicetak: ${now.toLocaleDateString('id-ID')}`],
+      [],
+      columns.map(c => c.replace('_', ' ').toUpperCase()),
+      ...data.map(row => columns.map(col => row[col])),
+    ];
 
-    const addMR = (text: string, opts: any = {}) => {
-      const r = ws.addRow([text, ...Array(ncols - 1).fill('')]);
-      ws.mergeCells(`A${r.number}:${lastCol}${r.number}`);
-      r.font = { bold: opts.bold, size: opts.size, color: opts.color ? { argb: opts.color } : undefined, italic: opts.italic };
-      if (opts.align) r.getCell(1).alignment = { horizontal: opts.align };
-      return r;
-    };
-    addMR('PT SUGIARTO JAYA MANDIRI', { bold: true, size: 14, color: 'FFFF8F00' });
-    addMR(title, { bold: true, size: 12 });
-    addMR(`Periode: ${periodText}`, { size: 10 });
-    ws.addRow([]);
-
-    const hdr = ws.addRow(columns.map(c => c.replace('_', ' ').toUpperCase()));
-    hdr.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    hdr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF8F00' } };
-    hdr.eachCell(c => {
-      c.border = { top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
-      c.alignment = { horizontal: 'center' };
-    });
-
-    data.forEach(row => {
-      const vals = columns.map(col => row[col]);
-      const r = ws.addRow(vals);
-      r.eachCell({ includeEmpty: true }, (c, ci) => {
-        c.border = { top:{style:'hair'}, bottom:{style:'hair'}, left:{style:'hair'}, right:{style:'hair'} };
-        if (typeof vals[ci - 1] === 'number') { c.numFmt = '#,##0.00'; c.alignment = { horizontal: 'right' }; }
-      });
-    });
-
-    ws.addRow([]);
-    const tsRow = ws.addRow([footerTS, ...Array(ncols - 1).fill('')]);
-    ws.mergeCells(`A${tsRow.number}:${lastCol}${tsRow.number}`);
-    tsRow.font = { italic: true, size: 9, color: { argb: 'FF888888' } };
-    tsRow.getCell(1).alignment = { horizontal: 'right' };
-
-    columns.forEach((_, i) => { ws.getColumn(i + 1).width = i === 3 ? 40 : 18; });
-
-    const buffer = await wb.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url;
-    a.download = `${title}_${now.toISOString().slice(0,10)}.xlsx`;
-    a.click(); URL.revokeObjectURL(url);
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws['!cols'] = columns.map((_, i) => ({ wch: i === 3 ? 40 : 18 }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, title.substring(0, 31));
+    XLSX.writeFile(wb, `${title}_${now.toISOString().slice(0,10)}.xlsx`);
     showToast('File Excel berhasil diunduh!', 'success');
     } catch (err: any) {
       console.error('Export Excel error:', err);
@@ -570,78 +532,25 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
         // ── Excel ─────────────────────────────────────────────────────────
         if (mode === 'xlsx') {
             const now = new Date();
-            const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const footerTS = `Dicetak: ${dateStr} pukul ${timeStr}`;
 
-            const wb = new ExcelJS.Workbook();
-            const ws = wb.addWorksheet('Neraca Saldo');
+            const wsData: any[][] = [
+                ["PT SUGIARTO JAYA MANDIRI"],
+                ["NERACA SALDO"],
+                [`Periode: ${periodLabel} — Dicetak: ${now.toLocaleDateString('id-ID')}`],
+                [],
+                ['KODE', 'NAMA AKUN', 'KELOMPOK', 'SALDO (RP)'],
+            ];
 
-            const addMR = (text: string, opts: any = {}) => {
-                const r = ws.addRow([text, '', '', '']);
-                ws.mergeCells(`A${r.number}:D${r.number}`);
-                r.font = { bold: opts.bold, size: opts.size, color: opts.color ? { argb: opts.color } : undefined, italic: opts.italic };
-                if (opts.align) r.getCell(1).alignment = { horizontal: opts.align };
-                return r;
-            };
-            addMR('PT SUGIARTO JAYA MANDIRI', { bold: true, size: 14, color: 'FFFF8F00' });
-            addMR('NERACA SALDO', { bold: true, size: 12 });
-            addMR(`Periode: ${periodLabel}`, { size: 10 });
-            ws.addRow([]);
-
-            const hdr = ws.addRow(['KODE', 'NAMA AKUN', 'KELOMPOK', 'SALDO (RP)']);
-            hdr.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-            hdr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF8F00' } };
-            hdr.eachCell(c => {
-                c.border = { top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
-                c.alignment = { horizontal: 'center' };
-            });
-
-            tableRows.forEach(([kode, nama, kelompok, val], i) => {
-                const type = rowMeta[i];
+            tableRows.forEach(([kode, nama, kelompok, val]) => {
                 const v = typeof val === 'number' ? Math.round((val as number) * 100) / 100 : val;
-                const row = ws.addRow([kode, nama, kelompok, v]);
-                if (type === 'section') {
-                    row.font = { bold: true, color: { argb: 'FF7B4500' } };
-                    row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF3CD' } };
-                } else if (type === 'subtotal') {
-                    row.font = { bold: true };
-                    row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F0F0' } };
-                } else if (type === 'balance') {
-                    row.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                    row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF8F00' } };
-                } else if (type === 'blank') {
-                    row.height = 5;
-                }
-                if (type !== 'blank') {
-                    row.eachCell({ includeEmpty: true }, c => {
-                        c.border = { top:{style:'hair'}, bottom:{style:'hair'}, left:{style:'hair'}, right:{style:'hair'} };
-                    });
-                }
-                if (typeof val === 'number') {
-                    const c = row.getCell(4);
-                    c.numFmt = '#,##0.00';
-                    c.alignment = { horizontal: 'right' };
-                }
+                wsData.push([kode, nama, kelompok, v]);
             });
 
-            ws.addRow([]);
-            const tsRow = ws.addRow([footerTS, '', '', '']);
-            ws.mergeCells(`A${tsRow.number}:D${tsRow.number}`);
-            tsRow.font = { italic: true, size: 9, color: { argb: 'FF888888' } };
-            tsRow.getCell(1).alignment = { horizontal: 'right' };
-
-            ws.getColumn(1).width = 12;
-            ws.getColumn(2).width = 42;
-            ws.getColumn(3).width = 16;
-            ws.getColumn(4).width = 22;
-
-            const buffer = await wb.xlsx.writeBuffer();
-            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url;
-            a.download = `NeracaSaldo_${periodLabel.replace(/\s/g, '_')}_${now.toISOString().slice(0, 10)}.xlsx`;
-            a.click(); URL.revokeObjectURL(url);
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            ws['!cols'] = [{ wch: 12 }, { wch: 42 }, { wch: 16 }, { wch: 22 }];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Neraca Saldo");
+            XLSX.writeFile(wb, `NeracaSaldo_${periodLabel.replace(/\s/g, '_')}_${now.toISOString().slice(0, 10)}.xlsx`);
         }
 
         if (logAction) logAction(`Export Neraca Saldo: ${periodLabel} (${mode.toUpperCase()})`, buildMeta({ module: 'laporan', action_type: 'EXPORT', record_id: `neraca-${periodLabel}`, after_data: { format: mode, period: periodLabel } }));
@@ -939,81 +848,25 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
         // ── Excel ─────────────────────────────────────────────────────────
         if (mode === 'xlsx') {
             const now = new Date();
-            const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const footerTS = `Dicetak: ${dateStr} pukul ${timeStr}`;
 
-            const wb = new ExcelJS.Workbook();
-            const ws = wb.addWorksheet('Laba Rugi');
+            const wsData: any[][] = [
+                ["PT SUGIARTO JAYA MANDIRI"],
+                ["LAPORAN LABA RUGI"],
+                [`Periode: ${periodLabel} — Dicetak: ${now.toLocaleDateString('id-ID')}`],
+                [],
+                ['KODE', 'NAMA AKUN / POS KEUANGAN', 'JUMLAH (RP)'],
+            ];
 
-            const addMR = (text: string, opts: any = {}) => {
-                const r = ws.addRow([text, '', '']);
-                ws.mergeCells(`A${r.number}:C${r.number}`);
-                r.font = { bold: opts.bold, size: opts.size, color: opts.color ? { argb: opts.color } : undefined, italic: opts.italic };
-                if (opts.align) r.getCell(1).alignment = { horizontal: opts.align };
-                return r;
-            };
-            addMR('PT SUGIARTO JAYA MANDIRI', { bold: true, size: 14, color: 'FFFF8F00' });
-            addMR('LAPORAN LABA RUGI', { bold: true, size: 12 });
-            addMR(`Periode: ${periodLabel}`, { size: 10 });
-            ws.addRow([]);
-
-            const hdr = ws.addRow(['KODE', 'NAMA AKUN / POS KEUANGAN', 'JUMLAH (RP)']);
-            hdr.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-            hdr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF8F00' } };
-            hdr.eachCell(c => {
-                c.border = { top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
-                c.alignment = { horizontal: 'center' };
-            });
-
-            tableRows.forEach(([kode, nama, val], i) => {
-                const type = rowMeta[i];
+            tableRows.forEach(([kode, nama, val]) => {
                 const v = typeof val === 'number' ? Math.round((val as number) * 100) / 100 : val;
-                const row = ws.addRow([kode, nama, v]);
-                if (type === 'section') {
-                    row.font = { bold: true, color: { argb: 'FF7B4500' } };
-                    row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF3CD' } };
-                } else if (type === 'subtotal') {
-                    row.font = { bold: true };
-                    row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F0F0' } };
-                } else if (type === 'highlight') {
-                    row.font = { bold: true, color: { argb: 'FF1B5E20' } };
-                    row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F5E9' } };
-                } else if (type === 'total') {
-                    row.font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
-                    row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF8F00' } };
-                    row.height = 20;
-                } else if (type === 'blank') {
-                    row.height = 5;
-                }
-                if (type !== 'blank') {
-                    row.eachCell({ includeEmpty: true }, c => {
-                        c.border = { top:{style:'hair'}, bottom:{style:'hair'}, left:{style:'hair'}, right:{style:'hair'} };
-                    });
-                }
-                if (typeof val === 'number') {
-                    const c = row.getCell(3);
-                    c.numFmt = '#,##0.00';
-                    c.alignment = { horizontal: 'right' };
-                }
+                wsData.push([kode, nama, v]);
             });
 
-            ws.addRow([]);
-            const tsRow = ws.addRow([footerTS, '', '']);
-            ws.mergeCells(`A${tsRow.number}:C${tsRow.number}`);
-            tsRow.font = { italic: true, size: 9, color: { argb: 'FF888888' } };
-            tsRow.getCell(1).alignment = { horizontal: 'right' };
-
-            ws.getColumn(1).width = 12;
-            ws.getColumn(2).width = 50;
-            ws.getColumn(3).width = 22;
-
-            const buffer = await wb.xlsx.writeBuffer();
-            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url;
-            a.download = `LabaRugi_${periodLabel.replace(/\s/g, '_')}_${now.toISOString().slice(0, 10)}.xlsx`;
-            a.click(); URL.revokeObjectURL(url);
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            ws['!cols'] = [{ wch: 12 }, { wch: 50 }, { wch: 22 }];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Laba Rugi");
+            XLSX.writeFile(wb, `LabaRugi_${periodLabel.replace(/\s/g, '_')}_${now.toISOString().slice(0, 10)}.xlsx`);
         }
 
         if (logAction) logAction(`Export Laba Rugi: ${periodLabel} (${mode.toUpperCase()})`, buildMeta({ module: 'laporan', action_type: 'EXPORT', record_id: `labarugi-${periodLabel}`, after_data: { format: mode, period: periodLabel } }));
@@ -1533,159 +1386,47 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
       const ts = bbTimestamp(now);
       const periodLabel = getPeriodText();
 
-      const wb = new ExcelJS.Workbook();
-      const ws = wb.addWorksheet('Buku Besar');
-
-      // Header rows
-      ws.mergeCells('A1:F1');
-      const r1 = ws.getCell('A1');
-      r1.value = 'PT SUGIARTO JAYA MANDIRI';
-      r1.font = { bold: true, size: 16, color: { argb: 'FFFF8F00' } };
-      r1.alignment = { horizontal: 'center', vertical: 'middle' };
-      ws.getRow(1).height = 28;
-
-      ws.mergeCells('A2:F2');
-      const r2 = ws.getCell('A2');
-      r2.value = 'BUKU BESAR';
-      r2.font = { bold: true, size: 14 };
-      r2.alignment = { horizontal: 'center' };
-      ws.getRow(2).height = 22;
-
-      ws.mergeCells('A3:F3');
-      ws.getCell('A3').value = `Akun: ${activeCoa?.kode} — ${activeCoa?.nama}`;
-      ws.getCell('A3').font = { size: 11 };
-      ws.getCell('A3').alignment = { horizontal: 'center' };
-
-      ws.mergeCells('A4:F4');
-      ws.getCell('A4').value = `Periode: ${periodLabel}`;
-      ws.getCell('A4').font = { size: 10 };
-      ws.getCell('A4').alignment = { horizontal: 'center' };
-
-      ws.getRow(5).height = 8;
-
-      // KPI row
-      const kpiData = [
-        { col: 1, label: 'SALDO AWAL PERIODE', value: Math.round(openingBalance * 100) / 100, fill: 'FFE8F4FD' },
-        { col: 3, label: 'NET MUTASI PERIODE',  value: Math.round((bbTotalDebit - bbTotalKredit) * 100) / 100, fill: 'FFE8F8E8' },
-        { col: 5, label: 'SALDO AKHIR PERIODE', value: Math.round(currentBalance * 100) / 100, fill: 'FFFFF8DC' },
+      const wsData: any[][] = [
+        ["PT SUGIARTO JAYA MANDIRI"],
+        ["BUKU BESAR"],
+        [`Akun: ${activeCoa?.kode} — ${activeCoa?.nama}`],
+        [`Periode: ${periodLabel} — Dicetak: ${ts}`],
+        [],
+        ['SALDO AWAL PERIODE', '', 'NET MUTASI PERIODE', '', 'SALDO AKHIR PERIODE', ''],
+        [
+          Math.round(openingBalance * 100) / 100, '',
+          Math.round((bbTotalDebit - bbTotalKredit) * 100) / 100, '',
+          Math.round(currentBalance * 100) / 100, '',
+        ],
+        [],
+        ['Tanggal', 'No. Jurnal', 'Keterangan Transaksi', 'Debit', 'Kredit', 'Saldo'],
       ];
-      kpiData.forEach(k => {
-        const lc = ws.getRow(6).getCell(k.col);
-        lc.value = k.label;
-        lc.font = { bold: true, size: 9 };
-        lc.alignment = { horizontal: 'center' };
-        const vc = ws.getRow(7).getCell(k.col);
-        vc.value = k.value;
-        vc.numFmt = '#,##0.00';
-        vc.font = { bold: true, size: 11 };
-        vc.alignment = { horizontal: 'center' };
-        vc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: k.fill } };
-      });
-      ws.getRow(7).height = 24;
-      ws.getRow(8).height = 8;
 
-      // Table header
-      const headers = ['Tanggal', 'No. Jurnal', 'Keterangan Transaksi', 'Debit', 'Kredit', 'Saldo'];
-      const hr = ws.getRow(9);
-      headers.forEach((h, i) => {
-        const c = hr.getCell(i + 1);
-        c.value = h;
-        c.font = { bold: true, size: 10, color: { argb: 'FFFFFFFF' } };
-        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF8F00' } };
-        c.alignment = { horizontal: 'center', vertical: 'middle' };
-        c.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
-      });
-      hr.height = 22;
-
-      // Data rows
-      let rowIdx = 10;
-      bbTransactions.forEach((t, idx) => {
-        const row = ws.getRow(rowIdx);
-        const isOpening = !t.tanggal || t.noJurnal === 'OPENING';
-
-        row.getCell(1).value = t.tanggal || '-';
-        row.getCell(1).alignment = { horizontal: 'center' };
-        row.getCell(2).value = t.noJurnal || 'OPENING';
-        row.getCell(3).value = t.keterangan || 'Saldo Awal / Mutasi Kumulatif';
-
-        if (t.debit > 0) {
-          row.getCell(4).value = Math.round(t.debit * 100) / 100;
-          row.getCell(4).numFmt = '#,##0.00';
-          row.getCell(4).font = { color: { argb: 'FF006600' } };
-        } else {
-          row.getCell(4).value = '-';
-        }
-        row.getCell(4).alignment = { horizontal: 'right' };
-
-        if (t.kredit > 0) {
-          row.getCell(5).value = Math.round(t.kredit * 100) / 100;
-          row.getCell(5).numFmt = '#,##0.00';
-          row.getCell(5).font = { color: { argb: 'FFCC0000' } };
-        } else {
-          row.getCell(5).value = '-';
-        }
-        row.getCell(5).alignment = { horizontal: 'right' };
-
-        row.getCell(6).value = Math.round(t.saldo * 100) / 100;
-        row.getCell(6).numFmt = '#,##0.00';
-        row.getCell(6).font = { bold: true };
-        row.getCell(6).alignment = { horizontal: 'right' };
-
-        const rowFill = isOpening ? 'FFFFF3CD' : (idx % 2 === 0 ? 'FFF8F8F8' : 'FFFFFFFF');
-        for (let c = 1; c <= 6; c++) {
-          const cell = row.getCell(c);
-          if (isOpening) cell.font = { ...(cell.font as any || {}), bold: true };
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: rowFill } };
-          cell.border = { top: { style: 'hair' }, bottom: { style: 'hair' }, left: { style: 'thin' }, right: { style: 'thin' } };
-        }
-        rowIdx++;
+      bbTransactions.forEach(t => {
+        wsData.push([
+          t.tanggal || '-',
+          t.noJurnal || 'OPENING',
+          t.keterangan || 'Saldo Awal / Mutasi Kumulatif',
+          t.debit > 0 ? Math.round(t.debit * 100) / 100 : '-',
+          t.kredit > 0 ? Math.round(t.kredit * 100) / 100 : '-',
+          Math.round(t.saldo * 100) / 100,
+        ]);
       });
 
-      // Total row
-      rowIdx++;
-      const totalRow = ws.getRow(rowIdx);
-      ws.mergeCells(`A${rowIdx}:C${rowIdx}`);
-      totalRow.getCell(1).value = 'TOTAL MUTASI PERIODE';
-      totalRow.getCell(1).font = { bold: true, size: 10 };
-      totalRow.getCell(1).alignment = { horizontal: 'right' };
-      totalRow.getCell(4).value = Math.round(bbTotalDebit  * 100) / 100;
-      totalRow.getCell(4).numFmt = '#,##0.00';
-      totalRow.getCell(4).font = { bold: true, color: { argb: 'FF006600' } };
-      totalRow.getCell(4).alignment = { horizontal: 'right' };
-      totalRow.getCell(5).value = Math.round(bbTotalKredit * 100) / 100;
-      totalRow.getCell(5).numFmt = '#,##0.00';
-      totalRow.getCell(5).font = { bold: true, color: { argb: 'FFCC0000' } };
-      totalRow.getCell(5).alignment = { horizontal: 'right' };
-      for (let c = 1; c <= 6; c++) {
-        totalRow.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
-        totalRow.getCell(c).border = { top: { style: 'medium' }, bottom: { style: 'medium' }, left: { style: 'thin' }, right: { style: 'thin' } };
-      }
-      totalRow.height = 20;
+      wsData.push([
+        'TOTAL MUTASI PERIODE', '', '',
+        Math.round(bbTotalDebit * 100) / 100,
+        Math.round(bbTotalKredit * 100) / 100,
+        '',
+      ]);
 
-      // Timestamp
-      rowIdx += 2;
-      ws.mergeCells(`A${rowIdx}:F${rowIdx}`);
-      const tsCell = ws.getCell(`A${rowIdx}`);
-      tsCell.value = `Dicetak: ${ts}`;
-      tsCell.font = { italic: true, size: 9, color: { argb: 'FF888888' } };
-      tsCell.alignment = { horizontal: 'right' };
-
-      // Column widths
-      ws.getColumn(1).width = 14;
-      ws.getColumn(2).width = 22;
-      ws.getColumn(3).width = 50;
-      ws.getColumn(4).width = 20;
-      ws.getColumn(5).width = 20;
-      ws.getColumn(6).width = 22;
-
-      const buffer = await wb.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `BukuBesar_${activeCoa?.kode}_${now.toISOString().split('T')[0]}.xlsx`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      ws['!cols'] = [
+        { wch: 14 }, { wch: 22 }, { wch: 50 }, { wch: 20 }, { wch: 20 }, { wch: 22 },
+      ];
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Buku Besar");
+      XLSX.writeFile(wb, `BukuBesar_${activeCoa?.kode}_${now.toISOString().split('T')[0]}.xlsx`);
       showToast('File Excel berhasil diunduh!', 'success');
       } catch (err: any) {
         console.error('Export BukuBesar Excel error:', err);
