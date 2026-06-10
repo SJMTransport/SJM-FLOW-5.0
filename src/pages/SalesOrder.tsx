@@ -30,7 +30,7 @@ const SO_IMPORT_FIELDS = [
   { key: "keterangan", label: "Keterangan" },
 ];
 
-const BulkImportSO = ({ onComplete, onCancel, showToast, logAction }: any) => {
+const BulkImportSO = ({ onComplete, onCancel, showToast, logAction, currentUser }: any) => {
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
   const [csvData, setCsvData] = useState<any[]>([]);
@@ -126,7 +126,7 @@ const BulkImportSO = ({ onComplete, onCancel, showToast, logAction }: any) => {
   const handleImport = async () => {
     setUploading(true);
     try {
-      await api.addSOBulk(previewData);
+      await api.addSOBulk(previewData, currentUser?.company_id || "");
       showToast(`${previewData.length} data SO berhasil diimport.`);
       logAction(`Import Sales Order Masal: ${previewData.length} baris`, buildMeta({ module: 'so', action_type: 'IMPORT', after_data: { count: previewData.length } }));
       onComplete();
@@ -371,7 +371,7 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
       onConfirm: async () => {
         setProcessing(true);
         try {
-          await api.bulkPostSO(toPost);
+          await api.bulkPostSO(toPost, currentUser?.company_id || "");
           setSo((prev: any[]) => prev.map(s => toPost.includes(s.id) ? { ...s, is_posted: true } : s));
           showToast(`${toPost.length} SO berhasil diposting.`);
           setSelected([]);
@@ -389,7 +389,7 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
       onConfirm: async () => {
         setProcessing(true);
         try {
-          await api.bulkDeleteSO(selected);
+          await api.bulkDeleteSO(selected, currentUser?.company_id || "");
           setSo((prev: any[]) => prev.filter(s => !selected.includes(s.id)));
           showToast(`${selected.length} Sales Order berhasil dihapus.`);
           setSelected([]);
@@ -439,7 +439,7 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
       onConfirm: async () => {
         try {
           const item = so.find((x: any) => x.id === id);
-          await api.deleteSO(id);
+          await api.deleteSO(id, currentUser?.company_id || "");
           setSo((prev: any[]) => prev.filter(x => x.id !== id));
           logAction(`Hapus Sales Order: ${item?.order_id || id}`, buildMeta({
             module: 'so', action_type: 'DELETE', record_id: item?.order_id || id,
@@ -462,7 +462,7 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
       const payload = { ...form, order_id: finalOrderId, is_posted: posted };
       const afterSnap = { order_id: finalOrderId, customer: payload.customer, tgl_muat: payload.tgl_muat, status_muatan: payload.status_muatan, total_harga: payload.total_harga };
       if (editItem) {
-        await api.updateSO(editItem.id, payload);
+        await api.updateSO(editItem.id, payload, currentUser?.company_id || "");
         setSo((s: any[]) => s.map(x => x.id === editItem.id ? { ...x, ...payload } : x));
         logAction(`Update Sales Order: ${payload.order_id}`, buildMeta({
           module: 'so', action_type: 'UPDATE', record_id: payload.order_id,
@@ -470,9 +470,9 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
           after_data: afterSnap,
         }));
       } else {
-        await api.addSO(payload);
+        await api.addSO(payload, currentUser?.company_id || "");
         setReloading(true);
-        const updated = await api.getSO();
+        const updated = await api.getSO(currentUser?.company_id || "");
         setSo(updated);
         logAction(`Buat Sales Order: ${payload.order_id}`, buildMeta({
           module: 'so', action_type: 'CREATE', record_id: payload.order_id,

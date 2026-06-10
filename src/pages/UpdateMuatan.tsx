@@ -377,7 +377,7 @@ const TerminalPanel = ({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export const UpdateMuatan = ({ so, setSo, onSOClick, onArmadaClick, logAction }: any) => {
+export const UpdateMuatan = ({ so, setSo, onSOClick, onArmadaClick, logAction, currentUser }: any) => {
   const { showToast, ToastUI } = useToast();
 
   // ── Filters
@@ -460,7 +460,7 @@ export const UpdateMuatan = ({ so, setSo, onSOClick, onArmadaClick, logAction }:
       if (panelFotoMuat   !== (s.foto_muat    || "")) updates.foto_muat    = panelFotoMuat    || null;
       if (panelFotoBongkar !== (s.foto_bongkar || "")) updates.foto_bongkar = panelFotoBongkar || null;
 
-      await api.updateSO(s.id, updates);
+      await api.updateSO(s.id, updates, currentUser?.company_id || "");
       setSo((prev: any[]) =>
         prev.map(x => x.id === s.id ? { ...x, ...updates } : x)
       );

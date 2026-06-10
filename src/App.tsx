@@ -1266,7 +1266,7 @@ export default function App() {
     }
   };
   const loadSalesOrder = async () => {
-    try { setSo(await api.getSO()); } catch (err: any) {
+    try { setSo(await api.getSO(companyId)); } catch (err: any) {
       console.error('loadSalesOrder error:', err);
       showToast('Data Sales Order gagal dimuat ulang. Refresh halaman jika data tidak akurat.', 'error');
     }
@@ -1282,7 +1282,7 @@ export default function App() {
     setLoading(true);
     try {
       const [c, j, s, cu, p, arm, armD, armS, sop, usr, sa, logs] = await Promise.all([
-        api.getCoa(companyId), api.getJurnal(companyId), api.getSO(), api.getCustomer(),
+        api.getCoa(companyId), api.getJurnal(companyId), api.getSO(companyId), api.getCustomer(),
         api.getPiutang(), api.getArmada(), api.getArmadaDokumen(), api.getArmadaService(),
         api.getSopir(), authActions.getAllUsers(), api.getSaldoAwal(), api.getLogs()
       ]);
@@ -1738,7 +1738,7 @@ export default function App() {
               {activeModule === "operasional" && (
                 <>
                   {activeSub === "so" && <SalesOrderPage so={so} setSo={setSo} jurnal={jurnal} customer={customer} armada={armada} sopir={sopir} currentUser={currentUser} logAction={logAction} onSOClick={handleSOClick} onArmadaClick={handleArmadaClick} pendingEditSO={pendingEditSO} setPendingEditSO={setPendingEditSO} onGoToHP={handleGoToHP} />}
-                  {activeSub === "updatemuatan" && <UpdateMuatan so={so} setSo={setSo} onSOClick={handleSOClick} onArmadaClick={handleArmadaClick} logAction={logAction} />}
+                  {activeSub === "updatemuatan" && <UpdateMuatan so={so} setSo={setSo} onSOClick={handleSOClick} onArmadaClick={handleArmadaClick} logAction={logAction} currentUser={currentUser} />}
                   {activeSub === "invoice" && <InvoicePage so={so} currentUser={currentUser} logAction={logAction} onSOClick={handleSOClick} />}
                   {activeSub === "quotation" && <QuotationPage currentUser={currentUser} logAction={logAction} />}
                 </>

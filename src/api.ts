@@ -291,9 +291,9 @@ export const api = {
   deleteSaldoAwal: async (coa_kode: string) => {
     await supabaseManual.from("saldo_awal").delete().eq("coa_kode", coa_kode);
   },
-  getSO: async () => {
+  getSO: async (companyId: string) => {
     try {
-      const { data, error } = await supabaseManual.from("sales_order").select("*").order("tgl_order", { ascending: false });
+      const { data, error } = await supabaseManual.from("sales_order").select("*").eq("company_id", companyId).order("tgl_order", { ascending: false });
       if (error) throw error;
       const validStatuses = ["Order Confirmed", "Loading", "On Going", "Arrived", "Completed", "Cancelled", "Hold"];
       return (data || []).map((s: any) => ({
@@ -310,7 +310,7 @@ export const api = {
       }));
     } catch (e) { console.error('getSO', e); return []; }
   },
-  addSO: async (data: any) => {
+  addSO: async (data: any, companyId: string) => {
     const { id: _drop, ...rest } = data;
   const NUMERIC = ["base_harga", "harga_asuransi", "nilai_pajak", "nilai_tanggungan", "nilai_asuransi", "harga_pengiriman", "total_harga", "total_harga_pajak", "tonase", "harga_per_ton", "pajak"];
     const DATE_FIELDS = ["tgl_order", "tgl_muat", "tgl_bongkar"];
@@ -333,12 +333,12 @@ export const api = {
     DATE_FIELDS.forEach((k: any) => {
       if (!rest[k]) rest[k] = null;
     });
-    const row = { ...rest, posisi_log: data.posisi_log || [], modal_legs: data.modal_legs || [] };
+    const row = { ...rest, posisi_log: data.posisi_log || [], modal_legs: data.modal_legs || [], company_id: companyId };
     const { data: res, error } = await supabaseManual.from("sales_order").insert([row]).select();
     if (error) throw new Error(error.message || "Gagal simpan SO ke Supabase");
     return res;
   },
-  addSOBulk: async (rows: any[]) => {
+  addSOBulk: async (rows: any[], companyId: string) => {
     const NUMERIC = ["base_harga", "harga_asuransi", "nilai_pajak", "nilai_tanggungan", "nilai_asuransi", "harga_pengiriman", "total_harga", "total_harga_pajak", "tonase", "harga_per_ton", "pajak"];
     const KNOWN_COLS = new Set(["order_id", "no_invoice", "kode_invoice", "laporan_keuangan", "tgl_order",
       "tgl_muat", "jam_muat", "lokasi_muat", "sharelok_muat", "lokasi_bongkar", "sharelok_bongkar",
@@ -362,14 +362,14 @@ export const api = {
           else rest[k] = Number(v.toString().replace(/[^0-9.-]/g, "")) || null;
         }
       });
-      return { ...rest, posisi_log: data.posisi_log || [], modal_legs: data.modal_legs || [] };
+      return { ...rest, posisi_log: data.posisi_log || [], modal_legs: data.modal_legs || [], company_id: companyId };
     });
 
     // Get all order_ids in current batch
     const orderIds = processedRows.map(r => r.order_id).filter(Boolean);
-    
+
     // Fetch existing records to know what to update vs insert
-    const { data: existingRecords } = await supabase.from("sales_order").select("id, order_id").in("order_id", orderIds);
+    const { data: existingRecords } = await supabase.from("sales_order").select("id, order_id").eq("company_id", companyId).in("order_id", orderIds);
     const existingMap = new Map((existingRecords || []).map((r: any) => [r.order_id, r.id]));
 
     const toUpdate = [];
@@ -402,7 +402,7 @@ export const api = {
     if (toUpdate.length > 0) {
       for (const row of toUpdate) {
         const { id, ...data } = row;
-        const { data: res, error } = await supabase.from("sales_order").update(data).eq("id", id).select();
+        const { data: res, error } = await supabase.from("sales_order").update(data).eq("id", id).eq("company_id", companyId).select();
         if (error) throw error;
         results.push(...(res || []));
       }
@@ -410,7 +410,7 @@ export const api = {
 
     return results;
   },
-  updateSO: async (id: string, data: any) => {
+  updateSO: async (id: string, data: any, companyId: string) => {
     const NUMERIC = ["base_harga", "harga_asuransi", "nilai_pajak", "nilai_tanggungan", "nilai_asuransi", "harga_pengiriman", "total_harga", "total_harga_pajak"];
     const DATE_FIELDS = ["tgl_order", "tgl_muat", "tgl_bongkar"];
     NUMERIC.forEach((k: any) => {
@@ -423,29 +423,30 @@ export const api = {
     DATE_FIELDS.forEach((k: any) => { 
       if (k in data && !data[k]) data[k] = null; 
     });
-    const { error } = await supabaseManual.from("sales_order").update(data).eq("id", id);
+    const { error } = await supabaseManual.from("sales_order").update(data).eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal update SO");
     return [];
   },
-  deleteSO: async (id: string) => {
-    const { error } = await supabaseManual.from("sales_order").delete().eq("id", id);
+  deleteSO: async (id: string, companyId: string) => {
+    const { error } = await supabaseManual.from("sales_order").delete().eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal hapus SO");
     return [];
   },
-  bulkPostSO: async (ids: string[]) => {
-    const { error } = await supabaseManual.from("sales_order").update({ is_posted: true }).in("id", ids);
+  bulkPostSO: async (ids: string[], companyId: string) => {
+    const { error } = await supabaseManual.from("sales_order").update({ is_posted: true }).in("id", ids).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal posting SO");
     return [];
   },
-  bulkDeleteSO: async (ids: string[]) => {
-    const { error } = await supabaseManual.from("sales_order").delete().in("id", ids);
+  bulkDeleteSO: async (ids: string[], companyId: string) => {
+    const { error } = await supabaseManual.from("sales_order").delete().in("id", ids).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal hapus SO masal");
     return [];
   },
-  getLastSONo: async () => {
+  getLastSONo: async (companyId: string) => {
     try {
       const { data, error } = await supabaseManual.from("sales_order")
         .select("order_id")
+        .eq("company_id", companyId)
         .neq("order_id", "");
       if (error) throw error;
       // Parse all order_ids (handles both old SJM.ID-0.292.26 and new SJM.ID-0293.26 formats)
