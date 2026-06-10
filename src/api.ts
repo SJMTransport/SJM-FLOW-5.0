@@ -741,21 +741,41 @@ export const api = {
 export const authActions = {
   signIn: async (username: string, password: string) => {
     const email = username.toLowerCase().trim() + "@sjm.internal";
-    const { data, error } = await supabaseManual.from("user_profiles")
-      .select("*").eq("email", email).single();
-    if (error || !data) throw new Error("Username tidak ditemukan");
-    if (!data.password_hash) throw new Error("Password belum diatur. Hubungi Admin.");
-    if (data.password_hash !== password) throw new Error("Password salah");
-    return { access_token: "ok", user: { id: data.id, email: data.email } };
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    if (error) throw new Error("Username atau password salah");
+    return {
+      access_token: data.session?.access_token || "ok",
+      user: {
+        id: data.user?.id,
+        email: data.user?.email
+      }
+    };
   },
-  signOut: async () => { },
-  getProfile: async (userId: string | null, email?: string) => {
-    if (email) {
-      const { data } = await supabaseManual.from("user_profiles").select("*").eq("email", email).single();
-      return data || null;
-    }
-    const { data } = await supabaseManual.from("user_profiles").select("*").eq("id", userId).single();
-    return data || null;
+  signOut: async () => {
+    await supabase.auth.signOut();
+  },
+  getProfile: async (userId: string, email?: string) => {
+    const id = userId;
+    const { data, error } = await supabase
+      .from("company_users")
+      .select("*, companies(*)")
+      .eq("user_id", id)
+      .eq("is_active", true)
+      .limit(1)
+      .single();
+    if (error || !data) throw new Error("Profile tidak ditemukan");
+    return {
+      id: data.user_id,
+      email: email || "",
+      nama: data.nama,
+      role: data.role,
+      company_id: data.company_id,
+      company: data.companies,
+      status: "Aktif"
+    };
   },
   getAllUsers: async () => {
     const { data, error } = await supabaseManual.from("user_profiles").select("*").order("nama", { ascending: true });

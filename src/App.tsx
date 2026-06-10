@@ -42,7 +42,7 @@ const LoginPage = ({ onLogin }: any) => {
     setLoading(true);
     try {
       const session = await authActions.signIn(username, password);
-      const profile = await authActions.getProfile(null, session.user.email);
+      const profile = await authActions.getProfile(session.user.id, session.user.email);
       if (!profile) throw new Error("Akun tidak ditemukan");
       if (profile.status === "Nonaktif") throw new Error("Akun tidak aktif. Hubungi Admin.");
       onLogin({ session, profile });
