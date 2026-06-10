@@ -140,7 +140,7 @@ const LoginPage = ({ onLogin }: any) => {
 
 
 // ─── ARMADA POSITION FORM ───────────────────────────────────────────────────
-const ArmadaPositionForm = ({ armadaDetail, setGlobalArmadaDetail, setArmada, logAction, showToast }: any) => {
+const ArmadaPositionForm = ({ armadaDetail, setGlobalArmadaDetail, setArmada, logAction, showToast, currentUser }: any) => {
   const [pos, setPos] = useState({ loc: "", info: "" });
   const [loading, setLoading] = useState(false);
   const latest = armadaDetail.posisi_log?.[0];
@@ -157,7 +157,7 @@ const ArmadaPositionForm = ({ armadaDetail, setGlobalArmadaDetail, setArmada, lo
         status: "Update Posisi"
       };
       const newLog = [entry, ...(armadaDetail.posisi_log || [])];
-      await api.updateArmada(armadaDetail.id, { posisi_log: newLog });
+      await api.updateArmada(armadaDetail.id, { posisi_log: newLog }, currentUser?.company_id || "");
 
       const updated = { ...armadaDetail, posisi_log: newLog };
       setGlobalArmadaDetail(updated);
@@ -956,7 +956,7 @@ const JurnalDetailModal = ({ data, onClose, onSOClick }: any) => {
   );
 };
 
-const ArmadaDetailModal = ({ data, onClose, armadaDokumen, so, jurnal, armadaService, setGlobalArmadaDetail, setArmada, logAction, handleSOClick, handleJurnalClick, showToast }: any) => {
+const ArmadaDetailModal = ({ data, onClose, armadaDokumen, so, jurnal, armadaService, setGlobalArmadaDetail, setArmada, logAction, handleSOClick, handleJurnalClick, showToast, currentUser }: any) => {
   if (!data) return null;
   const docs = (armadaDokumen || []).filter((d: any) => d.no_polisi === data.no_polisi);
   const services = (armadaService || []).filter((s: any) => s.no_polisi === data.no_polisi).slice(0, 5);
@@ -1022,11 +1022,12 @@ const ArmadaDetailModal = ({ data, onClose, armadaDokumen, so, jurnal, armadaSer
               <h4 className="text-[11px] font-black text-text-light uppercase tracking-widest opacity-60">Posisi & Logistik Terakhir</h4>
             </div>
             <div className="px-2">
-              <ArmadaPositionForm 
-                 armadaDetail={data} 
-                 setGlobalArmadaDetail={setGlobalArmadaDetail} 
-                 setArmada={setArmada} 
-                 logAction={logAction} 
+              <ArmadaPositionForm
+                 armadaDetail={data}
+                 setGlobalArmadaDetail={setGlobalArmadaDetail}
+                 setArmada={setArmada}
+                 logAction={logAction}
+                 currentUser={currentUser}
                  showToast={showToast}
               />
             </div>
@@ -1282,9 +1283,9 @@ export default function App() {
     setLoading(true);
     try {
       const [c, j, s, cu, p, arm, armD, armS, sop, usr, sa, logs] = await Promise.all([
-        api.getCoa(companyId), api.getJurnal(companyId), api.getSO(companyId), api.getCustomer(),
-        api.getPiutang(), api.getArmada(), api.getArmadaDokumen(), api.getArmadaService(),
-        api.getSopir(), authActions.getAllUsers(), api.getSaldoAwal(), api.getLogs()
+        api.getCoa(companyId), api.getJurnal(companyId), api.getSO(companyId), api.getCustomer(companyId),
+        api.getPiutang(), api.getArmada(companyId), api.getArmadaDokumen(companyId), api.getArmadaService(companyId),
+        api.getSopir(companyId), authActions.getAllUsers(), api.getSaldoAwal(), api.getLogs()
       ]);
       setCoa(c); setJurnal(j); setSo(s); setCustomer(cu); setPiutang(p || []);
       setArmada(arm); setArmadaDokumen(armD); setArmadaService(armS); setSopir(sop); setUsers(usr); setSaldoAwal(sa);
@@ -1756,11 +1757,11 @@ export default function App() {
               )}
 
               {activeModule === "laporan" && <LaporanPage activeSub={activeSub} jurnal={jurnal} coa={coa} so={so} armada={armada} auditLogs={auditLogs} saldoAwal={saldoAwal} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} logAction={logAction} />}
-              {activeModule === "armada" && <ArmadaPage activeSub={activeSub} armada={armada} setArmada={setArmada} dokumen={armadaDokumen} setDokumen={setArmadaDokumen} service={armadaService} setService={setArmadaService} sopir={sopir} setSopir={setSopir} onArmadaClick={handleArmadaClick} onSopirClick={handleSopirClick} jurnal={jurnal} coa={coa} logAction={logAction} so={so} />}
-              
+              {activeModule === "armada" && <ArmadaPage activeSub={activeSub} armada={armada} setArmada={setArmada} dokumen={armadaDokumen} setDokumen={setArmadaDokumen} service={armadaService} setService={setArmadaService} sopir={sopir} setSopir={setSopir} onArmadaClick={handleArmadaClick} onSopirClick={handleSopirClick} jurnal={jurnal} coa={coa} logAction={logAction} so={so} currentUser={currentUser} />}
+
               {activeModule === "master" && (
                 <>
-                  {activeSub === "kontak" && <KontakPage so={so} connected={connected} />}
+                  {activeSub === "kontak" && <KontakPage so={so} connected={connected} currentUser={currentUser} />}
                   {["coa", "saldoawal"].includes(activeSub) && (
                     <MasterPage activeSub={activeSub} coa={coa} setCoa={setCoa} users={users} setUsers={setUsers} saldoAwal={saldoAwal} setSaldoAwal={setSaldoAwal} logAction={logAction} currentUser={currentUser} />
                   )}
@@ -1869,7 +1870,8 @@ export default function App() {
                           logAction={logAction} 
                           handleSOClick={handleSOClick} 
                           handleJurnalClick={handleJurnalClick}
-                          showToast={showToast} 
+                          showToast={showToast}
+                          currentUser={currentUser}
                         />
                       )}
                       {modal.type === 'sopir' && (

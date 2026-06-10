@@ -3,7 +3,8 @@ import { C } from "@/src/constants";
 import { Card, SectionHeader, EmptyState, useConfirm, Icon, PageShell, ActionBar } from "@/src/components/SJMComponents";
 import { api } from "@/src/api";
 
-export const KontakPage = ({ so, connected }: any) => {
+export const KontakPage = ({ so, connected, currentUser }: any) => {
+  const companyId = currentUser?.company_id || "";
   const { confirm: askConfirmKontak, Modal: ConfirmKontakModal } = useConfirm();
   const [tab, setTab] = useState("customer");
   const [items, setItems] = useState<any[]>([]);
@@ -18,7 +19,7 @@ export const KontakPage = ({ so, connected }: any) => {
   const loadData = async () => {
     setLoading(true);
     try {
-        const data = isCustomer ? await api.getCustomer() : await api.getVendor();
+        const data = isCustomer ? await api.getCustomer(companyId) : await api.getVendor(companyId);
         setItems(data || []);
     } catch (e) { 
         console.error("Gagal load data kontak:", e); 
@@ -37,9 +38,9 @@ export const KontakPage = ({ so, connected }: any) => {
      setSaving(true);
      try {
          if (editItem) {
-             isCustomer ? await api.updateCustomer(editItem.id, form) : await api.updateVendor(editItem.id, form);
+             isCustomer ? await api.updateCustomer(editItem.id, form, companyId) : await api.updateVendor(editItem.id, form, companyId);
          } else {
-             isCustomer ? await api.addCustomer(form) : await api.addVendor(form);
+             isCustomer ? await api.addCustomer(form, companyId) : await api.addVendor(form, companyId);
          }
          setShowForm(false);
          loadData();

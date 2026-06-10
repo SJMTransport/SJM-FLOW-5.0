@@ -212,43 +212,43 @@ export const api = {
     if (error) throw new Error(error.message || "Gagal update piutang");
     return [];
   },
-  getCustomer: async () => {
-    const { data, error } = await supabaseManual.from("customer").select("*").order("nama", { ascending: true });
+  getCustomer: async (companyId: string) => {
+    const { data, error } = await supabaseManual.from("customer").select("*").eq("company_id", companyId).order("nama", { ascending: true });
     if (error) { console.error("getCustomer", error); return []; }
     return data || [];
   },
-  addCustomer: async (data: any) => {
-    const { data: res, error } = await supabaseManual.from("customer").insert([data]).select();
+  addCustomer: async (data: any, companyId: string) => {
+    const { data: res, error } = await supabaseManual.from("customer").insert([{ ...data, company_id: companyId }]).select();
     if (error) throw new Error(error.message || "Gagal tambah customer");
     return res || [];
   },
-  updateCustomer: async (id: string, data: any) => {
-    const { error } = await supabaseManual.from("customer").update(data).eq("id", id);
+  updateCustomer: async (id: string, data: any, companyId: string) => {
+    const { error } = await supabaseManual.from("customer").update(data).eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal update customer");
     return [];
   },
-  deleteCustomer: async (id: string) => {
-    const { error } = await supabaseManual.from("customer").delete().eq("id", id);
+  deleteCustomer: async (id: string, companyId: string) => {
+    const { error } = await supabaseManual.from("customer").delete().eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal hapus customer");
     return [];
   },
-  getVendor: async () => {
-    const { data, error } = await supabaseManual.from("vendor").select("*").order("nama", { ascending: true });
+  getVendor: async (companyId: string) => {
+    const { data, error } = await supabaseManual.from("vendor").select("*").eq("company_id", companyId).order("nama", { ascending: true });
     if (error) { console.error("getVendor", error); return []; }
     return data || [];
   },
-  addVendor: async (data: any) => {
-    const { data: res, error } = await supabaseManual.from("vendor").insert([data]).select();
+  addVendor: async (data: any, companyId: string) => {
+    const { data: res, error } = await supabaseManual.from("vendor").insert([{ ...data, company_id: companyId }]).select();
     if (error) throw new Error(error.message || "Gagal tambah vendor");
     return res || [];
   },
-  updateVendor: async (id: string, data: any) => {
-    const { error } = await supabaseManual.from("vendor").update(data).eq("id", id);
+  updateVendor: async (id: string, data: any, companyId: string) => {
+    const { error } = await supabaseManual.from("vendor").update(data).eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal update vendor");
     return [];
   },
-  deleteVendor: async (id: string) => {
-    const { error } = await supabaseManual.from("vendor").delete().eq("id", id);
+  deleteVendor: async (id: string, companyId: string) => {
+    const { error } = await supabaseManual.from("vendor").delete().eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal hapus vendor");
     return [];
   },
@@ -465,75 +465,75 @@ export const api = {
     } catch (e) { console.error('getLastSONo', e); return []; }
   },
 
-  getArmada: async () => {
-    const { data, error } = await supabaseManual.from("armada").select("*").order("no_polisi", { ascending: true });
+  getArmada: async (companyId: string) => {
+    const { data, error } = await supabaseManual.from("armada").select("*").eq("company_id", companyId).order("no_polisi", { ascending: true });
     if (error) { console.error("getArmada", error); return []; }
     return (data || []).map((a: any) => ({
       ...a,
       posisi_log: Array.isArray(a.posisi_log) ? a.posisi_log : []
     }));
   },
-  addArmada: async (d: any) => {
-    const { data, error } = await supabaseManual.from("armada").insert([d]).select();
+  addArmada: async (d: any, companyId: string) => {
+    const { data, error } = await supabaseManual.from("armada").insert([{ ...d, company_id: companyId }]).select();
     if (error) throw new Error(error.message || "Gagal tambah armada");
     return data[0];
   },
-  updateArmada: async (id: string, d: any) => {
-    const { error } = await supabaseManual.from("armada").update(d).eq("id", id);
+  updateArmada: async (id: string, d: any, companyId: string) => {
+    const { error } = await supabaseManual.from("armada").update(d).eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal update armada");
   },
-  deleteArmada: async (id: string) => {
-    const { error } = await supabaseManual.from("armada").delete().eq("id", id);
+  deleteArmada: async (id: string, companyId: string) => {
+    const { error } = await supabaseManual.from("armada").delete().eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal hapus armada");
   },
-  getArmadaDokumen: async () => {
-    const { data, error } = await supabaseManual.from("armada_dokumen").select("*").order("tgl_expired", { ascending: true });
+  getArmadaDokumen: async (companyId: string) => {
+    const { data, error } = await supabaseManual.from("armada_dokumen").select("*").eq("company_id", companyId).order("tgl_expired", { ascending: true });
     if (error) { console.error("getArmadaDokumen", error); return []; }
     return data || [];
   },
-  addArmadaDokumen: async (d: any) => {
-    const { data, error } = await supabaseManual.from("armada_dokumen").insert([d]).select();
+  addArmadaDokumen: async (d: any, companyId: string) => {
+    const { data, error } = await supabaseManual.from("armada_dokumen").insert([{ ...d, company_id: companyId }]).select();
     if (error) throw new Error(error.message || "Gagal tambah dokumen");
     return data[0];
   },
-  updateArmadaDokumen: async (id: string, d: any) => {
-    const { error } = await supabaseManual.from("armada_dokumen").update(d).eq("id", id);
+  updateArmadaDokumen: async (id: string, d: any, companyId: string) => {
+    const { error } = await supabaseManual.from("armada_dokumen").update(d).eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal update dokumen");
   },
-  deleteArmadaDokumen: async (id: string) => {
-    const { error } = await supabaseManual.from("armada_dokumen").delete().eq("id", id);
+  deleteArmadaDokumen: async (id: string, companyId: string) => {
+    const { error } = await supabaseManual.from("armada_dokumen").delete().eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal hapus dokumen");
   },
-  getArmadaService: async () => {
-    const { data, error } = await supabaseManual.from("armada_service").select("*").order("tgl_service", { ascending: false });
+  getArmadaService: async (companyId: string) => {
+    const { data, error } = await supabaseManual.from("armada_service").select("*").eq("company_id", companyId).order("tgl_service", { ascending: false });
     if (error) { console.error("getArmadaService", error); return []; }
     return data || [];
   },
-  addArmadaService: async (d: any) => {
-    const { data, error } = await supabaseManual.from("armada_service").insert([d]).select();
+  addArmadaService: async (d: any, companyId: string) => {
+    const { data, error } = await supabaseManual.from("armada_service").insert([{ ...d, company_id: companyId }]).select();
     if (error) throw new Error(error.message || "Gagal tambah service");
     return data[0];
   },
-  deleteArmadaService: async (id: string) => {
-    const { error } = await supabaseManual.from("armada_service").delete().eq("id", id);
+  deleteArmadaService: async (id: string, companyId: string) => {
+    const { error } = await supabaseManual.from("armada_service").delete().eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal hapus service");
   },
-  getSopir: async () => {
-    const { data, error } = await supabaseManual.from("sopir").select("*").order("nama", { ascending: true });
+  getSopir: async (companyId: string) => {
+    const { data, error } = await supabaseManual.from("sopir").select("*").eq("company_id", companyId).order("nama", { ascending: true });
     if (error) { console.error("getSopir", error); return []; }
     return data || [];
   },
-  addSopir: async (d: any) => {
-    const { data, error } = await supabaseManual.from("sopir").insert([d]).select();
+  addSopir: async (d: any, companyId: string) => {
+    const { data, error } = await supabaseManual.from("sopir").insert([{ ...d, company_id: companyId }]).select();
     if (error) throw new Error(error.message || "Gagal tambah sopir");
     return data[0];
   },
-  updateSopir: async (id: string, d: any) => {
-    const { error } = await supabaseManual.from("sopir").update(d).eq("id", id);
+  updateSopir: async (id: string, d: any, companyId: string) => {
+    const { error } = await supabaseManual.from("sopir").update(d).eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal update sopir");
   },
-  deleteSopir: async (id: string) => {
-    const { error } = await supabaseManual.from("sopir").delete().eq("id", id);
+  deleteSopir: async (id: string, companyId: string) => {
+    const { error } = await supabaseManual.from("sopir").delete().eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal hapus sopir");
   },
 

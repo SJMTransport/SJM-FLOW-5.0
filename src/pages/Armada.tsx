@@ -4,7 +4,8 @@ import { Card, SectionHeader, EmptyState, statusBadge, useConfirm, useToast, Per
 import { api } from "@/src/api";
 import { fmt, fmtShort, filterByPeriod } from "@/src/utils";
 
-export const ArmadaPage = ({ activeSub, armada, setArmada, dokumen, setDokumen, service, setService, sopir, setSopir, onArmadaClick, onSopirClick, jurnal, coa, logAction, so }: any) => {
+export const ArmadaPage = ({ activeSub, armada, setArmada, dokumen, setDokumen, service, setService, sopir, setSopir, onArmadaClick, onSopirClick, jurnal, coa, logAction, so, currentUser }: any) => {
+  const companyId = currentUser?.company_id || "";
   const { confirm: confirmModal, Modal: ConfirmModalUI } = useConfirm();
   const { showToast, ToastUI } = useToast();
   const [search, setSearch] = useState("");
@@ -36,11 +37,11 @@ export const ArmadaPage = ({ activeSub, armada, setArmada, dokumen, setDokumen, 
         keterangan: item.keterangan,
       };
       if (editing) {
-        await api.updateArmada(editing.id, payload);
+        await api.updateArmada(editing.id, payload, companyId);
         setArmada((prev: any[]) => prev.map(x => x.id === editing.id ? { ...x, ...payload } : x));
         logAction(`Update Armada: ${item.no_polisi || editing.no_polisi}`, { id: editing.id });
       } else {
-        const res = await api.addArmada(payload);
+        const res = await api.addArmada(payload, companyId);
         setArmada((prev: any[]) => [...prev, res]);
         logAction(`Add Armada: ${item.no_polisi}`, { id: res.id });
       }
@@ -64,11 +65,11 @@ export const ArmadaPage = ({ activeSub, armada, setArmada, dokumen, setDokumen, 
     setSaveSuccess(false);
     try {
       if (editing) {
-          await api.updateArmadaDokumen(editing.id, item);
+          await api.updateArmadaDokumen(editing.id, item, companyId);
           setDokumen((prev: any[]) => prev.map(x => x.id === editing.id ? { ...x, ...item } : x));
           logAction(`Update Dokumen Armada: ${item.jenis_dokumen || editing.jenis_dokumen}`, { id: editing.id });
       } else {
-          const res = await api.addArmadaDokumen(item);
+          const res = await api.addArmadaDokumen(item, companyId);
           setDokumen((prev: any[]) => [...prev, res]);
           logAction(`Add Dokumen Armada: ${item.jenis_dokumen}`, { id: res.id });
       }
@@ -94,7 +95,7 @@ export const ArmadaPage = ({ activeSub, armada, setArmada, dokumen, setDokumen, 
       confirmColor: C.red,
       onConfirm: async () => {
         try {
-          await api.deleteArmada(r.id);
+          await api.deleteArmada(r.id, companyId);
           setArmada((prev: any[]) => prev.filter(x => x.id !== r.id));
           logAction(`Hapus Armada: ${r.no_polisi}`, { id: r.id });
           showToast(`Armada ${r.no_polisi} berhasil dihapus`);
@@ -110,7 +111,7 @@ export const ArmadaPage = ({ activeSub, armada, setArmada, dokumen, setDokumen, 
       onConfirm: async () => {
         try {
           const docItem = dokumen.find((x: any) => x.id === id);
-          await api.deleteArmadaDokumen(id);
+          await api.deleteArmadaDokumen(id, companyId);
           setDokumen((prev: any[]) => prev.filter(x => x.id !== id));
           logAction(`Hapus Dokumen Armada: ${docItem?.jenis_dokumen || id}`, { id });
           showToast("Dokumen berhasil dihapus");
@@ -124,7 +125,7 @@ export const ArmadaPage = ({ activeSub, armada, setArmada, dokumen, setDokumen, 
     setSaveError(false);
     setSaveSuccess(false);
     try {
-      const res = await api.addArmadaService(item);
+      const res = await api.addArmadaService(item, companyId);
       setService((prev: any[]) => [res, ...prev]);
       logAction(`Add Service Record: ${item.no_polisi} - ${item.jenis_service}`, { id: res.id });
       setSaveSuccess(true);
@@ -147,11 +148,11 @@ export const ArmadaPage = ({ activeSub, armada, setArmada, dokumen, setDokumen, 
     setSaveSuccess(false);
     try {
       if (editing) {
-        await api.updateSopir(editing.id, item);
+        await api.updateSopir(editing.id, item, companyId);
         setSopir((prev: any[]) => prev.map(x => x.id === editing.id ? { ...x, ...item } : x));
         logAction(`Update Sopir: ${item.nama || editing.nama}`, { id: editing.id });
       } else {
-        const res = await api.addSopir(item);
+        const res = await api.addSopir(item, companyId);
         setSopir((prev: any[]) => [...prev, res]);
         logAction(`Add Sopir: ${item.nama}`, { id: res.id });
       }
