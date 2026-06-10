@@ -40,7 +40,7 @@ export const MasterPage = ({ activeSub, coa, setCoa, users, setUsers, saldoAwal,
       msg: `Apakah Anda yakin ingin menghapus user ${name}?`,
       onConfirm: async () => {
         try {
-          await authActions.deleteUser(id);
+          await authActions.deleteUser(id, currentUser?.company_id || "");
           setUsers((prev: any[]) => prev.filter(x => x.id !== id));
           logAction(`Hapus User: ${name}`, buildMeta({ module: 'auth', action_type: 'DELETE', record_id: name, before_data: oldUser || { id } }));
           showToast("User berhasil dihapus");
@@ -60,8 +60,8 @@ export const MasterPage = ({ activeSub, coa, setCoa, users, setUsers, saldoAwal,
         debit: parseFloat(val.debit) || 0,
         kredit: parseFloat(val.kredit) || 0
       }));
-      await api.upsertSaldoAwal(rows);
-      const updated = await api.getSaldoAwal();
+      await api.upsertSaldoAwal(rows, currentUser?.company_id || "");
+      const updated = await api.getSaldoAwal(currentUser?.company_id || "");
       setSaldoAwal(updated);
       logAction(`Update Saldo Awal`, buildMeta({ module: 'coa', action_type: 'UPDATE', record_id: 'saldo_awal', after_data: { count: rows.length } }));
       setSaChanges({});
@@ -96,7 +96,7 @@ export const MasterPage = ({ activeSub, coa, setCoa, users, setUsers, saldoAwal,
   const saveUser = async () => {
     setLoading(true);
     try {
-      const res = await authActions.inviteUser(form.username, form.nama, form.role, form.password);
+      const res = await authActions.inviteUser(form.username, form.nama, form.role, form.password, currentUser?.company_id || "");
       setUsers((prev: any[]) => [...prev, res]);
       logAction(`Invite User: ${form.username}`, buildMeta({ module: 'auth', action_type: 'CREATE', record_id: form.username, after_data: { role: form.role, nama: form.nama } }));
       setShowModal(null);

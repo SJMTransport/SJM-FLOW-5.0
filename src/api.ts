@@ -195,20 +195,20 @@ export const api = {
     if (error) throw new Error("Gagal menghapus jurnal: " + (error.message || JSON.stringify(error)));
     return [];
   },
-  getPiutang: async () => {
-    const { data, error } = await supabaseManual.from("piutang").select("*").order("tgl_invoice", { ascending: false });
+  getPiutang: async (companyId: string) => {
+    const { data, error } = await supabaseManual.from("piutang").select("*").eq("company_id", companyId).order("tgl_invoice", { ascending: false });
     if (error) { console.error("getPiutang", error); return []; }
     return data || [];
   },
-  addPiutang: async (data: any) => {
-    const row = { ...data, sisa_piutang: (data.total_piutang || 0) - (data.total_bayar || 0) };
+  addPiutang: async (data: any, companyId: string) => {
+    const row = { ...data, sisa_piutang: (data.total_piutang || 0) - (data.total_bayar || 0), company_id: companyId };
     const { data: res, error } = await supabaseManual.from("piutang").insert([row]).select();
     if (error) throw new Error(error.message || "Gagal tambah piutang");
     return res || [];
   },
-  updatePiutang: async (id: string, data: any) => {
+  updatePiutang: async (id: string, data: any, companyId: string) => {
     const updated = { ...data, sisa_piutang: (Number(data.total_piutang) || 0) - (Number(data.total_bayar) || 0) };
-    const { error } = await supabaseManual.from("piutang").update(updated).eq("id", id);
+    const { error } = await supabaseManual.from("piutang").update(updated).eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal update piutang");
     return [];
   },
@@ -272,24 +272,24 @@ export const api = {
     }
     return updated;
   },
-  getSaldoAwal: async () => {
-    const { data, error } = await supabaseManual.from("saldo_awal").select("*");
+  getSaldoAwal: async (companyId: string) => {
+    const { data, error } = await supabaseManual.from("saldo_awal").select("*").eq("company_id", companyId);
     if (error) return [];
     return data || [];
   },
-  upsertSaldoAwal: async (rows: any[]) => {
+  upsertSaldoAwal: async (rows: any[], companyId: string) => {
     for (const r of rows) {
-      const { data: existing } = await supabaseManual.from("saldo_awal").select("id").eq("coa_kode", r.coa_kode).single().catch(() => ({ data: null }));
+      const { data: existing } = await supabaseManual.from("saldo_awal").select("id").eq("coa_kode", r.coa_kode).eq("company_id", companyId).single().catch(() => ({ data: null }));
       if (existing?.id) {
-        await supabaseManual.from("saldo_awal").update({ debit: r.debit, kredit: r.kredit }).eq("id", existing.id);
+        await supabaseManual.from("saldo_awal").update({ debit: r.debit, kredit: r.kredit }).eq("id", existing.id).eq("company_id", companyId);
       } else {
-        await supabaseManual.from("saldo_awal").insert([r]);
+        await supabaseManual.from("saldo_awal").insert([{ ...r, company_id: companyId }]);
       }
     }
     return [];
   },
-  deleteSaldoAwal: async (coa_kode: string) => {
-    await supabaseManual.from("saldo_awal").delete().eq("coa_kode", coa_kode);
+  deleteSaldoAwal: async (coa_kode: string, companyId: string) => {
+    await supabaseManual.from("saldo_awal").delete().eq("coa_kode", coa_kode).eq("company_id", companyId);
   },
   getSO: async (companyId: string) => {
     try {
@@ -537,13 +537,13 @@ export const api = {
     if (error) throw new Error(error.message || "Gagal hapus sopir");
   },
 
-  getLogs: async () => {
-    const { data, error } = await supabaseManual.from("audit_logs").select("*").order("created_at", { ascending: false }).limit(500);
+  getLogs: async (companyId: string) => {
+    const { data, error } = await supabaseManual.from("audit_logs").select("*").eq("company_id", companyId).order("created_at", { ascending: false }).limit(500);
     if (error) { console.error("[getLogs] error:", JSON.stringify(error)); return []; }
     return data || [];
   },
-  addLog: async (log: any) => {
-    const { data, error } = await supabaseManual.from("audit_logs").insert([log]).select();
+  addLog: async (log: any, companyId: string) => {
+    const { data, error } = await supabaseManual.from("audit_logs").insert([{ ...log, company_id: companyId }]).select();
     if (error) {
       console.error("[addLog] gagal insert ke audit_logs:", JSON.stringify(error));
       // Jangan throw — logAction bukan operasi kritis, tidak boleh crash app
@@ -784,32 +784,26 @@ export const authActions = {
       status: "Aktif"
     };
   },
-  getAllUsers: async () => {
-    const { data, error } = await supabaseManual.from("user_profiles").select("*").order("nama", { ascending: true });
+  getAllUsers: async (companyId: string) => {
+    const { data, error } = await supabaseManual.from("company_users").select("*").eq("company_id", companyId).order("nama", { ascending: true });
     if (error) { console.error("getAllUsers", error); return []; }
-    return data || [];
+    return (data || []).map((u: any) => ({ ...u, status: u.is_active ? "Aktif" : "Nonaktif" }));
   },
-  updateUserRole: async (id: string, role: string) => {
-    const { error } = await supabaseManual.from("user_profiles").update({ role }).eq("id", id);
+  updateUserRole: async (id: string, role: string, companyId: string) => {
+    const { error } = await supabaseManual.from("company_users").update({ role }).eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal update role");
     return [];
   },
-  updateUserStatus: async (id: string, status: string) => {
-    const { error } = await supabaseManual.from("user_profiles").update({ status }).eq("id", id);
+  updateUserStatus: async (id: string, status: string, companyId: string) => {
+    const { error } = await supabaseManual.from("company_users").update({ is_active: status === "Aktif" }).eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal update status");
     return [];
   },
-  inviteUser: async (username: string, nama: string, role: string, password?: string) => {
-    const email = username.toLowerCase().trim() + "@sjm.internal";
-    const { data: existing } = await supabaseManual.from("user_profiles").select("id").eq("email", email).single();
-    if (existing) throw new Error(`Username "${username}" sudah dipakai`);
-    const newUser = { nama, email, role, status: "Aktif", password: password || "SJM2026!" };
-    const { data, error } = await supabaseManual.from("user_profiles").insert([newUser]).select();
-    if (error) throw new Error(error.message || "Gagal buat user");
-    return data ? data[0] : null;
+  inviteUser: async (username: string, nama: string, role: string, password?: string, companyId?: string) => {
+    throw new Error("Invite user via company_users belum didukung — perlu Supabase Auth Admin API (service role key). Tambahkan user lewat Supabase Dashboard, lalu masukkan ke company_users.");
   },
-  deleteUser: async (id: string) => {
-    const { error } = await supabaseManual.from("user_profiles").delete().eq("id", id);
-    if (error) throw new Error(error.message || "Gagal hapus user");
+  deleteUser: async (id: string, companyId: string) => {
+    const { error } = await supabaseManual.from("company_users").update({ is_active: false }).eq("id", id).eq("company_id", companyId);
+    if (error) throw new Error(error.message || "Gagal nonaktifkan user");
   },
 };

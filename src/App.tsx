@@ -1221,7 +1221,7 @@ export default function App() {
     // Push to state
     setAuditLogs(prev => [{ ...log, id: Math.random().toString(36).substr(2,9) }, ...prev].slice(0, 100));
     // Persist
-    await api.addLog(log);
+    await api.addLog(log, currentUser?.company_id || "");
   }, [currentUser]);
   const [lastSubByModule, setLastSubByModule] = useState<any>({});
   const [collapsed, setCollapsed] = useState(false);
@@ -1234,7 +1234,7 @@ export default function App() {
       user_email: profile.email,
       action: "User Login",
       metadata: JSON.stringify(buildMeta({ module: 'auth', action_type: 'LOGIN', record_id: profile.email, after_data: { role: profile.role } })),
-    });
+    }, profile?.company_id || "");
   };
 
   const handleLogout = () => {
@@ -1249,7 +1249,7 @@ export default function App() {
           user_email: currentUser.email,
           action: "User Logout",
           metadata: JSON.stringify(buildMeta({ module: 'auth', action_type: 'LOGOUT', record_id: currentUser.email })),
-        });
+        }, currentUser?.company_id || "");
         setSession(null);
         setCurrentUser(null);
         setActiveModule("dashboard");
@@ -1276,7 +1276,7 @@ export default function App() {
     try { setCoa(await api.getCoa(companyId)); } catch { /* silent */ }
   };
   const loadAuditLogs = async () => {
-    try { setAuditLogs(await api.getLogs()); } catch { /* silent */ }
+    try { setAuditLogs(await api.getLogs(companyId)); } catch { /* silent */ }
   };
 
   const loadData = async () => {
@@ -1284,8 +1284,8 @@ export default function App() {
     try {
       const [c, j, s, cu, p, arm, armD, armS, sop, usr, sa, logs] = await Promise.all([
         api.getCoa(companyId), api.getJurnal(companyId), api.getSO(companyId), api.getCustomer(companyId),
-        api.getPiutang(), api.getArmada(companyId), api.getArmadaDokumen(companyId), api.getArmadaService(companyId),
-        api.getSopir(companyId), authActions.getAllUsers(), api.getSaldoAwal(), api.getLogs()
+        api.getPiutang(companyId), api.getArmada(companyId), api.getArmadaDokumen(companyId), api.getArmadaService(companyId),
+        api.getSopir(companyId), authActions.getAllUsers(companyId), api.getSaldoAwal(companyId), api.getLogs(companyId)
       ]);
       setCoa(c); setJurnal(j); setSo(s); setCustomer(cu); setPiutang(p || []);
       setArmada(arm); setArmadaDokumen(armD); setArmadaService(armS); setSopir(sop); setUsers(usr); setSaldoAwal(sa);

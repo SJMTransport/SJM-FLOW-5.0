@@ -12,7 +12,8 @@ export const logAudit = async (
   userName: string,
   userEmail: string,
   action: string,
-  meta?: ActivityMeta | null
+  meta: ActivityMeta | null | undefined,
+  companyId: string
 ): Promise<void> => {
   try {
     await api.addLog({
@@ -21,7 +22,7 @@ export const logAudit = async (
       user_email: userEmail,
       action,
       metadata: meta ? JSON.stringify(meta) : null,
-    });
+    }, companyId);
   } catch (err) {
     console.error('Audit log failed:', err);
   }
