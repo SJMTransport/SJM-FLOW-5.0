@@ -7,6 +7,8 @@ import {
     fmt, fmtShort, filterByPeriod, filterUpToPeriod 
 } from "@/src/utils";
 import { api, authActions, supabase } from "@/src/api";
+import { CompanyProvider, useCompany } from "@/src/context/CompanyContext";
+import { CompanyPicker } from "@/src/pages/CompanyPicker";
 import { buildMeta } from "@/src/lib/activityLogger";
 import { SectionHeader, Icon, statusBadge, NotificationBadge, Card, useConfirm, useToast, Spinner } from "@/src/components/SJMComponents";
 import { Dashboard } from "@/src/pages/Dashboard";
@@ -1153,6 +1155,19 @@ const SopirDetailModal = ({ data, onClose, so, handleSOClick }: any) => {
 export default function App() {
   const [session, setSession] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+
+  return (
+    <CompanyProvider userId={session?.user?.id || null}>
+      <AppContent
+        session={session} setSession={setSession}
+        currentUser={currentUser} setCurrentUser={setCurrentUser}
+      />
+    </CompanyProvider>
+  );
+}
+
+function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
+  const { activeCompany, companyList, switchCompany, isLoading: companyLoading } = useCompany();
   const [activeModule, setActiveModule] = useState("dashboard");
   const [activeSub, setActiveSub] = useState("default");
   const [loading, setLoading] = useState(false);
@@ -1258,7 +1273,11 @@ export default function App() {
     });
   };
 
-  const companyId = currentUser?.company_id || "";
+  const companyId = activeCompany?.id || "";
+
+  const effectiveUser = useMemo(() => {
+    return currentUser ? { ...currentUser, company_id: companyId } : null;
+  }, [currentUser, companyId]);
 
   const loadJurnal = async () => {
     try { setJurnal(await api.getJurnal(companyId)); } catch (err: any) {
@@ -1300,8 +1319,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (session) loadData();
-  }, [session]);
+    if (session && companyId) loadData();
+  }, [session, companyId]);
 
   useEffect(() => {
     if (!session) return;
@@ -1454,6 +1473,15 @@ export default function App() {
   const currentModule = NAV_MODULES.find(m => m.key === activeModule);
 
   if (!session || !currentUser) return <LoginPage onLogin={handleLogin} />;
+
+  if (companyLoading) return null;
+
+  if (!activeCompany) {
+    if (companyList.length > 1) {
+      return <CompanyPicker companyList={companyList} onSelect={switchCompany} currentUser={currentUser} onLogout={handleLogout} />;
+    }
+    return null;
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-bg text-text-main font-sans">
@@ -1738,17 +1766,17 @@ export default function App() {
               
               {activeModule === "operasional" && (
                 <>
-                  {activeSub === "so" && <SalesOrderPage so={so} setSo={setSo} jurnal={jurnal} customer={customer} armada={armada} sopir={sopir} currentUser={currentUser} logAction={logAction} onSOClick={handleSOClick} onArmadaClick={handleArmadaClick} pendingEditSO={pendingEditSO} setPendingEditSO={setPendingEditSO} onGoToHP={handleGoToHP} />}
-                  {activeSub === "updatemuatan" && <UpdateMuatan so={so} setSo={setSo} onSOClick={handleSOClick} onArmadaClick={handleArmadaClick} logAction={logAction} currentUser={currentUser} />}
-                  {activeSub === "invoice" && <InvoicePage so={so} currentUser={currentUser} logAction={logAction} onSOClick={handleSOClick} />}
-                  {activeSub === "quotation" && <QuotationPage currentUser={currentUser} logAction={logAction} />}
+                  {activeSub === "so" && <SalesOrderPage so={so} setSo={setSo} jurnal={jurnal} customer={customer} armada={armada} sopir={sopir} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} onArmadaClick={handleArmadaClick} pendingEditSO={pendingEditSO} setPendingEditSO={setPendingEditSO} onGoToHP={handleGoToHP} />}
+                  {activeSub === "updatemuatan" && <UpdateMuatan so={so} setSo={setSo} onSOClick={handleSOClick} onArmadaClick={handleArmadaClick} logAction={logAction} currentUser={effectiveUser} />}
+                  {activeSub === "invoice" && <InvoicePage so={so} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} />}
+                  {activeSub === "quotation" && <QuotationPage currentUser={effectiveUser} logAction={logAction} />}
                 </>
               )}
 
               {activeModule === "keuangan" && (
                 <>
-                  {activeSub === "persetujuan" && <ApprovalPage jurnal={jurnal} setJurnal={setJurnal} currentUser={currentUser} onJurnalClick={handleJurnalClick} logAction={logAction} />}
-                  {activeSub === "jurnal" && <JurnalUmum jurnal={jurnal} setJurnal={setJurnal} coa={coa} so={so} connected={connected} currentUser={currentUser} logAction={logAction} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} prefill={jurnalPrefill} onPrefillUsed={() => setJurnalPrefill(null)} />}
+                  {activeSub === "persetujuan" && <ApprovalPage jurnal={jurnal} setJurnal={setJurnal} currentUser={effectiveUser} onJurnalClick={handleJurnalClick} logAction={logAction} />}
+                  {activeSub === "jurnal" && <JurnalUmum jurnal={jurnal} setJurnal={setJurnal} coa={coa} so={so} connected={connected} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} prefill={jurnalPrefill} onPrefillUsed={() => setJurnalPrefill(null)} />}
                   {activeSub === "hutangpiutang" && <HutangPiutangPage jurnal={jurnal} coa={coa} so={so} armada={armada} connected={connected} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} piutang={piutang} invoices={invoices} onGoToJurnal={handleGoToJurnal} prefill={hpPrefill} onPrefillUsed={() => setHpPrefill(null)} />}
                   {["hutangvendor", "cicilan", "rekapuj"].includes(activeSub) && (
                     <KeuanganPage activeSub={activeSub} jurnal={jurnal} coa={coa} so={so} connected={connected} />
@@ -1757,13 +1785,13 @@ export default function App() {
               )}
 
               {activeModule === "laporan" && <LaporanPage activeSub={activeSub} jurnal={jurnal} coa={coa} so={so} armada={armada} auditLogs={auditLogs} saldoAwal={saldoAwal} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} logAction={logAction} />}
-              {activeModule === "armada" && <ArmadaPage activeSub={activeSub} armada={armada} setArmada={setArmada} dokumen={armadaDokumen} setDokumen={setArmadaDokumen} service={armadaService} setService={setArmadaService} sopir={sopir} setSopir={setSopir} onArmadaClick={handleArmadaClick} onSopirClick={handleSopirClick} jurnal={jurnal} coa={coa} logAction={logAction} so={so} currentUser={currentUser} />}
+              {activeModule === "armada" && <ArmadaPage activeSub={activeSub} armada={armada} setArmada={setArmada} dokumen={armadaDokumen} setDokumen={setArmadaDokumen} service={armadaService} setService={setArmadaService} sopir={sopir} setSopir={setSopir} onArmadaClick={handleArmadaClick} onSopirClick={handleSopirClick} jurnal={jurnal} coa={coa} logAction={logAction} so={so} currentUser={effectiveUser} />}
 
               {activeModule === "master" && (
                 <>
-                  {activeSub === "kontak" && <KontakPage so={so} connected={connected} currentUser={currentUser} />}
+                  {activeSub === "kontak" && <KontakPage so={so} connected={connected} currentUser={effectiveUser} />}
                   {["coa", "saldoawal"].includes(activeSub) && (
-                    <MasterPage activeSub={activeSub} coa={coa} setCoa={setCoa} users={users} setUsers={setUsers} saldoAwal={saldoAwal} setSaldoAwal={setSaldoAwal} logAction={logAction} currentUser={currentUser} />
+                    <MasterPage activeSub={activeSub} coa={coa} setCoa={setCoa} users={users} setUsers={setUsers} saldoAwal={saldoAwal} setSaldoAwal={setSaldoAwal} logAction={logAction} currentUser={effectiveUser} />
                   )}
                 </>
               )}
@@ -1775,13 +1803,13 @@ export default function App() {
                   saldoAwal={saldoAwal} setSaldoAwal={setSaldoAwal}
                   logAction={logAction}
                   auditLogs={auditLogs}
-                  currentUser={currentUser}
+                  currentUser={effectiveUser}
                 />
               )}
               {activeModule === "activity" && (
                 <LogAktivitasPage
                   auditLogs={auditLogs}
-                  currentUser={currentUser}
+                  currentUser={effectiveUser}
                 />
               )}
               {activeModule === "password" && (
@@ -1792,7 +1820,7 @@ export default function App() {
                   saldoAwal={saldoAwal} setSaldoAwal={setSaldoAwal}
                   logAction={logAction}
                   auditLogs={auditLogs}
-                  currentUser={currentUser}
+                  currentUser={effectiveUser}
                 />
               )}
               {activeModule && MODULE_PERMISSION_MAP[activeModule] &&
@@ -1846,7 +1874,7 @@ export default function App() {
                           coa={coa}
                           jurnal={jurnal}
                           invoices={invoices}
-                          currentUser={currentUser}
+                          currentUser={effectiveUser}
                           handleNav={handleNav}
                           setPendingEditSO={setPendingEditSO}
                           onJurnalClick={handleJurnalClick}
@@ -1871,7 +1899,7 @@ export default function App() {
                           handleSOClick={handleSOClick} 
                           handleJurnalClick={handleJurnalClick}
                           showToast={showToast}
-                          currentUser={currentUser}
+                          currentUser={effectiveUser}
                         />
                       )}
                       {modal.type === 'sopir' && (
