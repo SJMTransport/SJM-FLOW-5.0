@@ -19,13 +19,24 @@
   --color-burning-flame: #EB5E28;
   --color-palladian: #F5F4F1;
 
-  /* Sidebar — dark charcoal */
+  /* Sidebar — dark charcoal (legacy, kept for backward compat) */
   --color-navy: #252422;
   --color-blue-fantastic: #252422;
   --color-abyssal-blue: #1A1917;    /* Brand header — slightly deeper than sidebar */
   --color-side-border: rgba(255, 255, 255, 0.1);
   --color-side-text: #E2E8F0;
   --color-side-text-muted: #94A3B8;
+
+  /* Sidebar Terang — SJM Flow 5.0 */
+  --color-sidebar-bg: #FFFFFF;
+  --color-sidebar-border: #E2DDD6;
+  --color-sidebar-active-bg: #FEF0E8;
+  --color-sidebar-active-text: #EB5E28;
+  --color-sidebar-active-border: #EB5E28;
+  --color-sidebar-hover: #FAF8F5;
+  --color-sidebar-label: #9B9690;
+  --color-sidebar-text: #52504A;
+  --color-sidebar-text-active: #EB5E28;
 
   /* Brand Color Aliases — muted Black Flame variants */
   --color-brand: #4A6FA5;
@@ -164,14 +175,39 @@
 
 @layer components {
   .nav-item {
-    @apply flex items-center gap-3 px-3 py-1.5 rounded-md transition-all duration-200
-           text-side-text/60 font-bold text-[12px] hover:bg-white/8 hover:text-white/90;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 150ms ease;
+    margin-bottom: 1px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-sidebar-text);
+    width: 100%;
+    border: none;
+    background: transparent;
+  }
+  .nav-item:hover {
+    background: var(--color-sidebar-hover);
+    color: var(--color-text-main);
+  }
+  .nav-item.active {
+    background: var(--color-sidebar-active-bg);
+    color: var(--color-sidebar-active-text);
+    font-weight: 600;
+    border-left: 3px solid var(--color-sidebar-active-border);
   }
 
-  .nav-item.active {
-    @apply text-white font-black text-[13px];
-    background: rgba(235, 94, 40, 0.18);   /* orange accent tint */
-    box-shadow: inset 3px 0 0 var(--color-accent); /* left border — no layout shift */
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--color-sidebar-label);
+    padding: 12px 10px 4px;
   }
 
   /* ─── BUTTON SYSTEM — 3 variants only ─── */

@@ -1487,21 +1487,21 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
     <div className="flex h-screen w-screen overflow-hidden bg-bg text-text-main font-sans">
       <ConfirmModalUI />
       <ToastUI />
-      {/* Sidebar - Dark Blue as per reference */}
-      <aside 
-        className={`flex flex-col bg-blue-fantastic border-r border-side-border z-[100] transition-all duration-300 relative group ${collapsed ? "w-[64px]" : "w-[200px]"}`}
+      {/* Sidebar - Light */}
+      <aside
+        className={`flex flex-col bg-white border-r border-[#E2DDD6] z-[100] transition-all duration-300 relative group ${collapsed ? "w-[64px]" : "w-[240px]"}`}
       >
-        <div className="flex items-center gap-3 px-4 h-[60px] border-b border-white/10 mb-2 overflow-hidden bg-abyssal-blue">
-           <div 
-             className="w-9 h-9 rounded-md bg-burning-flame flex items-center justify-center flex-shrink-0 shadow-lg shadow-black/20 cursor-pointer transition-all hover:scale-105 active:scale-95" 
+        <div className="flex items-center gap-3 px-4 h-[56px] border-b border-[#E2DDD6] overflow-hidden">
+           <div
+             className="w-8 h-8 rounded-lg bg-[#EB5E28] flex items-center justify-center flex-shrink-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
              onClick={() => setCollapsed(!collapsed)}
            >
-              <span className="text-abyssal-blue font-black text-lg italic uppercase">S</span>
+              <span className="text-white font-black text-sm italic">S</span>
            </div>
            {!collapsed && (
              <div className="animate-fade-right">
-                <div className="text-[15px] font-black tracking-tighter text-white leading-none italic">SJM <span className="text-burning-flame">Flow</span></div>
-                <div className="text-[8px] font-bold text-white/50 mt-0.5">Logistics v3.1</div>
+                <div className="text-[15px] font-black tracking-tight text-[#1A1A1A] italic">SJM <span className="text-[#EB5E28]">Flow</span></div>
+                <div className="text-[9px] font-semibold text-[#9B9690]">v5.0</div>
              </div>
            )}
         </div>
@@ -1520,21 +1520,35 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
               const key = moduleMap[item.key];
               return key ? canView(currentUser.role, key) : true;
             })
-            .map(item => (
-              <button
-                key={item.key}
-                onClick={() => handleNav(item.key)}
-                title={collapsed ? item.label : ""}
-                className={`nav-item w-full ${activeModule === item.key ? "active" : ""} ${collapsed ? "justify-center px-0" : ""}`}
-              >
-                <Icon name={item.icon} size={collapsed ? 18 : 16} strokeWidth={activeModule === item.key ? 2.5 : 2} />
-                {!collapsed && <span className="flex-1 truncate tracking-tight text-left ml-px">{item.label}</span>}
-              </button>
-            ))
+            .map(item => {
+              const sectionLabels: Record<string, string> = {
+                operasional: "OPERASIONAL",
+                keuangan: "KEUANGAN",
+                laporan: "LAPORAN",
+                armada: "ARMADA",
+                master: "SISTEM",
+              };
+              const sectionLabel = sectionLabels[item.key];
+              return (
+                <React.Fragment key={item.key}>
+                  {sectionLabel && !collapsed && (
+                    <div className="nav-section-label">{sectionLabel}</div>
+                  )}
+                  <button
+                    onClick={() => handleNav(item.key)}
+                    title={collapsed ? item.label : ""}
+                    className={`nav-item w-full ${activeModule === item.key ? "active" : ""} ${collapsed ? "justify-center px-0" : ""}`}
+                  >
+                    <Icon name={item.icon} size={collapsed ? 18 : 16} strokeWidth={activeModule === item.key ? 2.5 : 2} />
+                    {!collapsed && <span className="flex-1 truncate tracking-tight text-left ml-px">{item.label}</span>}
+                  </button>
+                </React.Fragment>
+              );
+            })
           }
         </nav>
 
-        <div className="px-2 pb-1 border-t border-white/10 pt-2 space-y-0.5">
+        <div className="px-2 pb-1 border-t border-[#E2DDD6] pt-2 space-y-0.5">
           {NAV_BOTTOM
             .filter(item => canView(currentUser.role, item.moduleKey))
             .map(item => (
@@ -1551,38 +1565,28 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
           }
         </div>
 
-        <div className="p-2 border-t border-white/10 bg-black/10">
-           {!collapsed && (
-              <div className="mb-2 px-1 flex items-center justify-between">
-                 <div className="text-[8px] font-bold text-white/40 uppercase tracking-widest italic">Session</div>
-                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              </div>
-           )}
-           <div className={`flex items-center gap-2 mb-2 p-1.5 rounded-md bg-white/5 border border-white/5 shadow-inner ${collapsed ? "justify-center" : ""}`}>
-              <div 
-                className="w-8 h-8 rounded-md flex items-center justify-center text-[12px] font-black flex-shrink-0 shadow-sm border border-white/10"
-                style={{ background: ROLE_BG[currentUser.role], color: ROLE_COLOR[currentUser.role] }}
-              >
-                 {currentUser.nama?.[0]}
-              </div>
-              {!collapsed && (
-                <div className="overflow-hidden animate-fade-right">
-                   <div className="text-[11px] font-bold text-white truncate leading-none mb-0.5">{currentUser.nama}</div>
-                   <div className="text-[9px] font-bold text-white/40 flex items-center gap-1 leading-none">
-                      <div className="w-1 h-1 rounded-full" style={{ background: ROLE_COLOR[currentUser.role] }} />
-                      {currentUser.role}
-                   </div>
+        <div className="p-3 border-t border-[#E2DDD6]">
+          <div className={`flex items-center gap-2 p-2 rounded-lg bg-[#FAF8F5] border border-[#E2DDD6] mb-2 ${collapsed ? "justify-center" : ""}`}>
+            <div className="w-7 h-7 rounded-md flex items-center justify-center text-[11px] font-black flex-shrink-0"
+                 style={{ background: ROLE_BG[currentUser.role], color: ROLE_COLOR[currentUser.role] }}>
+              {currentUser.nama?.[0]}
+            </div>
+            {!collapsed && (
+              <div className="overflow-hidden flex-1 min-w-0">
+                <div className="text-[11px] font-bold text-[#1A1A1A] truncate">
+                  {currentUser.nama}
                 </div>
-              )}
-           </div>
-           
-           <button 
-             onClick={handleLogout} 
-             className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-[10px] font-bold text-white/50 hover:text-red-400 hover:bg-red-400/10 transition-all ${collapsed ? "justify-center" : ""}`}
-           >
-              <LogOut size={16} strokeWidth={2.5} className="shrink-0" />
-              {!collapsed && <span className="font-bold leading-none">Keluar</span>}
-           </button>
+                <div className="text-[9px] text-[#9B9690]">
+                  {currentUser.role}
+                </div>
+              </div>
+            )}
+          </div>
+          <button onClick={handleLogout}
+            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] font-medium text-[#9B9690] hover:text-[#B85450] hover:bg-[#FCEBEB] transition-all ${collapsed ? "justify-center" : ""}`}>
+            <LogOut size={14} className="shrink-0" />
+            {!collapsed && <span>Keluar</span>}
+          </button>
         </div>
 
         <button 
@@ -1593,137 +1597,112 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
         </button>
       </aside>
 
-      {/* Main Content - PALLADIAN BACKGROUND */}
-      <div className="flex-1 flex flex-col bg-bg h-screen overflow-hidden relative">
-      <header className="bg-grey-100 border-b border-border-dark/40 px-6 h-[56px] flex items-center justify-between z-[90] shrink-0 gap-6">
-           <div className="flex items-center gap-6 flex-1 min-w-0">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                   <span className="text-[13px] font-bold text-text-main tracking-tight italic">{currentModule?.label}</span>
-                   {activeSub !== "default" && <Icon name="ChevronRight" size={12} strokeWidth={3} className="text-text-light/30" />}
-                   {activeSub !== "default" && (
-                     <span className="text-[12px] font-bold text-text-light opacity-60 italic">
-                        {currentModule?.subs.find(s => s.key === activeSub)?.label}
-                     </span>
-                   )}
-                </div>
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+
+        {/* TOPBAR GLOBAL */}
+        <header className="h-[56px] bg-white border-b border-[#E2DDD6] flex items-center justify-between px-6 flex-shrink-0 z-[90] sticky top-0">
+
+          {/* Search */}
+          <div className="flex items-center gap-2 bg-[#F5F4F1] border border-[#E2DDD6] rounded-lg px-3 h-[34px] w-[320px] relative">
+            <Icon name="Search" size={13} className="text-[#9B9690]" />
+            <input
+              className="bg-transparent text-[12px] text-[#1A1A1A] placeholder:text-[#C0B8B0] outline-none flex-1"
+              placeholder="Cari shipment, order, armada, driver..."
+              value={globalSearch || ""}
+              onChange={(e) => setGlobalSearch(e.target.value)}
+            />
+            {globalSearch && (
+              <div className="absolute top-full left-0 w-[420px] mt-2 bg-white rounded-xl shadow-2xl border border-border-main overflow-hidden animate-fade-down z-[100] max-h-[500px] flex flex-col">
+                 <div className="p-4 border-b border-border-main bg-grey-100 flex justify-between items-center">
+                    <span className="text-[11px] font-bold text-text-main leading-none">Hasil Pencarian</span>
+                    <button onClick={() => setGlobalSearch("")} className="text-text-light hover:text-accent"><Icon name="X" size={16} /></button>
+                 </div>
+                 <div className="flex-1 overflow-y-auto no-scrollbar divide-y divide-border-main/40">
+                    {(() => {
+                        const sTerm = globalSearch.toLowerCase();
+                        const resSO = (so || []).filter((s:any) => String(s.order_id).toLowerCase().includes(sTerm) || String(s.customer).toLowerCase().includes(sTerm)).slice(0, 5);
+                        const resArm = (armada || []).filter((a:any) => String(a.no_polisi).toLowerCase().includes(sTerm)).slice(0, 5);
+
+                        if (resSO.length === 0 && resArm.length === 0) return <div className="p-8 text-center text-[12px] text-text-med font-medium">Tidak ada hasil ditemukan</div>;
+
+                        return (
+                           <>
+                              {resSO.map((s:any) => (
+                                 <div key={s.id} onClick={() => { handleSOClick(s.order_id); setGlobalSearch(""); }} className="p-3.5 hover:bg-slate-50 cursor-pointer group flex items-start gap-4 transition-colors">
+                                    <div className="p-2 rounded-lg bg-blue-brand-light text-blue-brand border border-blue-brand/10">
+                                       <Icon name="Package" size={16} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex justify-between items-baseline mb-1">
+                                         <div className="text-[13px] font-bold text-text-main group-hover:text-accent transition-colors truncate tracking-tight italic">{s.order_id}</div>
+                                         <span className="text-[9px] font-bold text-text-light opacity-70 italic">Sales Order</span>
+                                      </div>
+                                      <div className="text-[11px] font-bold text-text-med truncate opacity-80">{s.customer}</div>
+                                    </div>
+                                 </div>
+                              ))}
+                              {resArm.map((a:any) => (
+                                 <div key={a.id} onClick={() => { handleArmadaClick(a.no_polisi); setGlobalSearch(""); }} className="p-2.5 hover:bg-palladian cursor-pointer group flex items-start gap-4 transition-colors">
+                                    <div className="w-8 h-8 rounded-md bg-burning-flame/5 text-burning-flame flex items-center justify-center shrink-0">
+                                       <Icon name="Truck" size={14} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex justify-between items-baseline mb-0.5">
+                                         <div className="text-[12px] font-black text-abyssal-blue group-hover:text-accent transition-colors truncate tracking-tight">{a.no_polisi}</div>
+                                         <span className="text-[8px] font-bold text-text-light opacity-50 uppercase">Armada</span>
+                                      </div>
+                                      <div className="text-[10px] font-bold text-text-med truncate">{a.merk} {a.tipe}</div>
+                                    </div>
+                                 </div>
+                              ))}
+                           </>
+                        );
+                    })()}
+                 </div>
               </div>
-           </div>
-           
-           <div className="flex items-center gap-6">
-            <div className="relative w-72">
-              <Icon name="Search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light opacity-60" />
-              <input 
-                className="input-field h-[32px] pl-9 pr-4 text-[11px] placeholder:opacity-50"
-                placeholder="Cari data global..."
-                value={globalSearch || ""}
-                onChange={(e) => setGlobalSearch(e.target.value)}
-              />
-              {globalSearch && (
-                <div className="absolute top-full right-0 w-[420px] mt-2 bg-white rounded-xl shadow-2xl border border-border-main overflow-hidden animate-fade-down z-[100] max-h-[500px] flex flex-col">
-                   <div className="p-4 border-b border-border-main bg-grey-100 flex justify-between items-center">
-                      <span className="text-[11px] font-bold text-text-main leading-none">Hasil Pencarian</span>
-                      <button onClick={() => setGlobalSearch("")} className="text-text-light hover:text-accent"><Icon name="X" size={16} /></button>
-                   </div>
-                   <div className="flex-1 overflow-y-auto no-scrollbar divide-y divide-border-main/40">
-                      {(() => {
-                          const sTerm = globalSearch.toLowerCase();
-                          const resSO = (so || []).filter((s:any) => String(s.order_id).toLowerCase().includes(sTerm) || String(s.customer).toLowerCase().includes(sTerm)).slice(0, 5);
-                          const resArm = (armada || []).filter((a:any) => String(a.no_polisi).toLowerCase().includes(sTerm)).slice(0, 5);
-                          
-                          if (resSO.length === 0 && resArm.length === 0) return <div className="p-8 text-center text-[12px] text-text-med font-medium">Tidak ada hasil ditemukan</div>;
-                          
-                          return (
-                             <>
-                                {resSO.map((s:any) => (
-                                   <div key={s.id} onClick={() => { handleSOClick(s.order_id); setGlobalSearch(""); }} className="p-3.5 hover:bg-slate-50 cursor-pointer group flex items-start gap-4 transition-colors">
-                                      <div className="p-2 rounded-lg bg-blue-brand-light text-blue-brand border border-blue-brand/10">
-                                         <Icon name="Package" size={16} />
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-baseline mb-1">
-                                           <div className="text-[13px] font-bold text-text-main group-hover:text-accent transition-colors truncate tracking-tight italic">{s.order_id}</div>
-                                           <span className="text-[9px] font-bold text-text-light opacity-70 italic">Sales Order</span>
-                                        </div>
-                                        <div className="text-[11px] font-bold text-text-med truncate opacity-80">{s.customer}</div>
-                                      </div>
-                                   </div>
-                                ))}
-                                {resArm.map((a:any) => (
-                                   <div key={a.id} onClick={() => { handleArmadaClick(a.no_polisi); setGlobalSearch(""); }} className="p-2.5 hover:bg-palladian cursor-pointer group flex items-start gap-4 transition-colors">
-                                      <div className="w-8 h-8 rounded-md bg-burning-flame/5 text-burning-flame flex items-center justify-center shrink-0">
-                                         <Icon name="Truck" size={14} />
-                                      </div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-baseline mb-0.5">
-                                           <div className="text-[12px] font-black text-abyssal-blue group-hover:text-accent transition-colors truncate tracking-tight">{a.no_polisi}</div>
-                                           <span className="text-[8px] font-bold text-text-light opacity-50 uppercase">Armada</span>
-                                        </div>
-                                        <div className="text-[10px] font-bold text-text-med truncate">{a.merk} {a.tipe}</div>
-                                      </div>
-                                   </div>
-                                ))}
-                             </>
-                          );
-                      })()}
-                   </div>
-                </div>
+            )}
+          </div>
+
+          {/* Right side */}
+          <div className="flex items-center gap-3">
+
+            {/* Notifikasi */}
+            <div
+              className="relative w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F5F4F1] cursor-pointer transition-colors"
+              onClick={() => handleNav("armada", "dokumen")}
+            >
+              <Icon name="Bell" size={18} className="text-[#52504A]" />
+              {(expiredDocsCount > 0 || (jurnal || []).filter((j:any) => j.status === "Draft").length > 0) && (
+                <div className="absolute top-1 right-1 w-2 h-2 bg-[#EB5E28] rounded-full border-2 border-white" />
               )}
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                 <button
-                    className="btn-primary flex items-center gap-2"
-                    onClick={() => setShowQuickMenu(!showQuickMenu)}
-                 >
-                    <Plus size={16} /> <span className="hidden sm:inline font-black uppercase tracking-tight">Quick Action</span>
-                 </button>
-                 {showQuickMenu && (
-                    <Card className="absolute top-10 right-0 w-64 p-0 overflow-hidden z-[60] shadow-2xl animate-fade-down border-none">
-                       <div onClick={() => { handleNav("operasional", "so"); setShowQuickMenu(false); }} className="p-4 hover:bg-palladian cursor-pointer flex items-center gap-4 transition-colors">
-                          <div className="w-10 h-10 rounded-md bg-burning-flame/10 text-burning-flame flex items-center justify-center shrink-0">
-                            <Icon name="Plus" size={20} />
-                          </div>
-                          <div>
-                            <div className="text-[12px] font-black text-abyssal-blue uppercase tracking-tight">Sales Order</div>
-                            <div className="text-[9px] text-text-light font-bold">Input Muatan Baru</div>
-                          </div>
-                       </div>
-                    </Card>
-                 )}
-                 {showQuickMenu && <div className="fixed inset-0 z-55" onClick={() => setShowQuickMenu(false)} />}
-              </div>
+            {/* Chat/Message */}
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F5F4F1] cursor-pointer transition-colors"
+              onClick={() => handleNav("keuangan", "persetujuan")}
+            >
+              <Icon name="MessageSquare" size={18} className="text-[#52504A]" />
+            </div>
 
-              <div className="flex items-center gap-3 pr-4 border-r border-border-main">
-                 <NotificationBadge 
-                    icon="Bell" 
-                    count={expiredDocsCount} 
-                    onClick={() => handleNav("armada", "dokumen")} 
-                 />
-                 <NotificationBadge 
-                    icon="CheckSquare" 
-                    count={(jurnal || []).filter((j:any) => j.status === "Draft").length}
-                    onClick={() => handleNav("keuangan", "persetujuan")} 
-                 />
-              </div>
+            {/* Divider */}
+            <div className="w-px h-5 bg-[#E2DDD6]" />
 
-              <div className="flex items-center gap-3">
-                 {connected && (
-                   <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 border border-green-200 rounded-full">
-                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                     <span className="text-[9px] font-black text-green-600 uppercase tracking-widest">Live</span>
-                   </div>
-                 )}
-                 <div
-                    className="w-8 h-8 rounded-md flex items-center justify-center font-black text-[12px] transition-transform hover:scale-105 cursor-pointer shadow-sm border border-black/[0.03]"
-                    style={{ background: ROLE_BG[currentUser.role], color: ROLE_COLOR[currentUser.role] }}
-                   >
-                    {currentUser.nama?.[0]}
-                 </div>
-                 <div className={`w-2 h-2 rounded-full border-2 border-white shadow-sm ${connected ? "bg-green-500" : "bg-red-500"}`} title={connected ? "Connected" : "Disconnected"} />
+            {/* User */}
+            <div className="flex items-center gap-2 cursor-pointer hover:bg-[#F5F4F1] rounded-lg px-2 py-1 transition-colors">
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black"
+                   style={{ background: ROLE_BG[currentUser.role], color: ROLE_COLOR[currentUser.role] }}>
+                {currentUser.nama?.[0]}
               </div>
-           </div>
+              <div className="hidden md:block">
+                <div className="text-[12px] font-semibold text-[#1A1A1A] leading-none">{currentUser.nama}</div>
+                <div className="text-[10px] text-[#9B9690] mt-0.5">
+                  {currentUser.role}
+                </div>
+              </div>
+              <Icon name="ChevronDown" size={14} className="text-[#9B9690]" />
+            </div>
+
           </div>
         </header>
 
