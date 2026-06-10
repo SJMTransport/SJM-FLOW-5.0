@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // ─── SUPABASE CLIENT ──────────────────────────────────────────────────────────
-const SUPABASE_URL = "https://sdxyaegmbuccybvfesyx.supabase.co";
-const SUPABASE_KEY = "sb_publishable_2aIB9S-aXSw0xkMXEkIhNw_a6JUoSMF";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY as string;
 
 // The user provided a custom fetch-based client. I'll maintain that logic
 // but wrap it in an object that looks like the one in their code.

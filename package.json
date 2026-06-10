@@ -1,7 +1,7 @@
 {
-  "name": "react-example",
+  "name": "sjm-flow-50",
   "private": true,
-  "version": "0.0.0",
+  "version": "5.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
@@ -11,13 +11,9 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@google/genai": "^1.29.0",
     "@supabase/supabase-js": "^2.103.3",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
-    "dotenv": "^17.2.3",
-    "exceljs": "^4.4.0",
-    "express": "^4.21.2",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
@@ -26,11 +22,11 @@
     "papaparse": "^5.5.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-router-dom": "^6.30.0",
     "vite": "^6.2.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "@types/papaparse": "^5.5.2",
     "autoprefixer": "^10.4.21",
