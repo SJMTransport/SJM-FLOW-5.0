@@ -94,7 +94,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
   const loadInvoices = async () => {
     setLoadingInvoices(true);
     try {
-      const list = await api.getInvoices();
+      const list = await api.getInvoices(currentUser?.company_id || "");
       setInvoices(list);
       const noInvoices = list.map((inv: any) => inv.no_invoice).filter(Boolean);
       if (noInvoices.length > 0) {
@@ -114,7 +114,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
               status_bayar: statusMap[inv.no_invoice].status,
             }));
           if (updates.length > 0) {
-            api.updateInvoiceStatusBatch(updates).catch(() => {});
+            api.updateInvoiceStatusBatch(updates, currentUser?.company_id || "").catch(() => {});
           }
         } catch { /* silent */ } finally {
           setLoadingStatus(false);
@@ -134,7 +134,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
     const suggest = async () => {
       setLoadingInvoiceNo(true);
       try {
-        const no = await generateInvoiceNo(new Date(tglInvoice));
+        const no = await generateInvoiceNo(new Date(tglInvoice), currentUser?.company_id || "");
         setManualInvoiceNo(no);
       } catch { } finally { setLoadingInvoiceNo(false); }
     };
@@ -162,7 +162,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
   const handleSaveDokumen = async (invId: string) => {
     setSavingDokumen(true);
     try {
-      await api.updateInvoiceDokumen(invId, formDokumen);
+      await api.updateInvoiceDokumen(invId, formDokumen, currentUser?.company_id || "");
       const inv = invoices.find((i: any) => i.id === invId);
       logAction(`Update Dokumen Invoice: ${inv?.no_invoice || invId}`, buildMeta({
         module: 'invoice', action_type: 'UPDATE', record_id: inv?.no_invoice || invId,
@@ -274,7 +274,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
       } else if (invoiceTipe === 'pelunasan') {
         keteranganInv = 'Pelunasan';
         setPendingKeterangan(keteranganInv);
-        const existing = await api.getInvoicesBySO([firstSO.order_id]);
+        const existing = await api.getInvoicesBySO([firstSO.order_id], currentUser?.company_id || "");
         const dpInv = existing.find((inv: any) => inv.tipe === 'dp');
         const sisa = (firstSO.total_harga_pajak || 0) - (dpInv?.total_setelah_pajak || 0);
         items = selectedSOList.map((s, i) => ({
@@ -338,11 +338,11 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
       total_setelah_pajak: previewData.total,
       tipe: pendingTipe,
       keterangan_invoice: pendingKeterangan,
-    });
+    }, currentUser?.company_id || "");
     for (const s of selectedSOList) {
-      await api.updateSOInvoiceCount(s.id, (s.invoice_count || 0) + 1);
+      await api.updateSOInvoiceCount(s.id, (s.invoice_count || 0) + 1, currentUser?.company_id || "");
     }
-    await api.updateSOInvoiceNo(selectedSOList.map(s => s.id), pendingInvoiceNo);
+    await api.updateSOInvoiceNo(selectedSOList.map(s => s.id), pendingInvoiceNo, currentUser?.company_id || "");
     logAction(`Generate Invoice: ${pendingInvoiceNo}`, buildMeta({
       module: 'invoice' as any, action_type: 'CREATE', record_id: pendingInvoiceNo,
       after_data: { customer: firstSO.customer, total: previewData.total, so_count: selectedIds.size, tipe: pendingTipe },
@@ -352,7 +352,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
     setDpKeterangan('');
     await loadInvoices();
     try {
-      const newNo = await generateInvoiceNo(new Date(tglInvoice));
+      const newNo = await generateInvoiceNo(new Date(tglInvoice), currentUser?.company_id || "");
       setManualInvoiceNo(newNo);
     } catch { }
   };
@@ -360,7 +360,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
   const handleDeleteInvoice = async (inv: any) => {
     setDeletingInvoiceId(inv.id);
     try {
-      await api.deleteInvoice(inv.id);
+      await api.deleteInvoice(inv.id, currentUser?.company_id || "");
       logAction(`Hapus Invoice: ${inv.no_invoice}`, buildMeta({
         module: 'invoice', action_type: 'DELETE', record_id: inv.no_invoice,
         before_data: { customer: inv.customer, total: inv.total_setelah_pajak },
@@ -1165,7 +1165,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
                         {inv.status_dokumen === 'Terkirim' && (
                           <button
                             onClick={async () => {
-                              await api.updateInvoiceDokumen(inv.id, { status_dokumen: 'Diterima Customer' });
+                              await api.updateInvoiceDokumen(inv.id, { status_dokumen: 'Diterima Customer' }, currentUser?.company_id || "");
                               logAction(`Invoice Diterima Customer: ${inv.no_invoice}`, buildMeta({
                                 module: 'invoice', action_type: 'UPDATE', record_id: inv.no_invoice,
                                 after_data: { status_dokumen: 'Diterima Customer' },

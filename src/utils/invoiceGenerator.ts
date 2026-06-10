@@ -2,8 +2,8 @@ import { api } from '../api';
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
 
-export async function generateInvoiceNo(date: Date): Promise<string> {
-  const lastSeq = await api.getLastInvoiceNo();
+export async function generateInvoiceNo(date: Date, companyId: string): Promise<string> {
+  const lastSeq = await api.getLastInvoiceNo(companyId);
   const nextSeq = lastSeq + 1;
   const month = ROMAN[date.getMonth()];
   const year = date.getFullYear();

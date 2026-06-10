@@ -1178,8 +1178,8 @@ export default function App() {
 
   // Load invoices on mount
   useEffect(() => {
-    api.getInvoices().then(setInvoices).catch(() => {});
-  }, []);
+    api.getInvoices(currentUser?.company_id || "").then(setInvoices).catch(() => {});
+  }, [currentUser]);
 
   const pushModal = useCallback((type: string, data: any) => {
     setActiveModals(prev => {

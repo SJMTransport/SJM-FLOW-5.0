@@ -59,7 +59,7 @@ export const QuotationPage: React.FC<QuotationPageProps> = ({ currentUser, logAc
 
   const loadQuotations = async () => {
     setLoading(true);
-    try { setQuotations(await api.getQuotations()); }
+    try { setQuotations(await api.getQuotations(currentUser?.company_id || "")); }
     catch (err: any) { showToast('Gagal memuat quotation: ' + err.message, 'error'); }
     finally { setLoading(false); }
   };
@@ -71,7 +71,7 @@ export const QuotationPage: React.FC<QuotationPageProps> = ({ currentUser, logAc
     const suggest = async () => {
       setLoadingNo(true);
       try {
-        const no = await generateQuotationNo(new Date(form.tgl_quotation));
+        const no = await generateQuotationNo(new Date(form.tgl_quotation), currentUser?.company_id || "");
         setForm(f => ({ ...f, no_quotation: no }));
       } catch { } finally { setLoadingNo(false); }
     };
@@ -110,7 +110,7 @@ export const QuotationPage: React.FC<QuotationPageProps> = ({ currentUser, logAc
         created_by: currentUser?.email || '',
       };
       if (editItem) {
-        await api.updateQuotation(editItem.id, payload);
+        await api.updateQuotation(editItem.id, payload, currentUser?.company_id || "");
         logAction(`Update Quotation: ${payload.no_quotation}`, buildMeta({
           module: 'quotation', action_type: 'UPDATE', record_id: payload.no_quotation,
           before_data: { customer: editItem.customer, harga: editItem.harga },
@@ -118,7 +118,7 @@ export const QuotationPage: React.FC<QuotationPageProps> = ({ currentUser, logAc
         }));
         showToast('Quotation berhasil diupdate', 'success');
       } else {
-        await api.addQuotation(payload);
+        await api.addQuotation(payload, currentUser?.company_id || "");
         logAction(`Buat Quotation: ${payload.no_quotation}`, buildMeta({
           module: 'quotation', action_type: 'CREATE', record_id: payload.no_quotation,
           after_data: { customer: payload.customer, harga: payload.harga },
@@ -184,7 +184,7 @@ export const QuotationPage: React.FC<QuotationPageProps> = ({ currentUser, logAc
 
   const handleDelete = async (q: any) => {
     try {
-      await api.deleteQuotation(q.id);
+      await api.deleteQuotation(q.id, currentUser?.company_id || "");
       logAction(`Hapus Quotation: ${q.no_quotation}`, buildMeta({
         module: 'quotation', action_type: 'DELETE', record_id: q.no_quotation,
         before_data: { customer: q.customer, harga: q.harga },

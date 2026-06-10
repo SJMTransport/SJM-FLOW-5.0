@@ -550,14 +550,14 @@ export const api = {
     }
     return data ? data[0] : null;
   },
-  getLastInvoiceNo: async (): Promise<number> => {
+  getLastInvoiceNo: async (companyId: string): Promise<number> => {
     const extractNum = (str: string): number => {
       const m = (str || '').match(/^(\d+)\//);
       return m ? parseInt(m[1], 10) : 0;
     };
     const [invRes, soRes] = await Promise.all([
-      supabaseManual.from('invoices').select('no_invoice'),
-      supabaseManual.from('sales_order').select('no_invoice'),
+      supabaseManual.from('invoices').select('no_invoice').eq('company_id', companyId),
+      supabaseManual.from('sales_order').select('no_invoice').eq('company_id', companyId),
     ]);
     let max = 0;
     (invRes.data || []).forEach((r: any) => { const n = extractNum(r.no_invoice); if (n > max) max = n; });
@@ -577,7 +577,7 @@ export const api = {
     tipe: 'normal' | 'dp' | 'pelunasan';
     keterangan_invoice?: string;
     [key: string]: any;
-  }) => {
+  }, companyId: string) => {
     const { data: res, error } = await supabase.from("invoices").insert([{
       no_invoice:          invoice.no_invoice,
       tgl_invoice:         invoice.tgl_invoice,
@@ -592,28 +592,31 @@ export const api = {
       keterangan_invoice:  invoice.keterangan_invoice || '',
       status_bayar:        'Belum Bayar',
       total_terbayar:      0,
+      company_id:          companyId,
     }]).select();
     if (error) throw new Error(error.message || "Gagal simpan invoice");
     return res?.[0];
   },
-  updateSOInvoiceNo: async (ids: string[], no_invoice: string) => {
+  updateSOInvoiceNo: async (ids: string[], no_invoice: string, companyId: string) => {
     for (const id of ids) {
-      const { error } = await supabaseManual.from("sales_order").update({ no_invoice }).eq("id", id);
+      const { error } = await supabaseManual.from("sales_order").update({ no_invoice }).eq("id", id).eq("company_id", companyId);
       if (error) throw new Error(error.message || "Gagal update no_invoice SO");
     }
   },
-  getInvoices: async () => {
+  getInvoices: async (companyId: string) => {
     const { data, error } = await supabase
       .from('invoices')
       .select('*')
+      .eq('company_id', companyId)
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message || "Gagal ambil data invoice");
     return data || [];
   },
-  getInvoicesBySO: async (orderIds: string[]) => {
+  getInvoicesBySO: async (orderIds: string[], companyId: string) => {
     const { data, error } = await supabase
       .from('invoices')
       .select('*')
+      .eq('company_id', companyId)
       .overlaps('so_order_ids', orderIds)
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message || "Gagal ambil invoice SO");
@@ -627,11 +630,12 @@ export const api = {
     if (error) throw new Error(error.message || "Gagal cek status pembayaran");
     return data;
   },
-  updateSOInvoiceCount: async (soId: string, count: number) => {
+  updateSOInvoiceCount: async (soId: string, count: number, companyId: string) => {
     const { error } = await supabase
       .from('sales_order')
       .update({ invoice_count: count })
-      .eq('id', soId);
+      .eq('id', soId)
+      .eq('company_id', companyId);
     if (error) throw new Error(error.message || "Gagal update invoice count");
   },
   getPaymentStatus: async (soOrderIds: string[]) => {
@@ -656,21 +660,22 @@ export const api = {
     (data || []).forEach((row: any) => { map[row.no_invoice] = row; });
     return map;
   },
-  updateInvoiceStatus: async (id: string, statusBayar: string, totalTerbayar: number) => {
+  updateInvoiceStatus: async (id: string, statusBayar: string, totalTerbayar: number, companyId: string) => {
     const { error } = await supabase
       .from('invoices')
       .update({ status_bayar: statusBayar, total_terbayar: totalTerbayar })
-      .eq('id', id);
+      .eq('id', id)
+      .eq('company_id', companyId);
     if (error) throw new Error(error.message || "Gagal update status invoice");
   },
 
-  updateInvoiceStatusBatch: async (updates: Array<{id: string, status_bayar: string}>) => {
+  updateInvoiceStatusBatch: async (updates: Array<{id: string, status_bayar: string}>, companyId: string) => {
     for (const u of updates) {
-      await supabase.from('invoices').update({ status_bayar: u.status_bayar }).eq('id', u.id);
+      await supabase.from('invoices').update({ status_bayar: u.status_bayar }).eq('id', u.id).eq('company_id', companyId);
     }
   },
-  deleteInvoice: async (id: string) => {
-    const { error } = await supabase.from('invoices').delete().eq('id', id);
+  deleteInvoice: async (id: string, companyId: string) => {
+    const { error } = await supabase.from('invoices').delete().eq('id', id).eq('company_id', companyId);
     if (error) throw new Error(error.message || 'Gagal hapus invoice');
   },
 
@@ -680,52 +685,57 @@ export const api = {
     no_resi?: string;
     tgl_kirim?: string;
     status_dokumen?: string;
-  }) => {
+  }, companyId: string) => {
     const { error } = await supabase
       .from('invoices')
       .update(data)
-      .eq('id', id);
+      .eq('id', id)
+      .eq('company_id', companyId);
     if (error) throw new Error(error.message || 'Gagal update dokumen invoice');
   },
 
-  getQuotations: async () => {
+  getQuotations: async (companyId: string) => {
     const { data, error } = await supabase
       .from('quotations')
       .select('*')
+      .eq('company_id', companyId)
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     return data || [];
   },
 
-  addQuotation: async (q: any) => {
+  addQuotation: async (q: any, companyId: string) => {
     const { data, error } = await supabase
       .from('quotations')
-      .insert([q])
+      .insert([{ ...q, company_id: companyId }])
       .select();
     if (error) throw new Error(error.message);
     return data?.[0];
   },
 
-  updateQuotation: async (id: string, updates: any) => {
+  updateQuotation: async (id: string, updates: any, companyId: string) => {
     const { error } = await supabase
       .from('quotations')
       .update(updates)
-      .eq('id', id);
+      .eq('id', id)
+      .eq('company_id', companyId);
     if (error) throw new Error(error.message);
   },
 
-  deleteQuotation: async (id: string) => {
+  deleteQuotation: async (id: string, companyId: string) => {
     const { error } = await supabase
       .from('quotations')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('company_id', companyId);
     if (error) throw new Error(error.message);
   },
 
-  getLastQuotationNo: async (): Promise<number> => {
+  getLastQuotationNo: async (companyId: string): Promise<number> => {
     const { data } = await supabase
       .from('quotations')
-      .select('no_quotation');
+      .select('no_quotation')
+      .eq('company_id', companyId);
     let max = 0;
     (data || []).forEach((r: any) => {
       const m = (r.no_quotation || '').match(/^(\d+)\//);
