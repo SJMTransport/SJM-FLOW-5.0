@@ -62,29 +62,23 @@ export const supabaseManual = (() => {
         } as any;
       },
       update: (data: any) => {
-        const wrap = (qs: string) => {
-           const p = doMut(table, "PATCH", data, qs);
-           return {
-             select: () => p,
-             then: (res: any, rej: any) => p.then(res, rej)
-           } as any;
+        const filters: string[] = [];
+        const obj: any = {
+          eq: (col: string, val: string) => { filters.push(`${col}=eq.${encodeURIComponent(val)}`); return obj; },
+          in: (col: string, vals: any[]) => { filters.push(`${col}=in.(${vals.map(v => encodeURIComponent(String(v))).join(",")})`); return obj; },
+          select: () => doMut(table, "PATCH", data, filters.join("&")),
+          then: (res: any, rej: any) => doMut(table, "PATCH", data, filters.join("&")).then(res, rej),
         };
-        return {
-          eq: (col: string, val: string) => wrap(`${col}=eq.${encodeURIComponent(val)}`),
-          in: (col: string, vals: any[]) => wrap(`${col}=in.(${vals.map(v => encodeURIComponent(String(v))).join(",")})`)
-        };
+        return obj;
       },
       delete: () => {
-        const wrap = (qs: string) => {
-           const p = doMut(table, "DELETE", null, qs);
-           return {
-             then: (res: any, rej: any) => p.then(res, rej)
-           } as any;
+        const filters: string[] = [];
+        const obj: any = {
+          eq: (col: string, val: string) => { filters.push(`${col}=eq.${encodeURIComponent(val)}`); return obj; },
+          in: (col: string, vals: any[]) => { filters.push(`${col}=in.(${vals.map(v => encodeURIComponent(String(v))).join(",")})`); return obj; },
+          then: (res: any, rej: any) => doMut(table, "DELETE", null, filters.join("&")).then(res, rej),
         };
-        return {
-          eq: (col: string, val: string) => wrap(`${col}=eq.${encodeURIComponent(val)}`),
-          in: (col: string, vals: any[]) => wrap(`${col}=in.(${vals.map(v => encodeURIComponent(String(v))).join(",")})`)
-        };
+        return obj;
       },
     }),
   };
@@ -94,33 +88,33 @@ export const supabaseManual = (() => {
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 export const api = {
-  getCoa: async () => {
-    const { data, error } = await supabaseManual.from("coa").select("*").eq("status", "Aktif").order("kode", { ascending: true });
+  getCoa: async (companyId: string) => {
+    const { data, error } = await supabaseManual.from("coa").select("*").eq("status", "Aktif").eq("company_id", companyId).order("kode", { ascending: true });
     if (error) { console.error("getCoa", error); return []; }
     return data || [];
   },
-  getAllCoa: async () => {
-    const { data, error } = await supabaseManual.from("coa").select("*").order("kode", { ascending: true });
+  getAllCoa: async (companyId: string) => {
+    const { data, error } = await supabaseManual.from("coa").select("*").eq("company_id", companyId).order("kode", { ascending: true });
     if (error) { console.error("getAllCoa", error); return []; }
     return data || [];
   },
-  addCoa: async (data: any) => {
-    const { data: res, error } = await supabaseManual.from("coa").insert([data]).select();
+  addCoa: async (data: any, companyId: string) => {
+    const { data: res, error } = await supabaseManual.from("coa").insert([{ ...data, company_id: companyId }]).select();
     if (error) throw new Error(error.message || "Gagal tambah COA");
     return res || [];
   },
-  updateCoa: async (id: string, data: any) => {
-    const { error } = await supabaseManual.from("coa").update(data).eq("id", id);
+  updateCoa: async (id: string, data: any, companyId: string) => {
+    const { error } = await supabaseManual.from("coa").update(data).eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal update COA");
     return [];
   },
-  deleteCoa: async (id: string) => {
-    const { error } = await supabaseManual.from("coa").delete().eq("id", id);
+  deleteCoa: async (id: string, companyId: string) => {
+    const { error } = await supabaseManual.from("coa").delete().eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal hapus COA");
     return [];
   },
-  getJurnal: async () => {
-    const { data, error } = await supabaseManual.from("jurnal").select("*, jurnal_detail(*)").order("no_jurnal", { ascending: true });
+  getJurnal: async (companyId: string) => {
+    const { data, error } = await supabaseManual.from("jurnal").select("*, jurnal_detail(*)").eq("company_id", companyId).order("no_jurnal", { ascending: true });
     if (error) {
       console.error("getJurnal", error);
       throw new Error("Gagal memuat data jurnal: " + (error.message || JSON.stringify(error)));
@@ -130,13 +124,14 @@ export const api = {
       status: j.status || "Draft"
     }));
   },
-  bulkApproveJurnal: async (ids: string[]) => {
-    const { error } = await supabaseManual.from("jurnal").update({ status: "Posted" }).in("id", ids);
+  bulkApproveJurnal: async (ids: string[], companyId: string) => {
+    const { error } = await supabaseManual.from("jurnal").update({ status: "Posted" }).in("id", ids).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal approve jurnal");
     return [];
   },
-  createJurnalWithDetails: async (header: any, details: any[]) => {
+  createJurnalWithDetails: async (header: any, details: any[], companyId: string) => {
     const { data, error } = await supabase.rpc("create_jurnal_with_details", {
+      p_company_id:  companyId,
       p_no_jurnal:   header.no_jurnal,
       p_tanggal:     header.tanggal,
       p_no_bukti:    header.no_bukti   || null,
@@ -155,9 +150,10 @@ export const api = {
     if (row && row.success === false) throw new Error(row?.message || "Gagal simpan jurnal");
     return (row?.jurnal_id ?? null) as string;
   },
-  updateJurnalWithDetails: async (id: string, header: any, details: any[]) => {
+  updateJurnalWithDetails: async (id: string, header: any, details: any[], companyId: string) => {
     const { data, error } = await supabase.rpc("update_jurnal_with_details", {
       p_id:          id,
+      p_company_id:  companyId,
       p_no_jurnal:   header.no_jurnal,
       p_tanggal:     header.tanggal,
       p_no_bukti:    header.no_bukti   || null,
@@ -175,27 +171,27 @@ export const api = {
     if (row && row.success === false) throw new Error(row?.message || "Gagal update jurnal");
   },
   /** @deprecated Superseded by createJurnalWithDetails RPC. Do not use. */
-  addJurnal: async (data: any) => {
-    const { data: res, error } = await supabaseManual.from("jurnal").insert([data]).select();
+  addJurnal: async (data: any, companyId: string) => {
+    const { data: res, error } = await supabaseManual.from("jurnal").insert([{ ...data, company_id: companyId }]).select();
     if (error) throw new Error(error.message || "Gagal tambah jurnal");
     return res || [];
   },
   /** @deprecated Superseded by createJurnalWithDetails RPC. Do not use. */
-  addJurnalDetail: async (rows: any[]) => {
-    const { error } = await supabaseManual.from("jurnal_detail").insert(rows);
+  addJurnalDetail: async (rows: any[], companyId: string) => {
+    const { error } = await supabaseManual.from("jurnal_detail").insert(rows.map(r => ({ ...r, company_id: companyId })));
     if (error) throw new Error(error.message || "Gagal tambah detail jurnal");
     return [];
   },
-  updateJurnal: async (id: string, data: any) => {
-    const { error } = await supabaseManual.from("jurnal").update(data).eq("id", id);
+  updateJurnal: async (id: string, data: any, companyId: string) => {
+    const { error } = await supabaseManual.from("jurnal").update(data).eq("id", id).eq("company_id", companyId);
     if (error) throw new Error(error.message || "Gagal update jurnal");
     return [];
   },
-  deleteJurnal: async (id: string, deletedBy: string) => {
+  deleteJurnal: async (id: string, deletedBy: string, companyId: string) => {
     const now = new Date().toISOString();
     const { error } = await supabaseManual.from("jurnal")
       .update({ deleted_at: now, deleted_by: deletedBy })
-      .eq("id", id);
+      .eq("id", id).eq("company_id", companyId);
     if (error) throw new Error("Gagal menghapus jurnal: " + (error.message || JSON.stringify(error)));
     return [];
   },
@@ -257,20 +253,20 @@ export const api = {
     return [];
   },
   /** @deprecated Use genJUNo from utils instead. */
-  getLastJurnalNo: async () => {
-    const { data, error } = await supabaseManual.from("jurnal").select("no_jurnal").order("created_at", { ascending: false }).limit(1);
+  getLastJurnalNo: async (companyId: string) => {
+    const { data, error } = await supabaseManual.from("jurnal").select("no_jurnal").eq("company_id", companyId).order("created_at", { ascending: false }).limit(1);
     if (error || !data?.length) return [];
     return data;
   },
-  renomorJurnal: async () => {
-    const { data, error } = await supabaseManual.from("jurnal").select("id,tanggal,created_at,no_jurnal").order("tanggal", { ascending: true }).order("created_at", { ascending: true });
+  renomorJurnal: async (companyId: string) => {
+    const { data, error } = await supabaseManual.from("jurnal").select("id,tanggal,created_at,no_jurnal").eq("company_id", companyId).order("tanggal", { ascending: true }).order("created_at", { ascending: true });
     if (error || !data?.length) throw new Error("Gagal ambil data jurnal: " + (error?.message || ""));
     const yr = new Date().getFullYear().toString().slice(-2);
     let updated = 0;
     for (let i = 0; i < data.length; i++) {
       const no = `JU-${String(i + 1).padStart(5, "0")}.${yr}`;
       if (data[i].no_jurnal === no) { updated++; continue; }
-      const { error: updErr } = await supabaseManual.from("jurnal").update({ no_jurnal: no }).eq("id", data[i].id);
+      const { error: updErr } = await supabaseManual.from("jurnal").update({ no_jurnal: no }).eq("id", data[i].id).eq("company_id", companyId);
       if (updErr) throw new Error(`Gagal update jurnal id ${data[i].id}: ${updErr.message}`);
       updated++;
     }

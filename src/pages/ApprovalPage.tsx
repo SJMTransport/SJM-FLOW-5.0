@@ -33,7 +33,7 @@ export const ApprovalPage = ({ jurnal, setJurnal, currentUser, onJurnalClick, lo
       onConfirm: async () => {
         setProcessing(true);
         try {
-          await api.bulkApproveJurnal(selected);
+          await api.bulkApproveJurnal(selected, currentUser?.company_id || "");
           setJurnal((prev: any[]) => prev.map(j => selected.includes(j.id) ? { ...j, status: "Posted" } : j));
           logAction(`Approve Jurnal Masal: ${selected.length} jurnal`, { ids: selected });
           showToast(`${selected.length} Jurnal berhasil disetujui.`);

@@ -125,7 +125,7 @@ export const JurnalUmum = ({ jurnal, setJurnal, coa, so, connected, currentUser,
     }
     setDeleteLoading(true);
     try {
-      await api.deleteJurnal(deleteConfirm.id, currentUser?.email || "unknown");
+      await api.deleteJurnal(deleteConfirm.id, currentUser?.email || "unknown", currentUser?.company_id || "");
       logAction(`Hapus Jurnal: ${deleteConfirm.no}`, buildMeta({
         module: 'jurnal',
         action_type: 'DELETE',
@@ -228,12 +228,12 @@ export const JurnalUmum = ({ jurnal, setJurnal, coa, so, connected, currentUser,
         no_so: e.no_so || null,
       }));
       if (editJurnalId) {
-        await api.updateJurnalWithDetails(editJurnalId, jurnalData, details);
+        await api.updateJurnalWithDetails(editJurnalId, jurnalData, details, currentUser?.company_id || "");
       } else {
-        await api.createJurnalWithDetails(jurnalData, details);
+        await api.createJurnalWithDetails(jurnalData, details, currentUser?.company_id || "");
       }
       setReloading(true);
-      const updated = await api.getJurnal();
+      const updated = await api.getJurnal(currentUser?.company_id || "");
       setJurnal(updated);
       setReloading(false);
       const afterSnap = { no_jurnal: nj, tanggal: t, keterangan: form.keterangan, total_debit: totalD, entries: form.entries.length };
@@ -279,7 +279,7 @@ export const JurnalUmum = ({ jurnal, setJurnal, coa, so, connected, currentUser,
           const foundIds = orderIds.filter((id: string) => desc.includes(id.toUpperCase()));
           if (foundIds.length > 0) {
               const noSO = [...new Set(foundIds)].join(", ");
-              await api.updateJurnal(j.id, { no_so: noSO });
+              await api.updateJurnal(j.id, { no_so: noSO }, currentUser?.company_id || "");
               linked++;
           }
       }
@@ -288,7 +288,7 @@ export const JurnalUmum = ({ jurnal, setJurnal, coa, so, connected, currentUser,
           showToast(`${linked} jurnal berhasil dihubungkan kembali dengan SO.`);
           logAction(`Sinkronisasi Jurnal ke SO: ${linked} jurnal dihubungkan`, buildMeta({ module: 'jurnal', action_type: 'SYNC', after_data: { linked_count: linked } }));
           setReloading(true);
-          const updated = await api.getJurnal();
+          const updated = await api.getJurnal(currentUser?.company_id || "");
           setJurnal(updated);
           setReloading(false);
       } else {

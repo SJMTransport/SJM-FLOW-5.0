@@ -1257,8 +1257,10 @@ export default function App() {
     });
   };
 
+  const companyId = currentUser?.company_id || "";
+
   const loadJurnal = async () => {
-    try { setJurnal(await api.getJurnal()); } catch (err: any) {
+    try { setJurnal(await api.getJurnal(companyId)); } catch (err: any) {
       console.error('loadJurnal error:', err);
       showToast('Data jurnal gagal dimuat ulang. Refresh halaman jika data tidak akurat.', 'error');
     }
@@ -1270,7 +1272,7 @@ export default function App() {
     }
   };
   const loadCOA = async () => {
-    try { setCoa(await api.getCoa()); } catch { /* silent */ }
+    try { setCoa(await api.getCoa(companyId)); } catch { /* silent */ }
   };
   const loadAuditLogs = async () => {
     try { setAuditLogs(await api.getLogs()); } catch { /* silent */ }
@@ -1280,7 +1282,7 @@ export default function App() {
     setLoading(true);
     try {
       const [c, j, s, cu, p, arm, armD, armS, sop, usr, sa, logs] = await Promise.all([
-        api.getCoa(), api.getJurnal(), api.getSO(), api.getCustomer(),
+        api.getCoa(companyId), api.getJurnal(companyId), api.getSO(), api.getCustomer(),
         api.getPiutang(), api.getArmada(), api.getArmadaDokumen(), api.getArmadaService(),
         api.getSopir(), authActions.getAllUsers(), api.getSaldoAwal(), api.getLogs()
       ]);

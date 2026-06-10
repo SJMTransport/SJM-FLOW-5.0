@@ -22,7 +22,7 @@ export const MasterPage = ({ activeSub, coa, setCoa, users, setUsers, saldoAwal,
       msg: `Apakah Anda yakin ingin menghapus akun ${name}?`,
       onConfirm: async () => {
         try {
-          await api.deleteCoa(id);
+          await api.deleteCoa(id, currentUser?.company_id || "");
           setCoa((prev: any[]) => prev.filter(x => x.id !== id));
           logAction(`Hapus COA: ${name}`, buildMeta({ module: 'coa', action_type: 'DELETE', record_id: name, before_data: oldCoa || { id } }));
           showToast("COA berhasil dihapus");
@@ -77,11 +77,11 @@ export const MasterPage = ({ activeSub, coa, setCoa, users, setUsers, saldoAwal,
     try {
       if (form.id) {
         const oldCoa = (coa || []).find((c: any) => c.id === form.id);
-        await api.updateCoa(form.id, form);
+        await api.updateCoa(form.id, form, currentUser?.company_id || "");
         setCoa((prev: any[]) => prev.map(x => x.id === form.id ? form : x));
         logAction(`Update COA: ${form.kode} - ${form.nama}`, buildMeta({ module: 'coa', action_type: 'UPDATE', record_id: `${form.kode} - ${form.nama}`, before_data: oldCoa || null, after_data: form }));
       } else {
-        const res = await api.addCoa({ ...form, status: "Aktif" });
+        const res = await api.addCoa({ ...form, status: "Aktif" }, currentUser?.company_id || "");
         setCoa((prev: any[]) => [...prev, res[0]]);
         logAction(`Add COA: ${form.kode} - ${form.nama}`, buildMeta({ module: 'coa', action_type: 'CREATE', record_id: `${form.kode} - ${form.nama}`, after_data: res[0] }));
       }
