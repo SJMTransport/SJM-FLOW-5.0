@@ -590,6 +590,7 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
 
     return (
       <PageShell>
+        <div className="text-[11px] text-[#EB5E28] mb-1">Laporan › Neraca</div>
         <SectionHeader
           title="Posisi Keuangan"
           sub={`Trial Balance / Neraca Saldo per ${periodLabel}`}
@@ -881,6 +882,7 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
 
     return (
       <PageShell>
+        <div className="text-[11px] text-[#EB5E28] mb-1">Laporan › Laba Rugi</div>
         <SectionHeader
           title="Kinerja Operasional"
           sub={`Laporan Laba Rugi periode ${periodLabel}`}
@@ -963,6 +965,7 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
 
     return (
       <PageShell>
+        <div className="text-[11px] text-[#EB5E28] mb-1">Laporan › Profitabilitas</div>
         <SectionHeader
           title="Analisis Profit Muatan"
           sub="Pemantauan margin keuntungan real-time per order"
@@ -1092,6 +1095,7 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
             </div>
           </div>
         )}
+        <div className="text-[11px] text-[#EB5E28] mb-1">Laporan › Audit</div>
         <SectionHeader title="Log Aktivitas User" sub="Catatan riwayat penggunaan dan mutasi data aplikasi" />
         <ActionBar
           left={
@@ -1438,6 +1442,7 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
 
     return (
       <PageShell>
+        <div className="text-[11px] text-[#EB5E28] mb-1">Laporan › Buku Besar</div>
         <SectionHeader
           title="Rincian Buku Besar"
           sub="Laporan mutasi transaksi mendalam per akun COA"
@@ -1582,7 +1587,8 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
 
   return (
     <PageShell>
-      <SectionHeader title="Laporan & Analitik" sub="Laporan performa finansial, operasional, dan audit sistem" />
+      <div className="text-[11px] text-[#EB5E28] mb-1">Laporan › Keuangan</div>
+      <SectionHeader title="Laporan Keuangan" sub="Neraca, Laba Rugi, Buku Besar" />
       <Card className="flex flex-col items-center justify-center p-20 text-center bg-slate-50/20 border-dashed border-2 border-border-main/40 rounded-3xl min-h-[400px]">
          <div className="w-16 h-16 rounded-2xl bg-white shadow-xl shadow-accent/5 flex items-center justify-center mb-6 border border-border-main/20">
             <Icon name="BarChart3" size={24} className="text-accent opacity-20" />

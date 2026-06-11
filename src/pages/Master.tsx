@@ -134,6 +134,7 @@ export const MasterPage = ({ activeSub, coa, setCoa, users, setUsers, saldoAwal,
       <PageShell>
         <ModalUI />
         <ToastUI />
+        <div className="text-[11px] text-[#EB5E28] mb-1">Sistem › Master COA</div>
         <SectionHeader
             title="Master COA"
             sub="Kelola bagan akun perkiraan standar akuntansi PT SJM"
@@ -274,8 +275,9 @@ export const MasterPage = ({ activeSub, coa, setCoa, users, setUsers, saldoAwal,
     return (
       <PageShell>
         <ToastUI />
-        <SectionHeader 
-            title="Konfigurasi Saldo Awal" 
+        <div className="text-[11px] text-[#EB5E28] mb-1">Sistem › Saldo Awal</div>
+        <SectionHeader
+            title="Konfigurasi Saldo Awal"
             sub="Pencatatan saldo pembukaan akun per periode akuntansi" 
             action={
                 <button
@@ -345,6 +347,7 @@ export const MasterPage = ({ activeSub, coa, setCoa, users, setUsers, saldoAwal,
       <PageShell>
         <ModalUI />
         <ToastUI />
+        <div className="text-[11px] text-[#EB5E28] mb-1">Sistem › Pengguna</div>
         <SectionHeader
             title="Manajemen Pengguna"
             sub="Kelola akses dan hak istimewa akun internal SJM"
@@ -477,6 +480,7 @@ export const MasterPage = ({ activeSub, coa, setCoa, users, setUsers, saldoAwal,
       <PageShell>
         <div className="max-w-[500px] mx-auto">
         <ToastUI />
+        <div className="text-[11px] text-[#EB5E28] mb-1">Sistem › Keamanan</div>
         <SectionHeader title="Keamanan" sub="Perbarui kredensial login Anda" />
         <Card className="p-8 space-y-5 shadow-2xl shadow-slate-200/50">
             <div className="space-y-1.5">
@@ -512,7 +516,8 @@ export const MasterPage = ({ activeSub, coa, setCoa, users, setUsers, saldoAwal,
 
   return (
     <PageShell>
-        <SectionHeader title="Master Data" sub={`Menu ${activeSub}`} />
+        <div className="text-[11px] text-[#EB5E28] mb-1">Sistem › Master</div>
+        <SectionHeader title="Master" sub="Data master dan pengaturan sistem" />
         <Card className="flex flex-col items-center justify-center p-20 text-center bg-slate-50/50 border-dashed border-2 border-border-main/50">
             <div className="w-20 h-20 rounded-3xl bg-white shadow-xl flex items-center justify-center mb-6 border border-border-main/30">
                 <Icon name="Database" size={32} className="text-text-light opacity-20" />

@@ -213,8 +213,9 @@ export const ArmadaPage = ({ activeSub, armada, setArmada, dokumen, setDokumen, 
 
     return (
       <PageShell>
-        <SectionHeader 
-          title="Analisis Finansial Per Unit" 
+        <div className="text-[11px] text-[#EB5E28] mb-1">Armada › Dashboard</div>
+        <SectionHeader
+          title="Analisis Finansial Per Unit"
           sub="Ringkasan performa pendapatan dan beban operasional setiap armada" 
           action={
             <div className="flex flex-col sm:flex-row gap-2 items-center">
@@ -322,8 +323,9 @@ export const ArmadaPage = ({ activeSub, armada, setArmada, dokumen, setDokumen, 
       <PageShell>
         <ConfirmModalUI />
         <ToastUI />
-        <SectionHeader 
-          title="Master Armada" 
+        <div className="text-[11px] text-[#EB5E28] mb-1">Armada › Unit</div>
+        <SectionHeader
+          title="Master Armada"
           sub={`Manajemen ${armada.length} unit kendaraan operasional`} 
           action={
             <button className="btn-primary" onClick={() => { setEditing(null); setItem({}); setShowModal(true); }}>
@@ -472,8 +474,9 @@ export const ArmadaPage = ({ activeSub, armada, setArmada, dokumen, setDokumen, 
       <PageShell>
         <ConfirmModalUI />
         <ToastUI />
-        <SectionHeader 
-            title="Legalitas Armada" 
+        <div className="text-[11px] text-[#EB5E28] mb-1">Armada › Dokumen</div>
+        <SectionHeader
+            title="Legalitas Armada"
             sub="Pemantauan masa berlaku dokumen (STNK, KIR, SIPA, dll)" 
             action={
                 <button className="btn-primary" onClick={() => { setItem({}); setShowDocModal(true); }}>
@@ -612,8 +615,9 @@ export const ArmadaPage = ({ activeSub, armada, setArmada, dokumen, setDokumen, 
     return (
       <PageShell>
         <ToastUI />
-        <SectionHeader 
-          title="Log Pemeliharaan" 
+        <div className="text-[11px] text-[#EB5E28] mb-1">Armada › Service</div>
+        <SectionHeader
+          title="Log Pemeliharaan"
           sub="Riwayat maintenance rutin dan perbaikan unit" 
           action={
               <button className="btn-primary" onClick={() => { setItem({}); setShowServiceModal(true); }}>
@@ -744,8 +748,9 @@ export const ArmadaPage = ({ activeSub, armada, setArmada, dokumen, setDokumen, 
     return (
       <PageShell>
         <ToastUI />
-        <SectionHeader 
-          title="Manajemen Pengemudi" 
+        <div className="text-[11px] text-[#EB5E28] mb-1">Armada › Sopir</div>
+        <SectionHeader
+          title="Manajemen Pengemudi"
           sub={`Data personil ${sopir.length} sopir operasional`} 
           action={
               <button className="btn-primary" onClick={() => { setEditing(null); setItem({}); setShowSopirModal(true); }}>
