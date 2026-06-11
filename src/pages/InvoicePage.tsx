@@ -490,19 +490,24 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
       {ToastUI}
 
       {/* ── HEADER ── */}
-      <PageHeader
-        title="Invoice"
-        sub="Manajemen invoice PT Sugiarto Jaya Mandiri"
-        action={
-          <button
-            onClick={() => { setActiveTab(activeTab === 'buat' ? 'daftar' : 'buat'); setSelectedIds(new Set()); }}
-            className="btn-primary h-9 px-4 text-[12px] flex items-center gap-2"
-          >
-            <Icon name={activeTab === 'buat' ? 'List' : 'Plus'} size={14} />
-            {activeTab === 'buat' ? 'Daftar Invoice' : 'Buat Invoice'}
-          </button>
-        }
-      />
+      <div className="mb-6">
+        <div className="text-[11px] text-[#EB5E28] mb-1">Operasional › Invoice</div>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-[22px] font-black text-[#1A1A1A] leading-tight">Invoice</h1>
+            <p className="text-[12px] text-[#52504A] mt-1">Manajemen invoice PT Sugiarto Jaya Mandiri</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setActiveTab(activeTab === 'buat' ? 'daftar' : 'buat'); setSelectedIds(new Set()); }}
+              className="btn-primary h-9 px-4 text-[12px] flex items-center gap-2"
+            >
+              <Icon name={activeTab === 'buat' ? 'List' : 'Plus'} size={14} />
+              {activeTab === 'buat' ? 'Daftar Invoice' : 'Buat Invoice'}
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* ══════════════════════════════════ */}
       {/* VIEW: DAFTAR INVOICE               */}

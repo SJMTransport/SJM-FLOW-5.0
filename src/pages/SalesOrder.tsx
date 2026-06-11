@@ -561,8 +561,18 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
     <PageShell>
       <ConfirmModalUI />
       <ToastUI />
-      <PageHeader title="Sales Order" sub={`${so.length} SO tersimpan`}
-        action={canEdit && <button className="btn-primary" onClick={openNew}><Icon name="Plus" size={16} /> SO Baru</button>} />
+      <div className="mb-6">
+        <div className="text-[11px] text-[#EB5E28] mb-1">Operasional › Sales Order</div>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-[22px] font-black text-[#1A1A1A] leading-tight">Sales Order</h1>
+            <p className="text-[12px] text-[#52504A] mt-1">Manajemen order pengiriman alat berat</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {canEdit && <button className="btn-primary" onClick={openNew}><Icon name="Plus" size={16} /> SO Baru</button>}
+          </div>
+        </div>
+      </div>
 
       {tab !== "list" && (
         <div className="tab-bar">

@@ -204,27 +204,32 @@ export const QuotationPage: React.FC<QuotationPageProps> = ({ currentUser, logAc
       {ToastUI}
 
       {/* HEADER */}
-      <PageHeader
-        title="Quotation"
-        sub="Penawaran harga kepada customer potensial"
-        action={
-          <button
-            onClick={() => {
-              if (activeTab === 'buat') {
-                setForm({ ...EMPTY_FORM });
-                setEditItem(null);
-                setActiveTab('daftar');
-              } else {
-                setActiveTab('buat');
-              }
-            }}
-            className="btn-primary h-9 px-4 text-[12px] flex items-center gap-2"
-          >
-            <Icon name={activeTab === 'buat' ? 'List' : 'Plus'} size={14} />
-            {activeTab === 'buat' ? 'Daftar Quotation' : 'Buat Quotation'}
-          </button>
-        }
-      />
+      <div className="mb-6">
+        <div className="text-[11px] text-[#EB5E28] mb-1">Operasional › Quotation</div>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-[22px] font-black text-[#1A1A1A] leading-tight">Quotation</h1>
+            <p className="text-[12px] text-[#52504A] mt-1">Penawaran harga kepada customer potensial</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (activeTab === 'buat') {
+                  setForm({ ...EMPTY_FORM });
+                  setEditItem(null);
+                  setActiveTab('daftar');
+                } else {
+                  setActiveTab('buat');
+                }
+              }}
+              className="btn-primary h-9 px-4 text-[12px] flex items-center gap-2"
+            >
+              <Icon name={activeTab === 'buat' ? 'List' : 'Plus'} size={14} />
+              {activeTab === 'buat' ? 'Daftar Quotation' : 'Buat Quotation'}
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* VIEW: DAFTAR */}
       {activeTab === 'daftar' && (
