@@ -1694,8 +1694,8 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
               </div>
               <div className="hidden md:block">
                 <div className="text-[12px] font-semibold text-[#1A1A1A] leading-none">{currentUser.nama}</div>
-                <div className="text-[10px] text-[#9B9690] mt-0.5">
-                  {currentUser.role}
+                <div className="text-[10px] text-[#9B9690] mt-0.5 truncate" style={{ maxWidth: "160px" }}>
+                  {currentUser.role}{activeCompany?.nama ? ` · ${activeCompany.nama}` : ""}
                 </div>
               </div>
               <Icon name="ChevronDown" size={14} className="text-[#9B9690]" />
