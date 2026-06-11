@@ -17,7 +17,7 @@ export const logAudit = async (
 ): Promise<void> => {
   try {
     await api.addLog({
-      timestamp: new Date().toISOString(),
+      created_at: new Date().toISOString(),
       user_name: userName,
       user_email: userEmail,
       action,

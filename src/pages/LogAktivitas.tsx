@@ -71,8 +71,8 @@ export const LogAktivitasPage = ({ auditLogs, currentUser }: any) => {
   // Terapkan filter user
   const filtered = useMemo(() => {
     return permissionFiltered.filter((log: any) => {
-      if (filterFrom && log.timestamp < filterFrom) return false;
-      if (filterTo   && log.timestamp > filterTo + 'T23:59:59') return false;
+      if (filterFrom && log.created_at < filterFrom) return false;
+      if (filterTo   && log.created_at > filterTo + 'T23:59:59') return false;
       if (filterModule && log.meta?.module !== filterModule) return false;
       if (filterAction && log.meta?.action_type !== filterAction) return false;
       if (filterSearch) {
@@ -188,7 +188,7 @@ export const LogAktivitasPage = ({ auditLogs, currentUser }: any) => {
                 <tr key={log.id || i} className="hover:bg-accent/5 transition-colors">
                   {/* Waktu */}
                   <td className="py-2.5 px-4 text-[11px] text-text-light font-mono whitespace-nowrap">
-                    {formatDateTime(log.timestamp)}
+                    {formatDateTime(log.created_at)}
                   </td>
 
                   {/* User */}
