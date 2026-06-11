@@ -1733,6 +1733,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
               {activeModule === "dashboard" && <Dashboard
                 jurnal={jurnal} so={so} coa={coa} piutang={piutang}
                 armada={armada} sopir={sopir} armadaDokumen={armadaDokumen}
+                currentUser={currentUser}
                 onSOClick={handleSOClick}
                 onJurnalClick={canView(currentUser.role, "jurnal") ? handleJurnalClick : undefined}
                 onNavigate={(mod: string, sub?: string) => {
