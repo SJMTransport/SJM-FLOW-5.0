@@ -526,7 +526,16 @@ export const HutangPiutangPage = ({ jurnal, coa, so, armada, connected, onSOClic
 
   return (
     <PageShell>
-      <SectionHeader title="Hutang & Piutang" sub="Monitoring saldo outstanding mitra & customer" />
+      <div className="mb-6">
+        <div className="text-[11px] text-[#EB5E28] mb-1">Keuangan › Hutang & Piutang</div>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-[22px] font-black text-[#1A1A1A] leading-tight">Hutang & Piutang</h1>
+            <p className="text-[12px] text-[#52504A] mt-1">Monitoring posisi hutang dan piutang</p>
+          </div>
+          <div className="flex items-center gap-2" />
+        </div>
+      </div>
 
       {showPrefillBanner && prefillData && (
         <div className="p-4 bg-green-brand-light/30 border border-green-brand/20 rounded-2xl flex justify-between items-center animate-fade-down">

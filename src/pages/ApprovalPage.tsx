@@ -50,17 +50,25 @@ export const ApprovalPage = ({ jurnal, setJurnal, currentUser, onJurnalClick, lo
     <PageShell>
       <ConfirmModalUI />
       <ToastUI />
-      <SectionHeader title="Persetujuan Jurnal" sub="Validasi dan setujui entri jurnal secara massal untuk posting final"
-        action={
-          <button 
-            className="btn-primary"
-            onClick={approveBulk} 
-            disabled={selected.length === 0 || processing}
-          >
-            {processing ? <Icon name="Loader2" className="animate-spin" size={14} /> : <Icon name="CheckSquare" size={14} />}
-            {processing ? "Memproses..." : `Setujui (${selected.length})`}
-          </button>
-        } />
+      <div className="mb-6">
+        <div className="text-[11px] text-[#EB5E28] mb-1">Keuangan › Persetujuan Jurnal</div>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-[22px] font-black text-[#1A1A1A] leading-tight">Persetujuan Jurnal</h1>
+            <p className="text-[12px] text-[#52504A] mt-1">Validasi dan posting jurnal massal</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              className="btn-primary"
+              onClick={approveBulk}
+              disabled={selected.length === 0 || processing}
+            >
+              {processing ? <Icon name="Loader2" className="animate-spin" size={14} /> : <Icon name="CheckSquare" size={14} />}
+              {processing ? "Memproses..." : `Setujui (${selected.length})`}
+            </button>
+          </div>
+        </div>
+      </div>
 
       <Card className="p-0 border-border-main/40 overflow-hidden shadow-sm">
         <div className="overflow-x-auto max-h-[calc(100vh-360px)]">

@@ -456,27 +456,35 @@ export const JurnalUmum = ({ jurnal, setJurnal, coa, so, connected, currentUser,
     <PageShell>
       <ConfirmJurnalModal />
       <ToastUI />
-      <SectionHeader title={`Jurnal Umum`} sub={`${filtered.length} Transaksi terfilter`}
-        action={
-          <div className="flex flex-wrap gap-2">
-            <div className="btn-export-group">
-               <button className="flex items-center gap-1.5 px-4 text-[10px] font-bold text-green-brand hover:bg-grey-50 border-r border-border-main transition-colors" onClick={exportExcel} title="Export Excel">
-                  <Icon name="Download" size={14} /> XLS
-               </button>
-               <button className="flex items-center gap-1.5 px-4 text-[10px] font-bold text-red-brand hover:bg-grey-50 transition-colors" onClick={exportPDF} title="Export PDF">
-                  <Icon name="FileText" size={14} /> PDF
-               </button>
-            </div>
-            <button
-              className="btn-ghost"
-              onClick={syncSO}
-              disabled={syncing}
-            >
-              <Icon name="RefreshCw" size={12} className={syncing ? "animate-spin" : ""} />
-              {syncing ? "Linking..." : "Hubungkan SO"}
-            </button>
+      <div className="mb-6">
+        <div className="text-[11px] text-[#EB5E28] mb-1">Keuangan › Jurnal Umum</div>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-[22px] font-black text-[#1A1A1A] leading-tight">Jurnal Umum</h1>
+            <p className="text-[12px] text-[#52504A] mt-1">Pencatatan transaksi keuangan double-entry</p>
           </div>
-        } />
+          <div className="flex items-center gap-2">
+            <div className="flex flex-wrap gap-2">
+              <div className="btn-export-group">
+                 <button className="flex items-center gap-1.5 px-4 text-[10px] font-bold text-green-brand hover:bg-grey-50 border-r border-border-main transition-colors" onClick={exportExcel} title="Export Excel">
+                    <Icon name="Download" size={14} /> XLS
+                 </button>
+                 <button className="flex items-center gap-1.5 px-4 text-[10px] font-bold text-red-brand hover:bg-grey-50 transition-colors" onClick={exportPDF} title="Export PDF">
+                    <Icon name="FileText" size={14} /> PDF
+                 </button>
+              </div>
+              <button
+                className="btn-ghost"
+                onClick={syncSO}
+                disabled={syncing}
+              >
+                <Icon name="RefreshCw" size={12} className={syncing ? "animate-spin" : ""} />
+                {syncing ? "Linking..." : "Hubungkan SO"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="tab-bar">
         {[["list", "Daftar Jurnal"], ["input", "Input Jurnal"]].map(([k, l]) => (
