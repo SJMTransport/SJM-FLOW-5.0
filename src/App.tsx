@@ -53,22 +53,22 @@ const LoginPage = ({ onLogin }: any) => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-6" style={{ background: "#F5F4F1" }}>
+    <div className="min-h-screen w-full flex flex-col items-center justify-center p-6" style={{ background: "#F5F4F1" }}>
+      {/* Logo */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#EB5E28" }}>
+          <span className="text-white font-black text-lg italic">S</span>
+        </div>
+        <span className="text-[15px] font-black text-text-main tracking-tight">SJM Flow</span>
+      </div>
+
       <div
         className="w-full bg-white rounded-2xl"
         style={{ maxWidth: "400px", padding: "32px", border: "1px solid #E2DDD6" }}
       >
-        {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#EB5E28" }}>
-            <span className="text-white font-black text-lg italic">S</span>
-          </div>
-          <span className="text-[15px] font-black text-text-main tracking-tight">SJM Flow 5.0</span>
-        </div>
-
-        <div className="mt-6">
+        <div>
           <h1 className="text-[22px] font-black text-text-main leading-none">Selamat Datang</h1>
-          <p className="text-[12px] text-text-light mt-2">Masuk ke akun SJM Flow Anda</p>
+          <p className="text-[12px] text-text-light mt-2">Masuk ke akun Anda</p>
         </div>
 
         <div className="mt-6 space-y-3">
@@ -131,7 +131,7 @@ const LoginPage = ({ onLogin }: any) => {
         </button>
 
         <div className="mt-6 text-center">
-          <p className="text-[11px] text-text-light">SJM Flow 5.0 · PT Sugiarto Jaya Mandiri</p>
+          <p className="text-[11px] text-text-light">© 2026 SJM Group</p>
         </div>
       </div>
     </div>
@@ -1475,7 +1475,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
   if (companyLoading) return null;
 
   if (!activeCompany) {
-    if (companyList.length > 1) {
+    if (companyList.length >= 1) {
       return <CompanyPicker companyList={companyList} onSelect={switchCompany} currentUser={currentUser} onLogout={handleLogout} />;
     }
     return null;

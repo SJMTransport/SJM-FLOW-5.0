@@ -57,10 +57,6 @@ export function CompanyProvider({
           .filter(Boolean)
           .sort((a: Company, b: Company) => a.nama.localeCompare(b.nama));
         setCompanyList(companies);
-        if (!activeCompany && companies.length === 1) {
-          setActiveCompany(companies[0]);
-          localStorage.setItem('sjm_active_company', JSON.stringify(companies[0]));
-        }
       } finally {
         setIsLoading(false);
       }

@@ -1,5 +1,4 @@
-import React from "react";
-import { Icon } from "@/src/components/SJMComponents";
+import React, { useState } from "react";
 import type { Company } from "@/src/context/CompanyContext";
 
 interface CompanyPickerProps {
@@ -9,40 +8,55 @@ interface CompanyPickerProps {
   onLogout: () => void;
 }
 
-export const CompanyPicker: React.FC<CompanyPickerProps> = ({ companyList, onSelect, currentUser, onLogout }) => {
+export const CompanyPicker: React.FC<CompanyPickerProps> = ({ companyList, onSelect }) => {
+  const sorted = [...(companyList || [])].sort((a, b) => a.nama.localeCompare(b.nama));
+  const [selectedId, setSelectedId] = useState<string>(sorted.length === 1 ? sorted[0].id : "");
+
   return (
-    <div className="flex flex-col items-center justify-center h-screen w-screen bg-bg px-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-lg font-black text-text-main uppercase tracking-widest">Pilih Perusahaan</h1>
-          <p className="text-[11px] font-bold text-text-light mt-2">
-            {currentUser?.nama || ""} — pilih perusahaan yang ingin diakses
-          </p>
+    <div className="min-h-screen w-full flex flex-col items-center justify-center p-6" style={{ background: "#F5F4F1" }}>
+      {/* Logo */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#EB5E28" }}>
+          <span className="text-white font-black text-lg italic">S</span>
         </div>
-        <div className="flex flex-col gap-3">
-          {(companyList || []).map((c) => (
-            <button
-              key={c.id}
-              onClick={() => onSelect(c.id)}
-              className="flex items-center gap-3 p-4 rounded-2xl border border-border-main/40 bg-card hover:border-accent hover:shadow-md transition-all text-left"
-            >
-              <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent">
-                <Icon name="Building2" size={18} />
-              </div>
-              <div className="flex-1">
-                <div className="text-[12px] font-black text-text-main">{c.nama}</div>
-                <div className="text-[10px] font-bold text-text-light uppercase tracking-widest">{c.kode}</div>
-              </div>
-              <Icon name="ChevronRight" size={16} className="text-text-light opacity-50" />
-            </button>
-          ))}
+        <span className="text-[15px] font-black text-text-main tracking-tight">SJM Flow</span>
+      </div>
+
+      <div
+        className="w-full bg-white rounded-2xl"
+        style={{ maxWidth: "400px", padding: "32px", border: "1px solid #E2DDD6" }}
+      >
+        <div>
+          <h1 className="text-[22px] font-black text-text-main leading-none">Pilih Perusahaan</h1>
+          <p className="text-[12px] text-text-light mt-2">Anda memiliki akses ke beberapa perusahaan</p>
         </div>
+
+        <div className="mt-5">
+          <select
+            className="input-field text-[14px] font-medium tracking-tight w-full"
+            style={{ height: "44px", borderRadius: "12px" }}
+            value={selectedId}
+            onChange={(e) => setSelectedId(e.target.value)}
+          >
+            <option value="" disabled>Pilih perusahaan...</option>
+            {sorted.map((c) => (
+              <option key={c.id} value={c.id}>{c.nama}</option>
+            ))}
+          </select>
+        </div>
+
         <button
-          onClick={onLogout}
-          className="mt-8 w-full text-center text-[10px] font-bold text-text-light uppercase tracking-widest hover:text-red-brand transition-colors"
+          className="w-full text-white text-[13px] font-black flex items-center justify-center gap-2 active:scale-95 transition-all mt-4 disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{ height: "44px", borderRadius: "12px", background: "#EB5E28" }}
+          onClick={() => selectedId && onSelect(selectedId)}
+          disabled={!selectedId}
         >
-          Keluar
+          Lanjutkan
         </button>
+
+        <div className="mt-4 text-center">
+          <p className="text-[11px] text-text-light">Anda bisa switch perusahaan kapan saja dari sidebar</p>
+        </div>
       </div>
     </div>
   );
