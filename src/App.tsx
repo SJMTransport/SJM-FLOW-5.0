@@ -53,87 +53,85 @@ const LoginPage = ({ onLogin }: any) => {
   };
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Decorative center accent */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/2 blur-[100px] rounded-full pointer-events-none" />
-      
-      <div className="w-full max-w-sm relative z-10 flex flex-col items-center">
-        <div className="text-center mb-10 animate-fade-down">
-          <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center text-white shadow-lg shadow-accent/20 mb-6 mx-auto">
-            <span className="text-2xl font-black italic">S</span>
+    <div className="min-h-screen w-full flex items-center justify-center p-6" style={{ background: "#F5F4F1" }}>
+      <div
+        className="w-full bg-white rounded-2xl"
+        style={{ maxWidth: "400px", padding: "32px", border: "1px solid #E2DDD6" }}
+      >
+        {/* Logo */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#EB5E28" }}>
+            <span className="text-white font-black text-lg italic">S</span>
           </div>
-          <h1 className="text-3xl font-black text-text-main tracking-tighter leading-none">SJM Flow</h1>
-          <p className="text-[11px] font-bold text-text-light mt-2 block">
-            PT Sugiarto Jaya Mandiri · v3.1
-          </p>
+          <span className="text-[15px] font-black text-text-main tracking-tight">SJM Flow 5.0</span>
         </div>
-        
-        <Card className="w-full p-8 shadow-xl shadow-black/[0.03] border-border-main/50 bg-white rounded-2xl">
-          <div className="mb-8">
-            <h2 className="text-[15px] font-black text-text-main tracking-tight">Masuk ke akun</h2>
-          </div>
-          
-          <div className="space-y-5">
-            <div className="space-y-1.5">
-              <div className="relative w-full">
-                <input
-                  className="input-field h-12 text-[14px] font-medium tracking-tight bg-bg border-border-dark placeholder:opacity-50 w-full"
-                  value={username || ""}
-                  onChange={e => setUsername(e.target.value)}
-                  placeholder="Username"
-                  onKeyDown={e => e.key === "Enter" && submit()}
-                  autoComplete="username"
-                  name="username"
-                />
-              </div>
-            </div>
 
-            <div className="space-y-1.5">
-              <div className="relative w-full">
-                <input
-                  className="input-field h-12 text-[14px] font-medium tracking-tight bg-bg border-border-dark placeholder:opacity-50 w-full pr-12"
-                  type={showPassword ? "text" : "password"}
-                  value={password || ""}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Password"
-                  onKeyDown={e => e.key === "Enter" && submit()}
-                  autoComplete="current-password"
-                  name="password"
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light hover:text-text-main transition-colors"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  <Icon name={showPassword ? "EyeOff" : "Eye"} size={14} />
-                </button>
-              </div>
-            </div>
+        <div className="mt-6">
+          <h1 className="text-[22px] font-black text-text-main leading-none">Selamat Datang</h1>
+          <p className="text-[12px] text-text-light mt-2">Masuk ke akun SJM Flow Anda</p>
+        </div>
 
-            {err && (
-              <div className="text-center">
-                <div className="text-[11px] font-bold text-red-brand bg-red-brand-light py-2 px-3 rounded-lg inline-block border border-red-brand/10">
-                   {err}
-                </div>
-              </div>
-            )}
-            
-            <button 
-              className="btn-primary w-full h-12 text-[13px] font-black flex items-center justify-center gap-2 shadow-lg shadow-accent/20 active:scale-95 transition-all" 
-              onClick={submit} 
-              disabled={loading}
-            >
-              {loading ? (
-                <Loader2 className="animate-spin text-white" size={18} />
-              ) : (
-                <>Masuk <Icon name="ArrowRight" size={16} /></>
-              )}
-            </button>
+        <div className="mt-6 space-y-3">
+          <div>
+            <label className="text-[11px] font-bold text-text-main mb-1.5 block">Username</label>
+            <input
+              className="input-field text-[14px] font-medium tracking-tight w-full"
+              style={{ height: "44px", borderRadius: "12px" }}
+              value={username || ""}
+              onChange={e => setUsername(e.target.value)}
+              placeholder="Username"
+              onKeyDown={e => e.key === "Enter" && submit()}
+              autoComplete="username"
+              name="username"
+            />
           </div>
-        </Card>
-        
-        <div className="mt-20">
-          <p className="text-[11px] font-bold text-text-light/50 opacity-60 italic">© {new Date().getFullYear()} SJM Group</p>
+
+          <div>
+            <label className="text-[11px] font-bold text-text-main mb-1.5 block">Password</label>
+            <div className="relative w-full">
+              <input
+                className="input-field text-[14px] font-medium tracking-tight w-full pr-12"
+                style={{ height: "44px", borderRadius: "12px" }}
+                type={showPassword ? "text" : "password"}
+                value={password || ""}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Password"
+                onKeyDown={e => e.key === "Enter" && submit()}
+                autoComplete="current-password"
+                name="password"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light hover:text-text-main transition-colors"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                <Icon name={showPassword ? "EyeOff" : "Eye"} size={14} />
+              </button>
+            </div>
+          </div>
+
+          {err && (
+            <div className="text-[11px] font-bold text-red-brand bg-red-brand-light py-2 px-3 rounded-lg border border-red-brand/10">
+              {err}
+            </div>
+          )}
+        </div>
+
+        <button
+          className="w-full text-white text-[13px] font-black flex items-center justify-center gap-2 active:scale-95 transition-all mt-4"
+          style={{ height: "44px", borderRadius: "12px", background: "#EB5E28" }}
+          onClick={submit}
+          disabled={loading}
+        >
+          {loading ? (
+            <Loader2 className="animate-spin text-white" size={18} />
+          ) : (
+            <>Masuk <Icon name="ArrowRight" size={16} /></>
+          )}
+        </button>
+
+        <div className="mt-6 text-center">
+          <p className="text-[11px] text-text-light">SJM Flow 5.0 · PT Sugiarto Jaya Mandiri</p>
         </div>
       </div>
     </div>
