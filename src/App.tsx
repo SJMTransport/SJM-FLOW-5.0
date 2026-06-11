@@ -1265,6 +1265,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
         }, currentUser?.company_id || "");
         setSession(null);
         setCurrentUser(null);
+        localStorage.removeItem('sjm_active_company');
         setActiveModule("dashboard");
         setActiveSub("default");
       }

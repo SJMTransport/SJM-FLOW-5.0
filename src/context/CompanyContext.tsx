@@ -42,7 +42,12 @@ export function CompanyProvider({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) { setIsLoading(false); return; }
+    if (!userId) {
+      setActiveCompany(null);
+      localStorage.removeItem('sjm_active_company');
+      setIsLoading(false);
+      return;
+    }
     const fetchCompanies = async () => {
       setIsLoading(true);
       try {
