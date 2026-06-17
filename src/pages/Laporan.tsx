@@ -1088,7 +1088,7 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
               </div>
               <div className="p-4 border-t border-border-main bg-slate-50/50 flex justify-between items-center">
                 <div className="text-[9px] font-bold text-text-light opacity-50">
-                  {new Date(auditDetailLog.timestamp || auditDetailLog.created_at).toLocaleString("id-ID")} · {auditDetailLog.user_name}
+                  {new Date(auditDetailLog.created_at).toLocaleString("id-ID")} · {auditDetailLog.user_name}
                 </div>
                 <button className="btn-ghost text-[10px]" onClick={() => setAuditDetailLog(null)}>Tutup</button>
               </div>
@@ -1139,7 +1139,7 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
                     return (
                       <tr key={log.id || idx} className="group transition-colors">
                          <td className="text-[10px] text-text-light tabular-nums font-medium opacity-60 whitespace-nowrap">
-                            {new Date(log.timestamp || log.created_at).toLocaleString("id-ID", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            {new Date(log.created_at).toLocaleString("id-ID", { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                          </td>
                          <td>
                             <div className="font-black text-text-main text-[11px] leading-tight uppercase">{log.user_name}</div>

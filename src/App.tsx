@@ -1225,7 +1225,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
 
   const logAction = useCallback(async (msg: string, metadata: any = null) => {
     const log = {
-        timestamp: new Date().toISOString(),
+        created_at: new Date().toISOString(),
         user_name: currentUser?.nama || "Unknown",
         user_email: currentUser?.email || "Unknown",
         action: msg,
@@ -1242,7 +1242,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
   const handleLogin = ({ session, profile }: any) => {
     setSession(session); setCurrentUser(profile);
     api.addLog({
-      timestamp: new Date().toISOString(),
+      created_at: new Date().toISOString(),
       user_name: profile.nama,
       user_email: profile.email,
       action: "User Login",
@@ -1257,7 +1257,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
       confirmLabel: "Keluar",
       onConfirm: async () => {
         api.addLog({
-          timestamp: new Date().toISOString(),
+          created_at: new Date().toISOString(),
           user_name: currentUser.nama,
           user_email: currentUser.email,
           action: "User Logout",

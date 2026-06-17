@@ -204,21 +204,27 @@ export const api = {
     return [];
   },
   getPiutang: async (companyId: string) => {
-    const { data, error } = await supabaseManual.from("piutang").select("*").eq("company_id", companyId).order("tgl_invoice", { ascending: false });
-    if (error) { console.error("getPiutang", error); return []; }
-    return data || [];
+    try {
+      const { data, error } = await supabaseManual.from("piutang").select("*").eq("company_id", companyId).order("tgl_invoice", { ascending: false });
+      if (error) { console.error("getPiutang", error); return []; }
+      return data || [];
+    } catch { return []; }
   },
   addPiutang: async (data: any, companyId: string) => {
-    const row = { ...data, sisa_piutang: (data.total_piutang || 0) - (data.total_bayar || 0), company_id: companyId };
-    const { data: res, error } = await supabaseManual.from("piutang").insert([row]).select();
-    if (error) throw new Error(error.message || "Gagal tambah piutang");
-    return res || [];
+    try {
+      const row = { ...data, sisa_piutang: (data.total_piutang || 0) - (data.total_bayar || 0), company_id: companyId };
+      const { data: res, error } = await supabaseManual.from("piutang").insert([row]).select();
+      if (error) throw new Error(error.message || "Gagal tambah piutang");
+      return res || [];
+    } catch { return []; }
   },
   updatePiutang: async (id: string, data: any, companyId: string) => {
-    const updated = { ...data, sisa_piutang: (Number(data.total_piutang) || 0) - (Number(data.total_bayar) || 0) };
-    const { error } = await supabaseManual.from("piutang").update(updated).eq("id", id).eq("company_id", companyId);
-    if (error) throw new Error(error.message || "Gagal update piutang");
-    return [];
+    try {
+      const updated = { ...data, sisa_piutang: (Number(data.total_piutang) || 0) - (Number(data.total_bayar) || 0) };
+      const { error } = await supabaseManual.from("piutang").update(updated).eq("id", id).eq("company_id", companyId);
+      if (error) throw new Error(error.message || "Gagal update piutang");
+      return [];
+    } catch { return []; }
   },
   getCustomer: async (companyId: string) => {
     const { data, error } = await supabaseManual.from("customer").select("*").eq("company_id", companyId).order("nama", { ascending: true });
