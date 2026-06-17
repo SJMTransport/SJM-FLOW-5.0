@@ -7,10 +7,17 @@ const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY as string;
 // The user provided a custom fetch-based client. I'll maintain that logic
 // but wrap it in an object that looks like the one in their code.
 export const supabaseManual = (() => {
-  const H = { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", "Prefer": "return=representation" };
+  const baseHeaders = { "apikey": SUPABASE_KEY, "Content-Type": "application/json", "Prefer": "return=representation" };
   const base = `${SUPABASE_URL}/rest/v1`;
 
+  async function getAuthHeaders() {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token ?? SUPABASE_KEY;
+    return { ...baseHeaders, "Authorization": `Bearer ${token}` };
+  }
+
   async function doFetch(table: string, qs = "", ranged = true) {
+    const H = await getAuthHeaders();
     const url = `${base}/${table}?${qs}`;
     const r = await fetch(url, { headers: ranged ? { ...H, "Range": "0-9999" } : H });
     const d = await r.json();
@@ -19,6 +26,7 @@ export const supabaseManual = (() => {
   }
   
   async function doMut(table: string, method: string, body: any, qs = "") {
+    const H = await getAuthHeaders();
     const url = `${base}/${table}${qs ? "?" + qs : ""}`;
     const r = await fetch(url, { method, headers: H, body: body != null ? JSON.stringify(body) : undefined });
     if (method === "DELETE") return { data: null, error: r.ok ? null : await r.json() };
