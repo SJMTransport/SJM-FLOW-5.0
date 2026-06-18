@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { 
     APP_NAME, APP_TAGLINE, APP_VERSION, APP_COMPANY, ROLE_COLOR, ROLE_BG 
@@ -312,7 +313,7 @@ const SODetailModal = ({ data, onClose, coa, jurnal, invoices, currentUser, hand
           </span>
           {canEdit && (
             <button
-              onClick={() => { handleNav("operasional", "so"); setPendingEditSO(data.order_id); onClose(); }}
+              onClick={() => { handleNav("sales-order"); setPendingEditSO(data.order_id); onClose(); }}
               className="h-8 px-4 bg-accent text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-accent/90 transition-colors"
             >
               Edit SO
@@ -711,7 +712,7 @@ const SODetailModal = ({ data, onClose, coa, jurnal, invoices, currentUser, hand
                   <div className="text-[9px] text-amber-600 opacity-70 mt-0.5">SO ini belum dibuatkan invoice</div>
                   {data.status_muatan === 'Completed' && (
                     <button
-                      onClick={() => { handleNav("operasional", "invoice"); onClose(); }}
+                      onClick={() => { handleNav("invoice"); onClose(); }}
                       className="mt-2 h-7 px-3 bg-accent text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-accent/90 transition-colors w-full"
                     >
                       + Buat Invoice
@@ -729,7 +730,7 @@ const SODetailModal = ({ data, onClose, coa, jurnal, invoices, currentUser, hand
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <button
-                              onClick={() => { handleNav("operasional", "invoice"); onClose(); }}
+                              onClick={() => { handleNav("invoice"); onClose(); }}
                               className="text-[10px] font-black text-accent uppercase tracking-tight hover:underline text-left block"
                             >
                               {inv.no_invoice}
@@ -822,7 +823,7 @@ const SODetailModal = ({ data, onClose, coa, jurnal, invoices, currentUser, hand
               <div className="space-y-2">
                 {canEdit && (
                   <button
-                    onClick={() => { handleNav("operasional", "so"); setPendingEditSO(data.order_id); onClose(); }}
+                    onClick={() => { handleNav("sales-order"); setPendingEditSO(data.order_id); onClose(); }}
                     className="w-full h-9 rounded-lg border border-border-main text-[10px] font-black text-text-med uppercase tracking-widest hover:border-accent hover:text-accent transition-colors flex items-center justify-center gap-2"
                   >
                     <Icon name="Edit2" size={12} /> Edit Sales Order
@@ -830,7 +831,7 @@ const SODetailModal = ({ data, onClose, coa, jurnal, invoices, currentUser, hand
                 )}
                 {data.status_muatan === 'Completed' && relatedInvoices.length === 0 && (
                   <button
-                    onClick={() => { handleNav("operasional", "invoice"); onClose(); }}
+                    onClick={() => { handleNav("invoice"); onClose(); }}
                     className="w-full h-9 rounded-lg bg-accent text-white text-[10px] font-black uppercase tracking-widest hover:bg-accent/90 transition-colors flex items-center justify-center gap-2"
                   >
                     <Icon name="FileText" size={12} /> Buat Invoice
@@ -838,7 +839,7 @@ const SODetailModal = ({ data, onClose, coa, jurnal, invoices, currentUser, hand
                 )}
                 {(canEdit || canFinance) && (
                   <button
-                    onClick={() => { handleNav("keuangan", "jurnal"); onClose(); }}
+                    onClick={() => { handleNav("jurnal"); onClose(); }}
                     className="w-full h-9 rounded-lg border border-border-main text-[10px] font-black text-text-med uppercase tracking-widest hover:border-accent hover:text-accent transition-colors flex items-center justify-center gap-2"
                   >
                     <Icon name="BookOpen" size={12} /> Input Jurnal
@@ -1166,8 +1167,8 @@ export default function App() {
 
 function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
   const { activeCompany, companyList, switchCompany, isLoading: companyLoading } = useCompany();
-  const [activeModule, setActiveModule] = useState("dashboard");
-  const [activeSub, setActiveSub] = useState("default");
+  const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [connected, setConnected] = useState(false);
   const [jurnal, setJurnal] = useState([]);
@@ -1236,7 +1237,6 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
     // Persist
     await api.addLog(log, currentUser?.company_id || "");
   }, [currentUser]);
-  const [lastSubByModule, setLastSubByModule] = useState<any>({});
   const [collapsed, setCollapsed] = useState(false);
 
   const handleLogin = ({ session, profile }: any) => {
@@ -1266,8 +1266,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
         setSession(null);
         setCurrentUser(null);
         localStorage.removeItem('sjm_active_company');
-        setActiveModule("dashboard");
-        setActiveSub("default");
+        navigate("/");
       }
     });
   };
@@ -1381,12 +1380,12 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
 
   const handleGoToJurnal = useCallback((data: any) => {
     setJurnalPrefill(data);
-    handleNav("keuangan", "jurnal");
+    navigate("/jurnal");
   }, []);
 
   const handleGoToHP = useCallback((data: any) => {
     setHpPrefill(data);
-    handleNav("keuangan", "hutangpiutang");
+    navigate("/hutang-piutang");
   }, []);
 
   const handleArmadaClick = useCallback((noPol: string) => {
@@ -1441,35 +1440,67 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
     { key: "password", label: "Password", icon: "KeyRound", moduleKey: "users" as ModuleKey },
   ];
 
-  const MODULE_PERMISSION_MAP: Record<string, ModuleKey> = {
-    dashboard: "dashboard",
-    operasional: "so",
-    keuangan: "jurnal",
-    laporan: "laporan",
-    armada: "armada",
-    master: "master",
-    users: "users",
-    activity: "users",
-    password: "users",
+  const PATH_PERMISSION_MAP: Record<string, ModuleKey> = {
+    "/": "dashboard",
+    "/sales-order": "so",
+    "/update-muatan": "so",
+    "/quotation": "so",
+    "/invoice": "jurnal",
+    "/jurnal": "jurnal",
+    "/approval": "jurnal",
+    "/hutang-piutang": "jurnal",
+    "/laporan": "laporan",
+    "/armada": "armada",
+    "/master": "master",
+    "/users": "users",
+    "/log-aktivitas": "users",
   };
 
-  const handleNav = (mod: string, sub?: string) => {
-    const permKey = MODULE_PERMISSION_MAP[mod];
+  const handleNav = (path: string) => {
+    const permKey = PATH_PERMISSION_MAP["/" + path];
     if (permKey && currentUser && !canView(currentUser.role, permKey)) {
-      return; // silent block — tidak navigate, tidak ada pesan
+      return;
     }
-    setActiveModule(mod);
-    const lastSub = lastSubByModule[mod];
-    const defaultSub = (NAV_MODULES.find(m => m.key === mod)?.subs[0]?.key) || "default";
-    setActiveSub(sub || lastSub || defaultSub);
+    navigate("/" + path);
   };
+
+  const isActive = (path: string) => location.pathname === "/" + path;
+  const isPathActive = (path: string) => location.pathname === path;
+
+  const getActiveSubForModule = (modulePaths: string[]) =>
+    modulePaths.some(p => location.pathname === p);
+
+  const currentPath = location.pathname;
+
+  const LAPORAN_SUBS = [
+    { key: "neraca", label: "Neraca Saldo", path: "/laporan" },
+    { key: "labarugi", label: "Laba Rugi", path: "/laporan" },
+    { key: "bukubesar", label: "Buku Besar", path: "/laporan" },
+    { key: "profit", label: "Profitabilitas", path: "/laporan" },
+  ];
+  const ARMADA_SUBS = [
+    { key: "dashboard_unit", label: "Dashboard Unit", path: "/armada" },
+    { key: "unit", label: "Unit List", path: "/armada" },
+    { key: "dokumen", label: "Dokumen", path: "/armada" },
+    { key: "service", label: "Service", path: "/armada" },
+    { key: "sopir", label: "Sopir", path: "/armada" },
+  ];
+  const MASTER_SUBS = [
+    { key: "kontak", label: "Kontak", path: "/master" },
+    { key: "coa", label: "Master COA", path: "/master" },
+    { key: "saldoawal", label: "Saldo Awal", path: "/master" },
+  ];
+
+  const [activeSub, setActiveSub] = useState("default");
+
+  const currentModule = currentPath === "/laporan" ? { subs: LAPORAN_SUBS }
+    : currentPath === "/armada" ? { subs: ARMADA_SUBS }
+    : currentPath === "/master" ? { subs: MASTER_SUBS }
+    : null;
 
   const setSubWithMemory = (sub: string) => {
-      setActiveSub(sub);
-      setLastSubByModule((p: any) => ({ ...p, [activeModule]: sub }));
+    setActiveSub(sub);
   };
-
-  const currentModule = NAV_MODULES.find(m => m.key === activeModule);
 
   if (!session || !currentUser) return <LoginPage onLogin={handleLogin} />;
 
@@ -1502,7 +1533,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
         <nav className="flex-1 px-3 overflow-y-auto no-scrollbar py-2">
           {/* DASHBOARD */}
           <div className="text-[10px] uppercase tracking-wide text-[#8D8A85] font-semibold px-4 pt-3 pb-1">Dashboard</div>
-          <button onClick={() => handleNav("dashboard")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "dashboard" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+          <button onClick={() => navigate("/")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
             <Icon name="LayoutDashboard" size={16} />
             <span>Dashboard</span>
           </button>
@@ -1510,15 +1541,15 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
           {/* OPERASIONAL */}
           {canView(currentUser.role, "so") && (<>
             <div className="text-[10px] uppercase tracking-wide text-[#8D8A85] font-semibold px-4 pt-4 pb-1">Operasional</div>
-            <button onClick={() => handleNav("operasional", "so")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "operasional" && activeSub === "so" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+            <button onClick={() => navigate("/sales-order")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/sales-order") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
               <Icon name="FileText" size={16} />
               <span>Sales Order</span>
             </button>
-            <button onClick={() => handleNav("operasional", "updatemuatan")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "operasional" && activeSub === "updatemuatan" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+            <button onClick={() => navigate("/update-muatan")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/update-muatan") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
               <Icon name="MapPin" size={16} />
               <span>Update Muatan</span>
             </button>
-            <button onClick={() => handleNav("operasional", "quotation")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "operasional" && activeSub === "quotation" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+            <button onClick={() => navigate("/quotation")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/quotation") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
               <Icon name="ClipboardList" size={16} />
               <span>Quotation</span>
             </button>
@@ -1527,19 +1558,19 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
           {/* KEUANGAN */}
           {canView(currentUser.role, "jurnal") && (<>
             <div className="text-[10px] uppercase tracking-wide text-[#8D8A85] font-semibold px-4 pt-4 pb-1">Keuangan</div>
-            <button onClick={() => handleNav("operasional", "invoice")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "operasional" && activeSub === "invoice" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+            <button onClick={() => navigate("/invoice")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/invoice") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
               <Icon name="Receipt" size={16} />
               <span>Invoice</span>
             </button>
-            <button onClick={() => handleNav("keuangan", "jurnal")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "keuangan" && activeSub === "jurnal" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+            <button onClick={() => navigate("/jurnal")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/jurnal") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
               <Icon name="BookOpen" size={16} />
               <span>Jurnal Umum</span>
             </button>
-            <button onClick={() => handleNav("keuangan", "hutangpiutang")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "keuangan" && activeSub === "hutangpiutang" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+            <button onClick={() => navigate("/hutang-piutang")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/hutang-piutang") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
               <Icon name="Scale" size={16} />
               <span>Hutang & Piutang</span>
             </button>
-            <button onClick={() => handleNav("laporan")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "laporan" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+            <button onClick={() => navigate("/laporan")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/laporan") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
               <Icon name="BarChart3" size={16} />
               <span>Laporan</span>
             </button>
@@ -1548,7 +1579,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
           {/* ARMADA */}
           {canView(currentUser.role, "armada") && (<>
             <div className="text-[10px] uppercase tracking-wide text-[#8D8A85] font-semibold px-4 pt-4 pb-1">Armada</div>
-            <button onClick={() => handleNav("armada")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "armada" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+            <button onClick={() => navigate("/armada")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/armada") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
               <Icon name="Truck" size={16} />
               <span>Armada</span>
             </button>
@@ -1557,13 +1588,13 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
           {/* SISTEM */}
           <div className="text-[10px] uppercase tracking-wide text-[#8D8A85] font-semibold px-4 pt-4 pb-1">Sistem</div>
           {canView(currentUser.role, "master") && (
-            <button onClick={() => handleNav("master")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "master" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+            <button onClick={() => navigate("/master")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/master") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
               <Icon name="Settings" size={16} />
               <span>Master</span>
             </button>
           )}
           {canView(currentUser.role, "users") && (
-            <button onClick={() => handleNav("users")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "users" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+            <button onClick={() => navigate("/users")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/users") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
               <Icon name="Users" size={16} />
               <span>Users</span>
             </button>
@@ -1647,7 +1678,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
             {/* Notifikasi */}
             <div
               className="relative w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F5F4F1] cursor-pointer transition-colors"
-              onClick={() => handleNav("armada", "dokumen")}
+              onClick={() => navigate("/armada")}
             >
               <Icon name="Bell" size={18} className="text-[#52504A]" />
               {(expiredDocsCount > 0 || (jurnal || []).filter((j:any) => j.status === "Draft").length > 0) && (
@@ -1678,9 +1709,9 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
         {/* Sub Navigation Tabs */}
         {currentModule && currentModule.subs.length > 0 && (
           <div className="bg-white border-b border-border-main px-4 flex items-center overflow-x-auto no-scrollbar z-[40] sticky top-0 shrink-0 gap-2 shadow-sm shadow-black/[0.02]">
-             {currentModule.subs.map(sub => (
-               <button 
-                 key={sub.key} 
+             {currentModule.subs.map((sub: any) => (
+               <button
+                 key={sub.key}
                  onClick={() => setSubWithMemory(sub.key)}
                  className={`tab-btn h-[48px] px-5 ${activeSub === sub.key ? "active" : ""}`}
                >
@@ -1689,103 +1720,57 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
              ))}
           </div>
         )}
-        
+
         <main className="flex-1 overflow-y-auto p-5 custom-scrollbar bg-bg relative">
           <AnimatePresence mode="wait">
-            <motion.div 
-              key={`${activeModule}-${activeSub}`}
+            <motion.div
+              key={currentPath}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
               className="max-w-[1800px] mx-auto min-h-full"
             >
-              {activeModule === "dashboard" && <Dashboard
-                jurnal={jurnal} so={so} coa={coa} piutang={piutang}
-                armada={armada} sopir={sopir} armadaDokumen={armadaDokumen}
-                currentUser={currentUser}
-                onSOClick={handleSOClick}
-                onJurnalClick={canView(currentUser.role, "jurnal") ? handleJurnalClick : undefined}
-                onNavigate={(mod: string, sub?: string) => {
-                  const permKey = MODULE_PERMISSION_MAP[mod];
-                  if (permKey && !canView(currentUser.role, permKey)) return;
-                  handleNav(mod, sub);
-                }}
-              />}
-              
-              {activeModule === "operasional" && (
-                <>
-                  {activeSub === "so" && <SalesOrderPage so={so} setSo={setSo} jurnal={jurnal} customer={customer} armada={armada} sopir={sopir} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} onArmadaClick={handleArmadaClick} pendingEditSO={pendingEditSO} setPendingEditSO={setPendingEditSO} onGoToHP={handleGoToHP} />}
-                  {activeSub === "updatemuatan" && <UpdateMuatan so={so} setSo={setSo} onSOClick={handleSOClick} onArmadaClick={handleArmadaClick} logAction={logAction} currentUser={effectiveUser} />}
-                  {activeSub === "invoice" && <InvoicePage so={so} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} />}
-                  {activeSub === "quotation" && <QuotationPage currentUser={effectiveUser} logAction={logAction} />}
-                </>
-              )}
-
-              {activeModule === "keuangan" && (
-                <>
-                  {activeSub === "persetujuan" && <ApprovalPage jurnal={jurnal} setJurnal={setJurnal} currentUser={effectiveUser} onJurnalClick={handleJurnalClick} logAction={logAction} />}
-                  {activeSub === "jurnal" && <JurnalUmum jurnal={jurnal} setJurnal={setJurnal} coa={coa} so={so} connected={connected} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} prefill={jurnalPrefill} onPrefillUsed={() => setJurnalPrefill(null)} />}
-                  {activeSub === "hutangpiutang" && <HutangPiutangPage jurnal={jurnal} coa={coa} so={so} armada={armada} connected={connected} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} piutang={piutang} invoices={invoices} onGoToJurnal={handleGoToJurnal} prefill={hpPrefill} onPrefillUsed={() => setHpPrefill(null)} />}
-                  {["hutangvendor", "cicilan", "rekapuj"].includes(activeSub) && (
-                    <KeuanganPage activeSub={activeSub} jurnal={jurnal} coa={coa} so={so} connected={connected} />
-                  )}
-                </>
-              )}
-
-              {activeModule === "laporan" && <LaporanPage activeSub={activeSub} jurnal={jurnal} coa={coa} so={so} armada={armada} auditLogs={auditLogs} saldoAwal={saldoAwal} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} logAction={logAction} />}
-              {activeModule === "armada" && <ArmadaPage activeSub={activeSub} armada={armada} setArmada={setArmada} dokumen={armadaDokumen} setDokumen={setArmadaDokumen} service={armadaService} setService={setArmadaService} sopir={sopir} setSopir={setSopir} onArmadaClick={handleArmadaClick} onSopirClick={handleSopirClick} jurnal={jurnal} coa={coa} logAction={logAction} so={so} currentUser={effectiveUser} />}
-
-              {activeModule === "master" && (
-                <>
-                  {activeSub === "kontak" && <KontakPage so={so} connected={connected} currentUser={effectiveUser} />}
-                  {["coa", "saldoawal"].includes(activeSub) && (
-                    <MasterPage activeSub={activeSub} coa={coa} setCoa={setCoa} users={users} setUsers={setUsers} saldoAwal={saldoAwal} setSaldoAwal={setSaldoAwal} logAction={logAction} currentUser={effectiveUser} />
-                  )}
-                </>
-              )}
-              {activeModule === "users" && (
-                <MasterPage
-                  activeSub={activeSub === "default" ? "users" : activeSub}
-                  coa={coa} setCoa={setCoa}
-                  users={users} setUsers={setUsers}
-                  saldoAwal={saldoAwal} setSaldoAwal={setSaldoAwal}
-                  logAction={logAction}
-                  auditLogs={auditLogs}
-                  currentUser={effectiveUser}
-                />
-              )}
-              {activeModule === "activity" && (
-                <LogAktivitasPage
-                  auditLogs={auditLogs}
-                  currentUser={effectiveUser}
-                />
-              )}
-              {activeModule === "password" && (
-                <MasterPage
-                  activeSub="password"
-                  coa={coa} setCoa={setCoa}
-                  users={users} setUsers={setUsers}
-                  saldoAwal={saldoAwal} setSaldoAwal={setSaldoAwal}
-                  logAction={logAction}
-                  auditLogs={auditLogs}
-                  currentUser={effectiveUser}
-                />
-              )}
-              {activeModule && MODULE_PERMISSION_MAP[activeModule] &&
-               !canView(currentUser.role, MODULE_PERMISSION_MAP[activeModule]) && (
-                <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center">
-                    <Icon name="ShieldOff" size={28} className="text-red-400" />
-                  </div>
-                  <div>
-                    <div className="text-[15px] font-black text-text-main mb-1">Akses Ditolak</div>
-                    <div className="text-[12px] text-text-med">
-                      Role <span className="font-bold">{currentUser.role}</span> tidak memiliki akses ke halaman ini.
-                    </div>
-                  </div>
-                </div>
-              )}
+              <Routes>
+                <Route path="/" element={<Dashboard
+                  jurnal={jurnal} so={so} coa={coa} piutang={piutang}
+                  armada={armada} sopir={sopir} armadaDokumen={armadaDokumen}
+                  currentUser={currentUser}
+                  onSOClick={handleSOClick}
+                  onJurnalClick={canView(currentUser.role, "jurnal") ? handleJurnalClick : undefined}
+                />} />
+                <Route path="/sales-order" element={<SalesOrderPage so={so} setSo={setSo} jurnal={jurnal} customer={customer} armada={armada} sopir={sopir} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} onArmadaClick={handleArmadaClick} pendingEditSO={pendingEditSO} setPendingEditSO={setPendingEditSO} onGoToHP={handleGoToHP} />} />
+                <Route path="/update-muatan" element={<UpdateMuatan so={so} setSo={setSo} onSOClick={handleSOClick} onArmadaClick={handleArmadaClick} logAction={logAction} currentUser={effectiveUser} />} />
+                <Route path="/invoice" element={<InvoicePage so={so} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} />} />
+                <Route path="/quotation" element={<QuotationPage currentUser={effectiveUser} logAction={logAction} />} />
+                <Route path="/approval" element={<ApprovalPage jurnal={jurnal} setJurnal={setJurnal} currentUser={effectiveUser} onJurnalClick={handleJurnalClick} logAction={logAction} />} />
+                <Route path="/jurnal" element={<JurnalUmum jurnal={jurnal} setJurnal={setJurnal} coa={coa} so={so} connected={connected} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} prefill={jurnalPrefill} onPrefillUsed={() => setJurnalPrefill(null)} />} />
+                <Route path="/hutang-piutang" element={<HutangPiutangPage jurnal={jurnal} coa={coa} so={so} armada={armada} connected={connected} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} piutang={piutang} invoices={invoices} onGoToJurnal={handleGoToJurnal} prefill={hpPrefill} onPrefillUsed={() => setHpPrefill(null)} />} />
+                <Route path="/laporan" element={<LaporanPage activeSub={activeSub} jurnal={jurnal} coa={coa} so={so} armada={armada} auditLogs={auditLogs} saldoAwal={saldoAwal} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} logAction={logAction} />} />
+                <Route path="/armada" element={<ArmadaPage activeSub={activeSub} armada={armada} setArmada={setArmada} dokumen={armadaDokumen} setDokumen={setArmadaDokumen} service={armadaService} setService={setArmadaService} sopir={sopir} setSopir={setSopir} onArmadaClick={handleArmadaClick} onSopirClick={handleSopirClick} jurnal={jurnal} coa={coa} logAction={logAction} so={so} currentUser={effectiveUser} />} />
+                <Route path="/master" element={
+                  activeSub === "kontak" ? <KontakPage so={so} connected={connected} currentUser={effectiveUser} />
+                  : <MasterPage activeSub={activeSub} coa={coa} setCoa={setCoa} users={users} setUsers={setUsers} saldoAwal={saldoAwal} setSaldoAwal={setSaldoAwal} logAction={logAction} currentUser={effectiveUser} />
+                } />
+                <Route path="/users" element={
+                  <MasterPage
+                    activeSub="users"
+                    coa={coa} setCoa={setCoa}
+                    users={users} setUsers={setUsers}
+                    saldoAwal={saldoAwal} setSaldoAwal={setSaldoAwal}
+                    logAction={logAction}
+                    auditLogs={auditLogs}
+                    currentUser={effectiveUser}
+                  />
+                } />
+                <Route path="/log-aktivitas" element={
+                  <LogAktivitasPage
+                    auditLogs={auditLogs}
+                    currentUser={effectiveUser}
+                  />
+                } />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
             </motion.div>
           </AnimatePresence>
         </main>

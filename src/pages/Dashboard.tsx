@@ -3,6 +3,7 @@ import { C } from "../constants";
 import { fmtShort, filterByPeriod } from "@/src/utils";
 import { Card, StatCard, Spark, PeriodFilter, EmptyState, PageShell, PageHeader, KPIGrid } from "@/src/components/SJMComponents";
 import { useCompany } from "@/src/context/CompanyContext";
+import { useNavigate } from "react-router-dom";
 import { Truck, ClockCountdown, WarningCircle, ChartLineUp, Receipt, ClipboardText, Package, Van, UserCircle, MapPin, FileText, CaretRight, CalendarBlank, Users, NavigationArrow, NotePencil, CreditCard, FileX } from "@phosphor-icons/react";
 
 const STATUS_BADGE: Record<string, string> = {
@@ -24,8 +25,9 @@ const fmtTglMuat = (d: string | null | undefined) => {
   return date.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
 };
 
-export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], armadaDokumen = [], currentUser, onNavigate, onSOClick, onJurnalClick }: any) => {
+export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], armadaDokumen = [], currentUser, onSOClick, onJurnalClick }: any) => {
   const { activeCompany } = useCompany();
+  const navigate = useNavigate();
   const [period, setPeriod] = useState({ mode: "month", month: new Date().getMonth(), year: new Date().getFullYear() });
   const [shipmentFilter, setShipmentFilter] = useState("Semua");
   const [shipmentPage, setShipmentPage] = useState(1);
@@ -119,9 +121,9 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
 
   const alerts = useMemo(() => {
     const list: any[] = [];
-    if (soDraft > 0) list.push({ icon: <NotePencil size={14} weight="fill" style={{ color: "#EB5E28" }} />, label: `${soDraft} Sales Order masih berupa Draft`, color: "#EB5E28", action: () => onNavigate("operasional", "so") });
-    list.push({ icon: <CreditCard size={14} weight="fill" style={{ color: "#B85450" }} />, label: `0 Invoice belum lunas`, color: "#B85450", action: () => onNavigate("operasional", "invoice") });
-    if (soBelumDiinvoice > 0) list.push({ icon: <FileX size={14} weight="fill" style={{ color: "#C4914A" }} />, label: `${soBelumDiinvoice} SO belum diinvoice`, color: "#C4914A", action: () => onNavigate("operasional", "so") });
+    if (soDraft > 0) list.push({ icon: <NotePencil size={14} weight="fill" style={{ color: "#EB5E28" }} />, label: `${soDraft} Sales Order masih berupa Draft`, color: "#EB5E28", action: () => navigate("/sales-order") });
+    list.push({ icon: <CreditCard size={14} weight="fill" style={{ color: "#B85450" }} />, label: `0 Invoice belum lunas`, color: "#B85450", action: () => navigate("/invoice") });
+    if (soBelumDiinvoice > 0) list.push({ icon: <FileX size={14} weight="fill" style={{ color: "#C4914A" }} />, label: `${soBelumDiinvoice} SO belum diinvoice`, color: "#C4914A", action: () => navigate("/sales-order") });
     return list.filter(a => !a.label.startsWith("0 "));
   }, [so, soDraft, soBelumDiinvoice]);
 
@@ -131,7 +133,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
       <div className="mb-4 px-6 pt-5">
         <div className="text-[10px] font-black text-[#9B9690] uppercase tracking-widest mb-2">Ringkasan Operasional</div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div onClick={() => onNavigate?.("operasional", "so")} className="bg-white rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ padding: "14px 16px" }}>
+          <div onClick={() => navigate("/sales-order")} className="bg-white rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ padding: "14px 16px" }}>
             <div className="flex items-start justify-between">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#FEF0E8" }}>
                 <Truck size={18} weight="fill" className="text-[#EB5E28]" />
@@ -144,7 +146,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
             </div>
           </div>
 
-          <div onClick={() => onNavigate?.("operasional", "so")} className="bg-white rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ padding: "14px 16px" }}>
+          <div onClick={() => navigate("/sales-order")} className="bg-white rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ padding: "14px 16px" }}>
             <div className="flex items-start justify-between">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#FFF8EC" }}>
                 <ClockCountdown size={18} weight="fill" className="text-[#C4914A]" />
@@ -157,7 +159,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
             </div>
           </div>
 
-          <div onClick={() => onNavigate?.("operasional", "muatan")} className="bg-white rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ padding: "14px 16px" }}>
+          <div onClick={() => navigate("/update-muatan")} className="bg-white rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ padding: "14px 16px" }}>
             <div className="flex items-start justify-between">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#FFF0F0" }}>
                 <WarningCircle size={18} weight="fill" className="text-[#B85450]" />
@@ -177,7 +179,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
         <div className="mb-4 px-6">
           <div className="text-[10px] font-black text-[#9B9690] uppercase tracking-widest mb-2">Ringkasan Keuangan</div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div onClick={() => onNavigate?.("laporan")} className="rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3", padding: "12px 16px" }}>
+            <div onClick={() => navigate("/laporan")} className="rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3", padding: "12px 16px" }}>
               <div className="flex items-start justify-between">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#F0F7EA" }}>
                   <ChartLineUp size={16} weight="fill" className="text-[#5C8A3C]" />
@@ -190,7 +192,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
               </div>
             </div>
 
-            <div onClick={() => onNavigate?.("operasional", "invoice")} className="rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3", padding: "12px 16px" }}>
+            <div onClick={() => navigate("/invoice")} className="rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3", padding: "12px 16px" }}>
               <div className="flex items-start justify-between">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#FFF0F0" }}>
                   <Receipt size={16} weight="fill" className="text-[#B85450]" />
@@ -203,7 +205,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
               </div>
             </div>
 
-            <div onClick={() => onNavigate?.("operasional", "so")} className="rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3", padding: "12px 16px" }}>
+            <div onClick={() => navigate("/sales-order")} className="rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3", padding: "12px 16px" }}>
               <div className="flex items-start justify-between">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#FFF8EC" }}>
                   <ClipboardText size={16} weight="fill" className="text-[#C4914A]" />
