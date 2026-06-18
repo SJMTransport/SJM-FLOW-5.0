@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { C } from "../constants";
 import { fmtShort, filterByPeriod } from "@/src/utils";
-import { Card, StatCard, Spark, PeriodFilter, Icon, EmptyState, PageShell, PageHeader, KPIGrid } from "@/src/components/SJMComponents";
+import { Card, StatCard, Spark, PeriodFilter, EmptyState, PageShell, PageHeader, KPIGrid } from "@/src/components/SJMComponents";
 import { useCompany } from "@/src/context/CompanyContext";
+import { Truck, ClockCountdown, WarningCircle, ChartLineUp, Receipt, ClipboardText, Package, Van, UserCircle, MapPin, FileText, CaretRight, CalendarBlank, Users, NavigationArrow, NotePencil, CreditCard, FileX } from "@phosphor-icons/react";
 
 const STATUS_BADGE: Record<string, string> = {
   "Order Confirmed": "bg-[#F1EFE8] text-[#5F5E5A]",
@@ -16,12 +17,19 @@ const STATUS_BADGE: Record<string, string> = {
 
 const fmt = (n: number) => new Intl.NumberFormat("id-ID").format(Math.round(n));
 
+const fmtTglMuat = (d: string | null | undefined) => {
+  if (!d) return "—";
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+};
+
 export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], armadaDokumen = [], currentUser, onNavigate, onSOClick, onJurnalClick }: any) => {
   const { activeCompany } = useCompany();
   const [period, setPeriod] = useState({ mode: "month", month: new Date().getMonth(), year: new Date().getFullYear() });
   const [shipmentFilter, setShipmentFilter] = useState("Semua");
   const [shipmentPage, setShipmentPage] = useState(1);
-  const SHIPMENT_PER_PAGE = 10;
+  const SHIPMENT_PER_PAGE = 8;
 
   // ── Existing financial calculations (preserved) ──────────────────
   const jurnalBulan = useMemo(() => filterByPeriod(jurnal || [], period), [jurnal, period]);
@@ -84,10 +92,10 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
   // ── Dispatcher ────────────────────────────────────────────────────
   const dalamPerjalanan = useMemo(() => (so || []).filter((s: any) => s.status_muatan === "On Going").length, [so]);
   const dispatcherItems = [
-    { label: "Shipment Hari Ini", value: (so || []).filter((s: any) => s.tgl_muat === todayStr).length, icon: "Calendar" },
-    { label: "Armada Aktif", value: (armada || []).filter((a: any) => a.status === "Aktif").length, icon: "Truck" },
-    { label: "Sopir Tersedia", value: (sopir || []).filter((d: any) => d.status === "Aktif").length, icon: "Users" },
-    { label: "Dalam Perjalanan", value: dalamPerjalanan, icon: "Navigation" },
+    { label: "Shipment Hari Ini", value: (so || []).filter((s: any) => s.tgl_muat === todayStr).length, icon: <CalendarBlank size={14} weight="fill" className="text-[#EB5E28]" /> },
+    { label: "Armada Aktif", value: (armada || []).filter((a: any) => a.status === "Aktif").length, icon: <Truck size={14} weight="fill" className="text-[#EB5E28]" /> },
+    { label: "Sopir Tersedia", value: (sopir || []).filter((d: any) => d.status === "Aktif").length, icon: <Users size={14} weight="fill" className="text-[#EB5E28]" /> },
+    { label: "Dalam Perjalanan", value: dalamPerjalanan, icon: <NavigationArrow size={14} weight="fill" className="text-[#EB5E28]" /> },
   ];
 
   // ── Aktivitas Terbaru (from posisi_log) ──────────────────────────
@@ -111,53 +119,53 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
 
   const alerts = useMemo(() => {
     const list: any[] = [];
-    if (soDraft > 0) list.push({ icon: "FileEdit", label: `${soDraft} Sales Order masih berupa Draft`, color: "#EB5E28", action: () => onNavigate("operasional", "so") });
-    list.push({ icon: "CreditCard", label: `0 Invoice belum lunas`, color: "#B85450", action: () => onNavigate("operasional", "invoice") });
-    if (soBelumDiinvoice > 0) list.push({ icon: "FileX", label: `${soBelumDiinvoice} SO belum diinvoice`, color: "#C4914A", action: () => onNavigate("operasional", "so") });
+    if (soDraft > 0) list.push({ icon: <NotePencil size={14} weight="fill" style={{ color: "#EB5E28" }} />, label: `${soDraft} Sales Order masih berupa Draft`, color: "#EB5E28", action: () => onNavigate("operasional", "so") });
+    list.push({ icon: <CreditCard size={14} weight="fill" style={{ color: "#B85450" }} />, label: `0 Invoice belum lunas`, color: "#B85450", action: () => onNavigate("operasional", "invoice") });
+    if (soBelumDiinvoice > 0) list.push({ icon: <FileX size={14} weight="fill" style={{ color: "#C4914A" }} />, label: `${soBelumDiinvoice} SO belum diinvoice`, color: "#C4914A", action: () => onNavigate("operasional", "so") });
     return list.filter(a => !a.label.startsWith("0 "));
   }, [so, soDraft, soBelumDiinvoice]);
 
   return (
-    <PageShell>
+    <div style={{ height: "calc(100vh - 72px)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
       {/* KPI ROW 1 — Ringkasan Operasional */}
-      <div className="mb-4">
+      <div className="mb-4 px-6 pt-5">
         <div className="text-[10px] font-black text-[#9B9690] uppercase tracking-widest mb-2">Ringkasan Operasional</div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div onClick={() => onNavigate?.("operasional", "so")} className="bg-white rounded-xl border border-[#E2DDD6] p-5 cursor-pointer hover:border-[#EB5E28]/40 transition-all">
+          <div onClick={() => onNavigate?.("operasional", "so")} className="bg-white rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ padding: "14px 16px" }}>
             <div className="flex items-start justify-between">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#FEF0E8" }}>
-                <Icon name="Package" size={18} className="text-[#EB5E28]" />
+                <Truck size={18} weight="fill" className="text-[#EB5E28]" />
               </div>
-              <Icon name="ChevronRight" size={16} className="text-[#8D8A85]" />
+              <CaretRight size={16} weight="fill" className="text-[#8D8A85]" />
             </div>
             <div className="mt-3">
-              <div className="text-[32px] font-black text-[#EB5E28] tabular-nums leading-none">{soAktif}</div>
+              <div className="font-black text-[#EB5E28] tabular-nums leading-none" style={{ fontSize: 28 }}>{soAktif}</div>
               <div className="text-[12px] font-medium text-[#52504A] mt-1">SO Aktif</div>
             </div>
           </div>
 
-          <div onClick={() => onNavigate?.("operasional", "so")} className="bg-white rounded-xl border border-[#E2DDD6] p-5 cursor-pointer hover:border-[#EB5E28]/40 transition-all">
+          <div onClick={() => onNavigate?.("operasional", "so")} className="bg-white rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ padding: "14px 16px" }}>
             <div className="flex items-start justify-between">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#FFF8EC" }}>
-                <Icon name="Clock" size={18} className="text-[#C4914A]" />
+                <ClockCountdown size={18} weight="fill" className="text-[#C4914A]" />
               </div>
-              <Icon name="ChevronRight" size={16} className="text-[#8D8A85]" />
+              <CaretRight size={16} weight="fill" className="text-[#8D8A85]" />
             </div>
             <div className="mt-3">
-              <div className="text-[32px] font-black text-[#C4914A] tabular-nums leading-none">{soMenungguKonfirmasi}</div>
+              <div className="font-black text-[#C4914A] tabular-nums leading-none" style={{ fontSize: 28 }}>{soMenungguKonfirmasi}</div>
               <div className="text-[12px] font-medium text-[#52504A] mt-1">Menunggu Konfirmasi</div>
             </div>
           </div>
 
-          <div onClick={() => onNavigate?.("operasional", "muatan")} className="bg-white rounded-xl border border-[#E2DDD6] p-5 cursor-pointer hover:border-[#EB5E28]/40 transition-all">
+          <div onClick={() => onNavigate?.("operasional", "muatan")} className="bg-white rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ padding: "14px 16px" }}>
             <div className="flex items-start justify-between">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#FFF0F0" }}>
-                <Icon name="AlertTriangle" size={18} className="text-[#B85450]" />
+                <WarningCircle size={18} weight="fill" className="text-[#B85450]" />
               </div>
-              <Icon name="ChevronRight" size={16} className="text-[#8D8A85]" />
+              <CaretRight size={16} weight="fill" className="text-[#8D8A85]" />
             </div>
             <div className="mt-3">
-              <div className="text-[32px] font-black text-[#B85450] tabular-nums leading-none">{soTidakAdaUpdate}</div>
+              <div className="font-black text-[#B85450] tabular-nums leading-none" style={{ fontSize: 28 }}>{soTidakAdaUpdate}</div>
               <div className="text-[12px] font-medium text-[#52504A] mt-1">Tidak Ada Update &gt;12 jam</div>
             </div>
           </div>
@@ -166,44 +174,44 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
 
       {/* KPI ROW 2 — Ringkasan Keuangan (Admin/Keuangan only) */}
       {isFinanceRole && (
-        <div className="mb-6">
+        <div className="mb-4 px-6">
           <div className="text-[10px] font-black text-[#9B9690] uppercase tracking-widest mb-2">Ringkasan Keuangan</div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div onClick={() => onNavigate?.("laporan")} className="rounded-xl border border-[#E2DDD6] p-4 cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3" }}>
+            <div onClick={() => onNavigate?.("laporan")} className="rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3", padding: "12px 16px" }}>
               <div className="flex items-start justify-between">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#F0F7EA" }}>
-                  <Icon name="TrendingUp" size={16} className="text-[#5C8A3C]" />
+                  <ChartLineUp size={16} weight="fill" className="text-[#5C8A3C]" />
                 </div>
-                <Icon name="ChevronRight" size={14} className="text-[#8D8A85]" />
+                <CaretRight size={14} weight="fill" className="text-[#8D8A85]" />
               </div>
               <div className="mt-3">
-                <div className="text-[24px] font-bold text-[#1A1A1A] tabular-nums leading-none">Rp{fmt(revenueBulanIni)}</div>
+                <div className="font-bold text-[#1A1A1A] tabular-nums leading-none" style={{ fontSize: 22 }}>Rp{fmt(revenueBulanIni)}</div>
                 <div className="text-[12px] font-medium text-[#52504A] mt-1">Revenue Bulan Ini</div>
               </div>
             </div>
 
-            <div onClick={() => onNavigate?.("operasional", "invoice")} className="rounded-xl border border-[#E2DDD6] p-4 cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3" }}>
+            <div onClick={() => onNavigate?.("operasional", "invoice")} className="rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3", padding: "12px 16px" }}>
               <div className="flex items-start justify-between">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#FFF0F0" }}>
-                  <Icon name="FileText" size={16} className="text-[#B85450]" />
+                  <Receipt size={16} weight="fill" className="text-[#B85450]" />
                 </div>
-                <Icon name="ChevronRight" size={14} className="text-[#8D8A85]" />
+                <CaretRight size={14} weight="fill" className="text-[#8D8A85]" />
               </div>
               <div className="mt-3">
-                <div className="text-[24px] font-bold text-[#1A1A1A] tabular-nums leading-none">0</div>
+                <div className="font-bold text-[#1A1A1A] tabular-nums leading-none" style={{ fontSize: 22 }}>0</div>
                 <div className="text-[12px] font-medium text-[#52504A] mt-1">Invoice Belum Lunas</div>
               </div>
             </div>
 
-            <div onClick={() => onNavigate?.("operasional", "so")} className="rounded-xl border border-[#E2DDD6] p-4 cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3" }}>
+            <div onClick={() => onNavigate?.("operasional", "so")} className="rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3", padding: "12px 16px" }}>
               <div className="flex items-start justify-between">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#FFF8EC" }}>
-                  <Icon name="ClipboardList" size={16} className="text-[#C4914A]" />
+                  <ClipboardText size={16} weight="fill" className="text-[#C4914A]" />
                 </div>
-                <Icon name="ChevronRight" size={14} className="text-[#8D8A85]" />
+                <CaretRight size={14} weight="fill" className="text-[#8D8A85]" />
               </div>
               <div className="mt-3">
-                <div className="text-[24px] font-bold text-[#1A1A1A] tabular-nums leading-none">{soBelumDiinvoice}</div>
+                <div className="font-bold text-[#1A1A1A] tabular-nums leading-none" style={{ fontSize: 22 }}>{soBelumDiinvoice}</div>
                 <div className="text-[12px] font-medium text-[#52504A] mt-1">SO Belum Diinvoice</div>
               </div>
             </div>
@@ -211,11 +219,11 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
         </div>
       )}
 
-      {/* 2-column layout */}
-      <div className="flex gap-6 items-start">
+      {/* 2-column layout — fills remaining space */}
+      <div className="flex gap-6 px-6 pb-4 flex-1 min-h-0">
         {/* LEFT — Shipment Terbaru */}
         <div className="flex-1 min-w-0 bg-white rounded-xl border border-[#E2DDD6] overflow-hidden flex flex-col">
-          <div className="px-5 py-4 border-b border-[#E2DDD6] flex flex-col sm:flex-row sm:items-center justify-between gap-3" style={{ background: "#F8F6F3" }}>
+          <div className="px-5 py-3 border-b border-[#E2DDD6] flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0" style={{ background: "#F8F6F3" }}>
             <h3 className="text-[13px] font-black text-[#1A1A1A] tracking-tight">Shipment Terbaru</h3>
             <select
               className="input-field h-8 text-[11px] font-bold w-full sm:w-40"
@@ -228,19 +236,21 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
             </select>
           </div>
 
-          <div className="flex-1 overflow-x-auto">
+          <div className="flex-1 overflow-y-auto overflow-x-auto min-h-0">
             <table className="w-full border-collapse" style={{ tableLayout: "fixed" }}>
               <colgroup>
                 <col style={{ width: 140 }} />
+                <col style={{ width: 100 }} />
+                <col style={{ width: 160 }} />
                 <col style={{ width: 180 }} />
-                <col style={{ width: 200 }} />
-                <col style={{ width: 180 }} />
+                <col style={{ width: 170 }} />
                 <col style={{ width: 130 }} />
-                <col style={{ width: 120 }} />
+                <col style={{ width: 110 }} />
               </colgroup>
-              <thead>
+              <thead className="sticky top-0 z-10">
                 <tr style={{ background: "#F8F6F3" }}>
                   <th className="text-left px-4 py-2.5 text-[10px] font-black text-[#9B9690] uppercase tracking-wider">Order</th>
+                  <th className="text-left px-4 py-2.5 text-[10px] font-black text-[#9B9690] uppercase tracking-wider">Tgl Muat</th>
                   <th className="text-left px-4 py-2.5 text-[10px] font-black text-[#9B9690] uppercase tracking-wider">Customer</th>
                   <th className="text-left px-4 py-2.5 text-[10px] font-black text-[#9B9690] uppercase tracking-wider">Rute</th>
                   <th className="text-left px-4 py-2.5 text-[10px] font-black text-[#9B9690] uppercase tracking-wider">Sopir & Armada</th>
@@ -251,7 +261,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
               <tbody>
                 {shipmentPaged.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-16 text-center">
+                    <td colSpan={7} className="py-16 text-center">
                       <div className="text-[10px] font-bold text-[#9B9690]">Tidak ada data</div>
                     </td>
                   </tr>
@@ -266,9 +276,10 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
                           {s.order_id}
                         </button>
                       </td>
+                      <td className="px-4 py-3 text-[11px] font-medium text-[#52504A] tabular-nums">{fmtTglMuat(s.tgl_muat)}</td>
                       <td className="px-4 py-3 text-[11px] font-bold text-[#1A1A1A] truncate max-w-[140px]">{s.customer || "—"}</td>
                       <td className="px-4 py-3">
-                        <div className="text-[11px] font-medium text-[#52504A] truncate max-w-[180px]">
+                        <div className="text-[11px] font-medium text-[#52504A] truncate max-w-[160px]">
                           {s.lokasi_muat || "—"} → {s.lokasi_bongkar || "—"}
                         </div>
                       </td>
@@ -291,7 +302,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
             </table>
           </div>
 
-          <div className="px-5 py-3 border-t border-[#E2DDD6] flex items-center justify-between" style={{ background: "#F8F6F3" }}>
+          <div className="px-5 py-3 border-t border-[#E2DDD6] flex items-center justify-between flex-shrink-0" style={{ background: "#F8F6F3" }}>
             <span className="text-[10px] font-bold text-[#9B9690]">
               Menampilkan {shipmentFiltered.length === 0 ? 0 : (shipmentPage - 1) * SHIPMENT_PER_PAGE + 1}-{Math.min(shipmentPage * SHIPMENT_PER_PAGE, shipmentFiltered.length)} dari {shipmentFiltered.length} data
             </span>
@@ -315,15 +326,15 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
           </div>
         </div>
 
-        {/* RIGHT PANEL — 280px sticky */}
-        <div className="w-[280px] flex-shrink-0 flex flex-col gap-4 sticky top-6 self-start">
+        {/* RIGHT PANEL — 260px */}
+        <div className="w-[260px] flex-shrink-0 flex flex-col gap-4 overflow-y-auto min-h-0">
           {/* Dispatcher Hari Ini */}
           <div className="bg-white rounded-xl border border-[#E2DDD6] p-4">
             <h3 className="text-[13px] font-semibold text-[#1A1A1A] uppercase tracking-wide mb-3">Dispatcher Hari Ini</h3>
             <div className="grid grid-cols-2 gap-2.5">
               {dispatcherItems.map((d) => (
                 <div key={d.label} className="p-3 rounded-lg bg-[#FAF8F5] border border-[#E2DDD6]/50">
-                  <Icon name={d.icon} size={14} className="text-[#EB5E28] mb-1.5" />
+                  <div className="mb-1.5">{d.icon}</div>
                   <div className="text-[20px] font-bold text-[#1A1A1A] tabular-nums leading-none">{d.value}</div>
                   <div className="text-[11px] text-[#52504A] mt-1">{d.label}</div>
                 </div>
@@ -377,9 +388,9 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
                     className="bg-white rounded-lg border-l-[3px] border border-[#E2DDD6] px-3 py-3 flex items-center gap-3 cursor-pointer hover:bg-[#FAF8F5] transition-all"
                     style={{ borderLeftColor: a.color }}
                   >
-                    <Icon name={a.icon} size={14} style={{ color: a.color }} className="shrink-0" />
+                    <span className="shrink-0">{a.icon}</span>
                     <span className="text-[13px] font-bold text-[#1A1A1A] flex-1 leading-tight">{a.label}</span>
-                    <Icon name="ChevronRight" size={12} className="text-[#9B9690] shrink-0" />
+                    <CaretRight size={12} weight="fill" className="text-[#9B9690] shrink-0" />
                   </div>
                 ))}
               </div>
@@ -387,6 +398,6 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
           )}
         </div>
       </div>
-    </PageShell>
+    </div>
   );
 };
