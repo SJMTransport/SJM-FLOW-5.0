@@ -1564,27 +1564,14 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
           }
         </div>
 
-        <div className="p-3 border-t border-[#E2DDD6]">
-          <div className={`flex items-center gap-2 p-2 rounded-lg bg-[#FAF8F5] border border-[#E2DDD6] mb-2 ${collapsed ? "justify-center" : ""}`}>
-            <div className="w-7 h-7 rounded-md flex items-center justify-center text-[11px] font-black flex-shrink-0"
-                 style={{ background: ROLE_BG[currentUser.role], color: ROLE_COLOR[currentUser.role] }}>
-              {currentUser.nama?.[0]}
-            </div>
-            {!collapsed && (
-              <div className="overflow-hidden flex-1 min-w-0">
-                <div className="text-[11px] font-bold text-[#1A1A1A] truncate">
-                  {currentUser.nama}
-                </div>
-                <div className="text-[9px] text-[#9B9690]">
-                  {currentUser.role}
-                </div>
-              </div>
-            )}
-          </div>
-          <button onClick={handleLogout}
-            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] font-medium text-[#9B9690] hover:text-[#B85450] hover:bg-[#FCEBEB] transition-all ${collapsed ? "justify-center" : ""}`}>
-            <LogOut size={14} className="shrink-0" />
-            {!collapsed && <span>Keluar</span>}
+        <div className="px-2 pb-3 border-t border-[#E2DDD6] pt-2">
+          <button
+            onClick={handleLogout}
+            title={collapsed ? "Keluar" : ""}
+            className={`nav-item w-full text-[#9B9690] hover:text-[#B85450] hover:bg-[#FCEBEB] ${collapsed ? "justify-center px-0" : ""}`}
+          >
+            <LogOut size={collapsed ? 18 : 16} />
+            {!collapsed && <span className="flex-1 truncate tracking-tight text-left ml-px">Keluar</span>}
           </button>
         </div>
 
@@ -1676,30 +1663,21 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
               )}
             </div>
 
-            {/* Chat/Message */}
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F5F4F1] cursor-pointer transition-colors"
-              onClick={() => handleNav("keuangan", "persetujuan")}
-            >
-              <Icon name="MessageSquare" size={18} className="text-[#52504A]" />
-            </div>
-
             {/* Divider */}
             <div className="w-px h-5 bg-[#E2DDD6]" />
 
             {/* User */}
             <div className="flex items-center gap-2 cursor-pointer hover:bg-[#F5F4F1] rounded-lg px-2 py-1 transition-colors">
-              <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black"
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-black"
                    style={{ background: ROLE_BG[currentUser.role], color: ROLE_COLOR[currentUser.role] }}>
                 {currentUser.nama?.[0]}
               </div>
               <div className="hidden md:block">
-                <div className="text-[12px] font-semibold text-[#1A1A1A] leading-none">{currentUser.nama}</div>
-                <div className="text-[10px] text-[#9B9690] mt-0.5 truncate" style={{ maxWidth: "160px" }}>
-                  {currentUser.role}{activeCompany?.nama ? ` · ${activeCompany.nama}` : ""}
+                <div className="text-[12px] font-bold text-[#1A1A1A] leading-none">{currentUser.nama}</div>
+                <div className="text-[11px] text-[#9B9690] mt-0.5 truncate" style={{ maxWidth: "200px" }}>
+                  {currentUser.role}{activeCompany?.nama ? ` • ${activeCompany.nama}` : ""}
                 </div>
               </div>
-              <Icon name="ChevronDown" size={14} className="text-[#9B9690]" />
             </div>
 
           </div>

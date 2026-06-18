@@ -45,7 +45,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
     const now = Date.now();
     const TWELVE_HOURS = 12 * 60 * 60 * 1000;
     return (so || []).filter((s: any) => {
-      if (s.status_muatan !== "On Going") return false;
+      if (!["On Going", "Loading"].includes(s.status_muatan)) return false;
       const logs = s.posisi_log || [];
       if (logs.length === 0) return true;
       const last = logs[logs.length - 1];
@@ -107,19 +107,15 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
   }, [so]);
 
   // ── Alerts ────────────────────────────────────────────────────────
+  const soDraft = useMemo(() => (so || []).filter((s: any) => s.is_posted === false).length, [so]);
+
   const alerts = useMemo(() => {
     const list: any[] = [];
-    const now = Date.now();
-    const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
-    const soStale = (so || []).filter((s: any) => {
-      if (!["Order Confirmed"].includes(s.status_muatan)) return false;
-      const created = new Date(s.tgl_order || s.created_at).getTime();
-      return !isNaN(created) && (now - created) > TWENTY_FOUR_HOURS;
-    }).length;
-    if (soStale > 0) list.push({ icon: "Clock", label: `${soStale} SO belum dikonfirmasi >24 jam`, color: "#C4914A", bg: "#FDF3E3", action: () => onNavigate("operasional", "so") });
-    if (soBelumDiinvoice > 0) list.push({ icon: "FileText", label: `${soBelumDiinvoice} SO belum diinvoice`, color: "#B85450", bg: "#FDEEEE", action: () => onNavigate("operasional", "so") });
-    return list;
-  }, [so, soBelumDiinvoice]);
+    if (soDraft > 0) list.push({ icon: "FileEdit", label: `${soDraft} Sales Order masih berupa Draft`, color: "#EB5E28", action: () => onNavigate("operasional", "so") });
+    list.push({ icon: "CreditCard", label: `0 Invoice belum lunas`, color: "#B85450", action: () => onNavigate("operasional", "invoice") });
+    if (soBelumDiinvoice > 0) list.push({ icon: "FileX", label: `${soBelumDiinvoice} SO belum diinvoice`, color: "#C4914A", action: () => onNavigate("operasional", "so") });
+    return list.filter(a => !a.label.startsWith("0 "));
+  }, [so, soDraft, soBelumDiinvoice]);
 
   return (
     <PageShell>
@@ -136,41 +132,40 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div
             onClick={() => onNavigate?.("operasional", "so")}
-            className="bg-white rounded-xl border border-[#E2DDD6] p-5 cursor-pointer hover:border-[#EB5E28]/40 transition-all"
+            className="bg-white rounded-xl border border-[#E2DDD6] p-5 cursor-pointer hover:border-[#EB5E28]/40 transition-all flex items-center justify-between"
           >
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-[#EAF2FF] flex items-center justify-center">
-                <Icon name="Package" size={16} className="text-[#2563EB]" />
-              </div>
+            <div>
+              <div className="text-[32px] font-black text-[#EB5E28] tabular-nums leading-none">{soAktif}</div>
+              <div className="text-[12px] font-medium text-[#52504A] mt-1">SO Aktif</div>
+              <div className="text-[10px] text-[#9B9690] mt-0.5">On Going + Loading + Arrived</div>
             </div>
-            <div className="text-[32px] font-black text-[#1A1A1A] tabular-nums leading-none">{soAktif}</div>
-            <div className="text-[12px] font-medium text-[#52504A] mt-1">SO Aktif</div>
+            <Icon name="ChevronRight" size={16} className="text-[#9B9690] shrink-0" />
           </div>
 
           <div
             onClick={() => onNavigate?.("operasional", "so")}
-            className="bg-white rounded-xl border border-[#E2DDD6] p-5 cursor-pointer hover:border-[#EB5E28]/40 transition-all"
+            className="bg-white rounded-xl border border-[#E2DDD6] p-5 cursor-pointer hover:border-[#EB5E28]/40 transition-all flex items-center justify-between"
           >
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-[#FDF3E3] flex items-center justify-center">
-                <Icon name="Clock" size={16} className="text-[#C4914A]" />
-              </div>
+            <div>
+              <div className="text-[32px] font-black text-[#C4914A] tabular-nums leading-none">{soMenungguKonfirmasi}</div>
+              <div className="text-[12px] font-medium text-[#52504A] mt-1">Menunggu Konfirmasi</div>
+              <div className="text-[10px] text-[#9B9690] mt-0.5">Status Order Confirmed</div>
             </div>
-            <div className="text-[32px] font-black text-[#1A1A1A] tabular-nums leading-none">{soMenungguKonfirmasi}</div>
-            <div className="text-[12px] font-medium text-[#52504A] mt-1">Menunggu Konfirmasi</div>
+            <Icon name="ChevronRight" size={16} className="text-[#9B9690] shrink-0" />
           </div>
 
           <div
             onClick={() => onNavigate?.("operasional", "muatan")}
-            className="bg-white rounded-xl border border-[#E2DDD6] p-5 cursor-pointer hover:border-[#EB5E28]/40 transition-all"
+            className="bg-white rounded-xl border border-[#E2DDD6] p-5 cursor-pointer hover:border-[#EB5E28]/40 transition-all flex items-center justify-between"
           >
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-[#FDEEEE] flex items-center justify-center">
-                <Icon name="AlertTriangle" size={16} className="text-[#B85450]" />
+            <div>
+              <div className="flex items-center gap-2">
+                <div className="text-[32px] font-black text-[#EB5E28] tabular-nums leading-none">{soTidakAdaUpdate}</div>
+                {soTidakAdaUpdate > 0 && <Icon name="AlertTriangle" size={18} className="text-[#EB5E28]" />}
               </div>
+              <div className="text-[12px] font-medium text-[#52504A] mt-1">Tidak Ada Update &gt;12 jam</div>
             </div>
-            <div className="text-[32px] font-black text-[#1A1A1A] tabular-nums leading-none">{soTidakAdaUpdate}</div>
-            <div className="text-[12px] font-medium text-[#52504A] mt-1">Tidak Ada Update &gt;12 jam</div>
+            <Icon name="ChevronRight" size={16} className="text-[#9B9690] shrink-0" />
           </div>
         </div>
       </div>
@@ -182,41 +177,38 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div
               onClick={() => onNavigate?.("laporan")}
-              className="bg-white rounded-xl border border-[#E2DDD6] p-4 cursor-pointer hover:border-[#EB5E28]/40 transition-all"
+              className="rounded-xl border border-[#E2DDD6] p-4 cursor-pointer hover:border-[#EB5E28]/40 transition-all flex items-center justify-between"
+              style={{ background: "#F8F6F3" }}
             >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-7 h-7 rounded-lg bg-[#EEF8E8] flex items-center justify-center">
-                  <Icon name="TrendingUp" size={14} className="text-[#5C8A3C]" />
-                </div>
+              <div>
+                <div className="text-[24px] font-bold text-[#1A1A1A] tabular-nums leading-none">Rp{fmt(revenueBulanIni)}</div>
+                <div className="text-[12px] font-medium text-[#52504A] mt-1">Revenue Bulan Ini</div>
               </div>
-              <div className="text-[24px] font-bold text-[#1A1A1A] tabular-nums leading-none">{fmtShort(revenueBulanIni)}</div>
-              <div className="text-[12px] font-medium text-[#52504A] mt-1">Revenue Bulan Ini</div>
+              <Icon name="ChevronRight" size={14} className="text-[#9B9690] shrink-0" />
             </div>
 
             <div
               onClick={() => onNavigate?.("operasional", "invoice")}
-              className="bg-white rounded-xl border border-[#E2DDD6] p-4 cursor-pointer hover:border-[#EB5E28]/40 transition-all"
+              className="rounded-xl border border-[#E2DDD6] p-4 cursor-pointer hover:border-[#EB5E28]/40 transition-all flex items-center justify-between"
+              style={{ background: "#F8F6F3" }}
             >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-7 h-7 rounded-lg bg-[#FDF3E3] flex items-center justify-center">
-                  <Icon name="FileWarning" size={14} className="text-[#C4914A]" />
-                </div>
+              <div>
+                <div className="text-[24px] font-bold text-[#1A1A1A] tabular-nums leading-none">0</div>
+                <div className="text-[12px] font-medium text-[#52504A] mt-1">Invoice Belum Lunas</div>
               </div>
-              <div className="text-[24px] font-bold text-[#1A1A1A] tabular-nums leading-none">0</div>
-              <div className="text-[12px] font-medium text-[#52504A] mt-1">Invoice Belum Lunas</div>
+              <Icon name="ChevronRight" size={14} className="text-[#9B9690] shrink-0" />
             </div>
 
             <div
               onClick={() => onNavigate?.("operasional", "so")}
-              className="bg-white rounded-xl border border-[#E2DDD6] p-4 cursor-pointer hover:border-[#EB5E28]/40 transition-all"
+              className="rounded-xl border border-[#E2DDD6] p-4 cursor-pointer hover:border-[#EB5E28]/40 transition-all flex items-center justify-between"
+              style={{ background: "#F8F6F3" }}
             >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-7 h-7 rounded-lg bg-[#FDEEEE] flex items-center justify-center">
-                  <Icon name="FileX" size={14} className="text-[#B85450]" />
-                </div>
+              <div>
+                <div className="text-[24px] font-bold text-[#1A1A1A] tabular-nums leading-none">{soBelumDiinvoice}</div>
+                <div className="text-[12px] font-medium text-[#52504A] mt-1">SO Belum Diinvoice</div>
               </div>
-              <div className="text-[24px] font-bold text-[#1A1A1A] tabular-nums leading-none">{soBelumDiinvoice}</div>
-              <div className="text-[12px] font-medium text-[#52504A] mt-1">SO Belum Diinvoice</div>
+              <Icon name="ChevronRight" size={14} className="text-[#9B9690] shrink-0" />
             </div>
           </div>
         </div>
@@ -294,27 +286,28 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
             </table>
           </div>
 
-          {shipmentTotalPages > 1 && (
-            <div className="px-5 py-3 border-t border-[#E2DDD6] flex items-center justify-between" style={{ background: "#F8F6F3" }}>
-              <span className="text-[10px] font-bold text-[#9B9690]">Halaman {shipmentPage} / {shipmentTotalPages}</span>
-              <div className="flex gap-2">
-                <button
-                  disabled={shipmentPage <= 1}
-                  onClick={() => setShipmentPage(p => Math.max(1, p - 1))}
-                  className="px-3 py-1.5 rounded-lg border border-[#E2DDD6] text-[10px] font-bold text-[#52504A] disabled:opacity-30 hover:bg-white transition-all"
-                >
-                  Prev
-                </button>
-                <button
-                  disabled={shipmentPage >= shipmentTotalPages}
-                  onClick={() => setShipmentPage(p => Math.min(shipmentTotalPages, p + 1))}
-                  className="px-3 py-1.5 rounded-lg border border-[#E2DDD6] text-[10px] font-bold text-[#52504A] disabled:opacity-30 hover:bg-white transition-all"
-                >
-                  Next
-                </button>
-              </div>
+          <div className="px-5 py-3 border-t border-[#E2DDD6] flex items-center justify-between" style={{ background: "#F8F6F3" }}>
+            <span className="text-[10px] font-bold text-[#9B9690]">
+              Menampilkan {shipmentFiltered.length === 0 ? 0 : (shipmentPage - 1) * SHIPMENT_PER_PAGE + 1}-{Math.min(shipmentPage * SHIPMENT_PER_PAGE, shipmentFiltered.length)} dari {shipmentFiltered.length} data
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                disabled={shipmentPage <= 1}
+                onClick={() => setShipmentPage(p => Math.max(1, p - 1))}
+                className="px-3 py-1.5 rounded-lg border border-[#E2DDD6] text-[10px] font-bold text-[#52504A] disabled:opacity-30 hover:bg-white transition-all"
+              >
+                Prev
+              </button>
+              <span className="text-[10px] font-bold text-[#52504A]">Halaman {shipmentPage} / {shipmentTotalPages}</span>
+              <button
+                disabled={shipmentPage >= shipmentTotalPages}
+                onClick={() => setShipmentPage(p => Math.min(shipmentTotalPages, p + 1))}
+                className="px-3 py-1.5 rounded-lg border border-[#E2DDD6] text-[10px] font-bold text-[#52504A] disabled:opacity-30 hover:bg-white transition-all"
+              >
+                Next
+              </button>
             </div>
-          )}
+          </div>
         </div>
 
         {/* RIGHT PANEL — 280px */}
@@ -326,8 +319,8 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
               {dispatcherItems.map((d) => (
                 <div key={d.label} className="p-3 rounded-lg bg-[#FAF8F5] border border-[#E2DDD6]/50">
                   <Icon name={d.icon} size={14} className="text-[#EB5E28] mb-1.5" />
-                  <div className="text-[16px] font-black text-[#1A1A1A] tabular-nums leading-none">{d.value}</div>
-                  <div className="text-[9px] font-bold text-[#9B9690] mt-1">{d.label}</div>
+                  <div className="text-[20px] font-bold text-[#1A1A1A] tabular-nums leading-none">{d.value}</div>
+                  <div className="text-[11px] text-[#52504A] mt-1">{d.label}</div>
                 </div>
               ))}
             </div>
@@ -350,7 +343,17 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
                       {l.order_id || "Draft"}
                     </button>
                     <div className="text-[10px] font-medium text-[#52504A] truncate">{l.location || "Transito"}</div>
-                    <div className="text-[9px] text-[#9B9690]">{l.date} · {l.time}</div>
+                    <div className="text-[9px] text-[#9B9690]">
+                      {l.time} · {l.date}
+                      {(() => {
+                        const t = new Date(`${l.date} ${l.time}`).getTime();
+                        if (isNaN(t)) return "";
+                        const mins = Math.round((Date.now() - t) / 60000);
+                        if (mins < 60) return ` · ${mins} menit lalu`;
+                        const hrs = Math.round(mins / 60);
+                        return ` · ${hrs} jam lalu`;
+                      })()}
+                    </div>
                   </div>
                 ))
               )}
@@ -366,11 +369,11 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
                   <div
                     key={i}
                     onClick={a.action}
-                    className="bg-white rounded-lg border-l-[3px] border border-[#E2DDD6] p-3 flex items-center gap-3 cursor-pointer hover:bg-[#FAF8F5] transition-all"
+                    className="bg-white rounded-lg border-l-[3px] border border-[#E2DDD6] px-3 py-3 flex items-center gap-3 cursor-pointer hover:bg-[#FAF8F5] transition-all"
                     style={{ borderLeftColor: a.color }}
                   >
                     <Icon name={a.icon} size={14} style={{ color: a.color }} className="shrink-0" />
-                    <span className="text-[11px] font-bold text-[#1A1A1A] flex-1 leading-tight">{a.label}</span>
+                    <span className="text-[13px] font-bold text-[#1A1A1A] flex-1 leading-tight">{a.label}</span>
                     <Icon name="ChevronRight" size={12} className="text-[#9B9690] shrink-0" />
                   </div>
                 ))}
