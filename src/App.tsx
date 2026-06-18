@@ -1721,7 +1721,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
           </div>
         )}
 
-        <main className="flex-1 overflow-y-auto p-5 custom-scrollbar bg-bg relative">
+        <main className="flex-1 overflow-hidden bg-bg relative">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentPath}
