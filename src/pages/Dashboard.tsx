@@ -1,10 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { C } from "../constants";
 import { fmtShort, filterByPeriod } from "@/src/utils";
-import { Card, StatCard, Spark, PeriodFilter, EmptyState, PageShell, PageHeader, KPIGrid } from "@/src/components/SJMComponents";
 import { useCompany } from "@/src/context/CompanyContext";
 import { useNavigate } from "react-router-dom";
-import { Truck, ClockCountdown, WarningCircle, ChartLineUp, Receipt, ClipboardText, Package, Van, UserCircle, MapPin, FileText, CaretRight, CalendarBlank, Users, NavigationArrow, NotePencil, CreditCard, FileX } from "@phosphor-icons/react";
+import { Truck, ClockCountdown, WarningCircle, ChartLineUp, Receipt, ClipboardText, CalendarBlank, Users, NavigationArrow, NotePencil, CreditCard, FileX, CaretRight } from "@phosphor-icons/react";
 
 const STATUS_BADGE: Record<string, string> = {
   "Order Confirmed": "bg-[#F1EFE8] text-[#5F5E5A]",
@@ -23,6 +22,12 @@ const fmtTglMuat = (d: string | null | undefined) => {
   const date = new Date(d);
   if (isNaN(date.getTime())) return "—";
   return date.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+};
+
+const ALERT_TINT: Record<string, string> = {
+  "#EB5E28": "#FEF0E8",
+  "#B85450": "#FDEEEE",
+  "#C4914A": "#FDF3E3",
 };
 
 export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], armadaDokumen = [], currentUser, onSOClick, onJurnalClick }: any) => {
@@ -94,10 +99,10 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
   // ── Dispatcher ────────────────────────────────────────────────────
   const dalamPerjalanan = useMemo(() => (so || []).filter((s: any) => s.status_muatan === "On Going").length, [so]);
   const dispatcherItems = [
-    { label: "Shipment Hari Ini", value: (so || []).filter((s: any) => s.tgl_muat === todayStr).length, icon: <CalendarBlank size={14} weight="fill" className="text-[#EB5E28]" /> },
-    { label: "Armada Aktif", value: (armada || []).filter((a: any) => a.status === "Aktif").length, icon: <Truck size={14} weight="fill" className="text-[#EB5E28]" /> },
-    { label: "Sopir Tersedia", value: (sopir || []).filter((d: any) => d.status === "Aktif").length, icon: <Users size={14} weight="fill" className="text-[#EB5E28]" /> },
-    { label: "Dalam Perjalanan", value: dalamPerjalanan, icon: <NavigationArrow size={14} weight="fill" className="text-[#EB5E28]" /> },
+    { label: "Shipment Hari Ini", value: (so || []).filter((s: any) => s.tgl_muat === todayStr).length, icon: <CalendarBlank size={18} weight="fill" className="text-[#EB5E28]" /> },
+    { label: "Armada Aktif", value: (armada || []).filter((a: any) => a.status === "Aktif").length, icon: <Truck size={18} weight="fill" className="text-[#5C8A3C]" /> },
+    { label: "Sopir Tersedia", value: (sopir || []).filter((d: any) => d.status === "Aktif").length, icon: <Users size={18} weight="fill" className="text-[#2563EB]" /> },
+    { label: "Dalam Perjalanan", value: dalamPerjalanan, icon: <NavigationArrow size={18} weight="fill" className="text-[#C4914A]" /> },
   ];
 
   // ── Aktivitas Terbaru (from posisi_log) ──────────────────────────
@@ -113,7 +118,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
       const ta = new Date(`${a.date} ${a.time}`).getTime();
       const tb = new Date(`${b.date} ${b.time}`).getTime();
       return tb - ta;
-    }).slice(0, 5);
+    }).slice(0, 4);
   }, [so]);
 
   // ── Alerts ────────────────────────────────────────────────────────
@@ -121,114 +126,68 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
 
   const alerts = useMemo(() => {
     const list: any[] = [];
-    if (soDraft > 0) list.push({ icon: <NotePencil size={14} weight="fill" style={{ color: "#EB5E28" }} />, label: `${soDraft} Sales Order masih berupa Draft`, color: "#EB5E28", action: () => navigate("/sales-order") });
-    list.push({ icon: <CreditCard size={14} weight="fill" style={{ color: "#B85450" }} />, label: `0 Invoice belum lunas`, color: "#B85450", action: () => navigate("/invoice") });
-    if (soBelumDiinvoice > 0) list.push({ icon: <FileX size={14} weight="fill" style={{ color: "#C4914A" }} />, label: `${soBelumDiinvoice} SO belum diinvoice`, color: "#C4914A", action: () => navigate("/sales-order") });
+    if (soDraft > 0) list.push({ icon: <NotePencil size={16} weight="fill" style={{ color: "#EB5E28" }} />, label: `${soDraft} Sales Order masih berupa Draft`, color: "#EB5E28", action: () => navigate("/sales-order") });
+    list.push({ icon: <CreditCard size={16} weight="fill" style={{ color: "#B85450" }} />, label: `0 Invoice belum lunas`, color: "#B85450", action: () => navigate("/invoice") });
+    if (soBelumDiinvoice > 0) list.push({ icon: <FileX size={16} weight="fill" style={{ color: "#C4914A" }} />, label: `${soBelumDiinvoice} SO belum diinvoice`, color: "#C4914A", action: () => navigate("/sales-order") });
     return list.filter(a => !a.label.startsWith("0 "));
   }, [so, soDraft, soBelumDiinvoice]);
 
   return (
-    <div style={{ height: "calc(100vh - 72px)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-      {/* KPI ROW 1 — Ringkasan Operasional */}
-      <div className="mb-4 px-6 pt-5">
-        <div className="text-[10px] font-black text-[#9B9690] uppercase tracking-widest mb-2">Ringkasan Operasional</div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div onClick={() => navigate("/sales-order")} className="bg-white rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ padding: "14px 16px" }}>
-            <div className="flex items-start justify-between">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#FEF0E8" }}>
-                <Truck size={18} weight="fill" className="text-[#EB5E28]" />
-              </div>
-              <CaretRight size={16} weight="fill" className="text-[#8D8A85]" />
-            </div>
-            <div className="mt-3">
-              <div className="font-black text-[#EB5E28] tabular-nums leading-none" style={{ fontSize: 28 }}>{soAktif}</div>
-              <div className="text-[12px] font-medium text-[#52504A] mt-1">SO Aktif</div>
-            </div>
-          </div>
+    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 56px - 40px)", gap: 12, overflow: "hidden" }}>
 
-          <div onClick={() => navigate("/sales-order")} className="bg-white rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ padding: "14px 16px" }}>
-            <div className="flex items-start justify-between">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#FFF8EC" }}>
-                <ClockCountdown size={18} weight="fill" className="text-[#C4914A]" />
+      {/* ── KPI ROW 1 — Ringkasan Operasional ── */}
+      <div style={{ flexShrink: 0 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "#8D8A85", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Ringkasan Operasional</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+          {[
+            { icon: <Truck size={20} weight="fill" className="text-[#EB5E28]" />, bg: "#FEF0E8", value: soAktif, color: "#EB5E28", label: "SO Aktif", sub: "On Going + Loading", onClick: () => navigate("/sales-order") },
+            { icon: <ClockCountdown size={20} weight="fill" className="text-[#C4914A]" />, bg: "#FFF8EC", value: soMenungguKonfirmasi, color: "#C4914A", label: "Menunggu Konfirmasi", onClick: () => navigate("/sales-order") },
+            { icon: <WarningCircle size={20} weight="fill" className="text-[#B85450]" />, bg: "#FFF0F0", value: soTidakAdaUpdate, color: "#B85450", label: "Tidak Ada Update >12 jam", onClick: () => navigate("/update-muatan") },
+          ].map((k) => (
+            <div key={k.label} onClick={k.onClick} style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: k.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{k.icon}</div>
+              <div>
+                <div style={{ fontSize: 26, fontWeight: 900, color: k.color, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
+                <div style={{ fontSize: 12, color: "#52504A", marginTop: 2 }}>{k.label}</div>
               </div>
-              <CaretRight size={16} weight="fill" className="text-[#8D8A85]" />
             </div>
-            <div className="mt-3">
-              <div className="font-black text-[#C4914A] tabular-nums leading-none" style={{ fontSize: 28 }}>{soMenungguKonfirmasi}</div>
-              <div className="text-[12px] font-medium text-[#52504A] mt-1">Menunggu Konfirmasi</div>
-            </div>
-          </div>
-
-          <div onClick={() => navigate("/update-muatan")} className="bg-white rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ padding: "14px 16px" }}>
-            <div className="flex items-start justify-between">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#FFF0F0" }}>
-                <WarningCircle size={18} weight="fill" className="text-[#B85450]" />
-              </div>
-              <CaretRight size={16} weight="fill" className="text-[#8D8A85]" />
-            </div>
-            <div className="mt-3">
-              <div className="font-black text-[#B85450] tabular-nums leading-none" style={{ fontSize: 28 }}>{soTidakAdaUpdate}</div>
-              <div className="text-[12px] font-medium text-[#52504A] mt-1">Tidak Ada Update &gt;12 jam</div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
-      {/* KPI ROW 2 — Ringkasan Keuangan (Admin/Keuangan only) */}
+      {/* ── KPI ROW 2 — Ringkasan Keuangan ── */}
       {isFinanceRole && (
-        <div className="mb-4 px-6">
-          <div className="text-[10px] font-black text-[#9B9690] uppercase tracking-widest mb-2">Ringkasan Keuangan</div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div onClick={() => navigate("/laporan")} className="rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3", padding: "12px 16px" }}>
-              <div className="flex items-start justify-between">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#F0F7EA" }}>
-                  <ChartLineUp size={16} weight="fill" className="text-[#5C8A3C]" />
+        <div style={{ flexShrink: 0 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#8D8A85", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Ringkasan Keuangan</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+            {[
+              { icon: <ChartLineUp size={20} weight="fill" className="text-[#5C8A3C]" />, bg: "#F0F7EA", value: `Rp ${fmt(revenueBulanIni)}`, label: "Revenue Bulan Ini", onClick: () => navigate("/laporan") },
+              { icon: <Receipt size={20} weight="fill" className="text-[#B85450]" />, bg: "#FFF0F0", value: `${(so || []).filter((s: any) => s.status_muatan === "Completed").length}`, label: "Invoice Belum Lunas", sub: "invoice", onClick: () => navigate("/invoice") },
+              { icon: <ClipboardText size={20} weight="fill" className="text-[#C4914A]" />, bg: "#FFF8EC", value: `${soBelumDiinvoice}`, label: "SO Belum Diinvoice", sub: "SO", onClick: () => navigate("/sales-order") },
+            ].map((k) => (
+              <div key={k.label} onClick={k.onClick} style={{ background: "#F8F6F3", border: "1px solid #E2DDD6", borderRadius: 10, padding: "10px 16px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
+                <div style={{ width: 40, height: 40, borderRadius: 10, background: k.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{k.icon}</div>
+                <div>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: "#1A1A1A", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
+                  <div style={{ fontSize: 12, color: "#52504A", marginTop: 2 }}>{k.label}</div>
                 </div>
-                <CaretRight size={14} weight="fill" className="text-[#8D8A85]" />
               </div>
-              <div className="mt-3">
-                <div className="font-bold text-[#1A1A1A] tabular-nums leading-none" style={{ fontSize: 22 }}>Rp{fmt(revenueBulanIni)}</div>
-                <div className="text-[12px] font-medium text-[#52504A] mt-1">Revenue Bulan Ini</div>
-              </div>
-            </div>
-
-            <div onClick={() => navigate("/invoice")} className="rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3", padding: "12px 16px" }}>
-              <div className="flex items-start justify-between">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#FFF0F0" }}>
-                  <Receipt size={16} weight="fill" className="text-[#B85450]" />
-                </div>
-                <CaretRight size={14} weight="fill" className="text-[#8D8A85]" />
-              </div>
-              <div className="mt-3">
-                <div className="font-bold text-[#1A1A1A] tabular-nums leading-none" style={{ fontSize: 22 }}>0</div>
-                <div className="text-[12px] font-medium text-[#52504A] mt-1">Invoice Belum Lunas</div>
-              </div>
-            </div>
-
-            <div onClick={() => navigate("/sales-order")} className="rounded-xl border border-[#E2DDD6] cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3", padding: "12px 16px" }}>
-              <div className="flex items-start justify-between">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#FFF8EC" }}>
-                  <ClipboardText size={16} weight="fill" className="text-[#C4914A]" />
-                </div>
-                <CaretRight size={14} weight="fill" className="text-[#8D8A85]" />
-              </div>
-              <div className="mt-3">
-                <div className="font-bold text-[#1A1A1A] tabular-nums leading-none" style={{ fontSize: 22 }}>{soBelumDiinvoice}</div>
-                <div className="text-[12px] font-medium text-[#52504A] mt-1">SO Belum Diinvoice</div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* 2-column layout — fills remaining space */}
-      <div className="flex gap-6 px-6 pb-4 flex-1 min-h-0">
-        {/* LEFT — Shipment Terbaru */}
-        <div className="flex-1 min-w-0 bg-white rounded-xl border border-[#E2DDD6] overflow-hidden flex flex-col">
-          <div className="px-5 py-3 border-b border-[#E2DDD6] flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0" style={{ background: "#F8F6F3" }}>
-            <h3 className="text-[13px] font-black text-[#1A1A1A] tracking-tight">Shipment Terbaru</h3>
+      {/* ── KONTEN BAWAH ── */}
+      <div style={{ flex: 1, minHeight: 0, display: "flex", gap: 16 }}>
+
+        {/* KIRI — Tabel Shipment */}
+        <div style={{ flex: 1, minWidth: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 10, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          {/* Header */}
+          <div style={{ padding: "12px 16px", borderBottom: "1px solid #E2DDD6", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: "#1A1A1A" }}>Shipment Terbaru</span>
             <select
-              className="input-field h-8 text-[11px] font-bold w-full sm:w-40"
+              className="input-field"
+              style={{ height: 32, fontSize: 11, fontWeight: 600, width: 150 }}
               value={shipmentFilter}
               onChange={(e) => { setShipmentFilter(e.target.value); setShipmentPage(1); }}
             >
@@ -238,63 +197,51 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
             </select>
           </div>
 
-          <div className="flex-1 overflow-y-auto overflow-x-auto min-h-0">
-            <table className="w-full border-collapse" style={{ tableLayout: "fixed" }}>
+          {/* Table */}
+          <div style={{ flex: 1, overflowY: "auto", overflowX: "auto", minHeight: 0 }}>
+            <table style={{ width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}>
               <colgroup>
-                <col style={{ width: 140 }} />
-                <col style={{ width: 100 }} />
-                <col style={{ width: 160 }} />
-                <col style={{ width: 180 }} />
-                <col style={{ width: 170 }} />
                 <col style={{ width: 130 }} />
-                <col style={{ width: 110 }} />
+                <col style={{ width: 90 }} />
+                <col style={{ width: 150 }} />
+                <col style={{ width: 170 }} />
+                <col style={{ width: 160 }} />
+                <col style={{ width: 120 }} />
+                <col style={{ width: 100 }} />
               </colgroup>
-              <thead className="sticky top-0 z-10">
-                <tr style={{ background: "#F8F6F3" }}>
-                  <th className="text-left px-4 py-2.5 text-[10px] font-black text-[#9B9690] uppercase tracking-wider">Order</th>
-                  <th className="text-left px-4 py-2.5 text-[10px] font-black text-[#9B9690] uppercase tracking-wider">Tgl Muat</th>
-                  <th className="text-left px-4 py-2.5 text-[10px] font-black text-[#9B9690] uppercase tracking-wider">Customer</th>
-                  <th className="text-left px-4 py-2.5 text-[10px] font-black text-[#9B9690] uppercase tracking-wider">Rute</th>
-                  <th className="text-left px-4 py-2.5 text-[10px] font-black text-[#9B9690] uppercase tracking-wider">Sopir & Armada</th>
-                  <th className="text-left px-4 py-2.5 text-[10px] font-black text-[#9B9690] uppercase tracking-wider">Status</th>
-                  <th className="text-right px-4 py-2.5 text-[10px] font-black text-[#9B9690] uppercase tracking-wider">Nilai</th>
+              <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "#F8F6F3" }}>
+                <tr>
+                  {["ORDER", "TGL MUAT", "CUSTOMER", "RUTE", "SOPIR & ARMADA", "STATUS", "NILAI"].map((h, i) => (
+                    <th key={h} style={{ textAlign: i === 6 ? "right" : "left", padding: "8px 12px", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "#8D8A85", borderBottom: "1px solid #E2DDD6" }}>{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {shipmentPaged.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="py-16 text-center">
-                      <div className="text-[10px] font-bold text-[#9B9690]">Tidak ada data</div>
-                    </td>
-                  </tr>
+                  <tr><td colSpan={7} style={{ padding: "48px 0", textAlign: "center", fontSize: 12, color: "#9B9690" }}>Tidak ada data</td></tr>
                 ) : (
                   shipmentPaged.map((s: any) => (
-                    <tr key={s.id} className="border-b border-[#E2DDD6]/50 hover:bg-[#FAF8F5] transition-colors">
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => onSOClick?.(s.order_id)}
-                          className="text-[11px] font-black text-[#EB5E28] hover:underline tracking-tight"
-                        >
+                    <tr key={s.id} style={{ borderBottom: "1px solid #F0EDE8", cursor: "pointer" }} onMouseEnter={e => (e.currentTarget.style.background = "#FAF8F5")} onMouseLeave={e => (e.currentTarget.style.background = "")}>
+                      <td style={{ padding: "10px 12px" }}>
+                        <button onClick={() => onSOClick?.(s.order_id)} style={{ fontSize: 13, fontWeight: 700, color: "#EB5E28", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                           {s.order_id}
                         </button>
                       </td>
-                      <td className="px-4 py-3 text-[11px] font-medium text-[#52504A] tabular-nums">{fmtTglMuat(s.tgl_muat)}</td>
-                      <td className="px-4 py-3 text-[11px] font-bold text-[#1A1A1A] truncate max-w-[140px]">{s.customer || "—"}</td>
-                      <td className="px-4 py-3">
-                        <div className="text-[11px] font-medium text-[#52504A] truncate max-w-[160px]">
-                          {s.lokasi_muat || "—"} → {s.lokasi_bongkar || "—"}
-                        </div>
+                      <td style={{ padding: "10px 12px", fontSize: 13, color: "#52504A", fontVariantNumeric: "tabular-nums" }}>{fmtTglMuat(s.tgl_muat)}</td>
+                      <td style={{ padding: "10px 12px", fontSize: 13, fontWeight: 500, color: "#1A1A1A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.customer || ""}>{s.customer || "—"}</td>
+                      <td style={{ padding: "10px 12px", fontSize: 13, color: "#52504A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={`${s.lokasi_muat || ""} → ${s.lokasi_bongkar || ""}`}>
+                        {s.lokasi_muat || "—"} → {s.lokasi_bongkar || "—"}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="text-[11px] font-bold text-[#1A1A1A] leading-tight">{s.nama_sopir || "—"}</div>
-                        <div className="text-[10px] text-[#9B9690]">{s.no_polisi || ""}{s.jenis_truk ? ` · ${s.jenis_truk}` : ""}</div>
+                      <td style={{ padding: "10px 12px" }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A1A", lineHeight: 1.3 }}>{s.nama_sopir || "—"}</div>
+                        <div style={{ fontSize: 11, color: "#9B9690" }}>{s.no_polisi || ""}{s.jenis_truk ? ` · ${s.jenis_truk}` : ""}</div>
                       </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-block rounded-full px-2.5 py-1 text-[10px] font-bold ${STATUS_BADGE[s.status_muatan] || "bg-[#F1EFE8] text-[#5F5E5A]"}`}>
+                      <td style={{ padding: "10px 12px" }}>
+                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${STATUS_BADGE[s.status_muatan] || "bg-[#F1EFE8] text-[#5F5E5A]"}`}>
                           {s.status_muatan}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right text-[11px] font-black text-[#1A1A1A] tabular-nums whitespace-nowrap">
+                      <td style={{ padding: "10px 12px", textAlign: "right", fontSize: 13, fontWeight: 600, color: "#1A1A1A", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
                         Rp{fmt(Number(s.total_harga_pajak || s.total_harga || s.harga_pengiriman || 0))}
                       </td>
                     </tr>
@@ -304,98 +251,90 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
             </table>
           </div>
 
-          <div className="px-5 py-3 border-t border-[#E2DDD6] flex items-center justify-between flex-shrink-0" style={{ background: "#F8F6F3" }}>
-            <span className="text-[10px] font-bold text-[#9B9690]">
-              Menampilkan {shipmentFiltered.length === 0 ? 0 : (shipmentPage - 1) * SHIPMENT_PER_PAGE + 1}-{Math.min(shipmentPage * SHIPMENT_PER_PAGE, shipmentFiltered.length)} dari {shipmentFiltered.length} data
+          {/* Pagination */}
+          <div style={{ padding: "10px 16px", borderTop: "1px solid #E2DDD6", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0, fontSize: 12 }}>
+            <span style={{ color: "#9B9690" }}>
+              Menampilkan {shipmentFiltered.length === 0 ? 0 : (shipmentPage - 1) * SHIPMENT_PER_PAGE + 1} - {Math.min(shipmentPage * SHIPMENT_PER_PAGE, shipmentFiltered.length)} dari {shipmentFiltered.length} data
             </span>
-            <div className="flex items-center gap-2">
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <button
                 disabled={shipmentPage <= 1}
                 onClick={() => setShipmentPage(p => Math.max(1, p - 1))}
-                className="px-3 py-1.5 rounded-lg border border-[#E2DDD6] text-[10px] font-bold text-[#52504A] disabled:opacity-30 hover:bg-white transition-all"
+                style={{ padding: "4px 12px", borderRadius: 6, border: "1px solid #E2DDD6", background: "white", fontSize: 12, color: "#52504A", cursor: shipmentPage <= 1 ? "not-allowed" : "pointer", opacity: shipmentPage <= 1 ? 0.3 : 1 }}
               >
-                Prev
+                ‹ Prev
               </button>
-              <span className="text-[10px] font-bold text-[#52504A]">Halaman {shipmentPage} / {shipmentTotalPages}</span>
+              <span style={{ fontSize: 12, color: "#52504A" }}>Halaman {shipmentPage} / {shipmentTotalPages}</span>
               <button
                 disabled={shipmentPage >= shipmentTotalPages}
                 onClick={() => setShipmentPage(p => Math.min(shipmentTotalPages, p + 1))}
-                className="px-3 py-1.5 rounded-lg border border-[#E2DDD6] text-[10px] font-bold text-[#52504A] disabled:opacity-30 hover:bg-white transition-all"
+                style={{ padding: "4px 12px", borderRadius: 6, border: "1px solid #E2DDD6", background: "white", fontSize: 12, color: shipmentPage >= shipmentTotalPages ? "#C0B8B0" : "#EB5E28", fontWeight: 600, cursor: shipmentPage >= shipmentTotalPages ? "not-allowed" : "pointer", opacity: shipmentPage >= shipmentTotalPages ? 0.3 : 1 }}
               >
-                Next
+                Next ›
               </button>
             </div>
           </div>
         </div>
 
-        {/* RIGHT PANEL — 260px */}
-        <div className="w-[260px] flex-shrink-0 flex flex-col gap-4 overflow-y-auto min-h-0">
+        {/* KANAN — Panel */}
+        <div style={{ width: 260, flexShrink: 0, display: "flex", flexDirection: "column", gap: 10, overflow: "hidden" }}>
+
           {/* Dispatcher Hari Ini */}
-          <div className="bg-white rounded-xl border border-[#E2DDD6] p-4">
-            <h3 className="text-[13px] font-semibold text-[#1A1A1A] uppercase tracking-wide mb-3">Dispatcher Hari Ini</h3>
-            <div className="grid grid-cols-2 gap-2.5">
+          <div style={{ flexShrink: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 10, padding: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "#8D8A85", marginBottom: 10 }}>Dispatcher Hari Ini</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               {dispatcherItems.map((d) => (
-                <div key={d.label} className="p-3 rounded-lg bg-[#FAF8F5] border border-[#E2DDD6]/50">
-                  <div className="mb-1.5">{d.icon}</div>
-                  <div className="text-[20px] font-bold text-[#1A1A1A] tabular-nums leading-none">{d.value}</div>
-                  <div className="text-[11px] text-[#52504A] mt-1">{d.label}</div>
+                <div key={d.label} style={{ background: "#F8F6F3", borderRadius: 8, padding: 10 }}>
+                  <div style={{ marginBottom: 6 }}>{d.icon}</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "#1A1A1A", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{d.value}</div>
+                  <div style={{ fontSize: 11, color: "#52504A", marginTop: 4 }}>{d.label}</div>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Aktivitas Terbaru */}
-          <div className="bg-white rounded-xl border border-[#E2DDD6] p-4">
-            <h3 className="text-[13px] font-semibold text-[#1A1A1A] uppercase tracking-wide mb-3">Aktivitas Terbaru</h3>
-            <div className="flex flex-col gap-2">
-              {recentCargoActivity.length === 0 ? (
-                <div className="py-6 text-center text-[10px] font-bold text-[#9B9690]">Belum ada aktivitas</div>
-              ) : (
-                recentCargoActivity.map((l: any, i: number) => (
-                  <div key={i} className="relative pl-4 pb-2 border-l-2 border-[#E2DDD6] last:border-0 last:pb-0">
-                    <div className="absolute -left-[5px] top-0.5 w-2 h-2 rounded-full bg-[#B85450]" />
-                    <button
-                      className="text-[10px] font-bold text-[#EB5E28] hover:underline"
-                      onClick={() => onSOClick?.(l.order_id)}
-                    >
-                      {l.order_id || "Draft"}
-                    </button>
-                    <div className="text-[10px] font-medium text-[#52504A] truncate">{l.location || "Transito"}</div>
-                    <div className="text-[9px] text-[#9B9690]">
-                      {l.time} · {l.date}
-                      {(() => {
-                        const t = new Date(`${l.date} ${l.time}`).getTime();
-                        if (isNaN(t)) return "";
-                        const mins = Math.round((Date.now() - t) / 60000);
-                        if (mins < 60) return ` · ${mins} menit lalu`;
-                        const hrs = Math.round(mins / 60);
-                        return ` · ${hrs} jam lalu`;
-                      })()}
+          <div style={{ flexShrink: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 10, padding: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "#8D8A85", marginBottom: 8 }}>Aktivitas Terbaru</div>
+            {recentCargoActivity.length === 0 ? (
+              <div style={{ padding: "16px 0", textAlign: "center", fontSize: 11, color: "#9B9690" }}>Belum ada aktivitas</div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {recentCargoActivity.map((l: any, i: number) => (
+                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#B85450", marginTop: 5, flexShrink: 0 }} />
+                    <div style={{ minWidth: 0 }}>
+                      <button onClick={() => onSOClick?.(l.order_id)} style={{ fontSize: 12, fontWeight: 700, color: "#EB5E28", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                        {l.order_id || "Draft"}
+                      </button>
+                      <div style={{ fontSize: 12, color: "#52504A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.location || "Transito"}</div>
+                      <div style={{ fontSize: 11, color: "#9B9690" }}>
+                        {l.date} • {l.time}
+                      </div>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Alert */}
           {alerts.length > 0 && (
-            <div className="bg-white rounded-xl border border-[#E2DDD6] p-4">
-              <h3 className="text-[13px] font-semibold text-[#1A1A1A] uppercase tracking-wide mb-3">Alert</h3>
-              <div className="flex flex-col gap-2">
-                {alerts.map((a, i) => (
-                  <div
-                    key={i}
-                    onClick={a.action}
-                    className="bg-white rounded-lg border-l-[3px] border border-[#E2DDD6] px-3 py-3 flex items-center gap-3 cursor-pointer hover:bg-[#FAF8F5] transition-all"
-                    style={{ borderLeftColor: a.color }}
-                  >
-                    <span className="shrink-0">{a.icon}</span>
-                    <span className="text-[13px] font-bold text-[#1A1A1A] flex-1 leading-tight">{a.label}</span>
-                    <CaretRight size={12} weight="fill" className="text-[#9B9690] shrink-0" />
+            <div style={{ flex: 1, overflowY: "auto", background: "white", border: "1px solid #E2DDD6", borderRadius: 10, padding: 12 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "#8D8A85", marginBottom: 8 }}>Alert</div>
+              {alerts.map((a, i) => (
+                <div
+                  key={i}
+                  onClick={a.action}
+                  style={{ padding: "8px 10px", borderLeft: `3px solid ${a.color}`, background: ALERT_TINT[a.color] || "#F8F6F3", borderRadius: "0 6px 6px 0", marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+                    <span style={{ flexShrink: 0 }}>{a.icon}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1A1A", lineHeight: 1.3 }}>{a.label}</span>
                   </div>
-                ))}
-              </div>
+                  <CaretRight size={14} weight="fill" style={{ color: "#9B9690", flexShrink: 0 }} />
+                </div>
+              ))}
             </div>
           )}
         </div>
