@@ -1488,99 +1488,91 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
       <ToastUI />
       {/* Sidebar - Light */}
       <aside
-        className={`flex flex-col bg-white border-r border-[#E2DDD6] z-[100] transition-all duration-300 relative group ${collapsed ? "w-[64px]" : "w-[240px]"}`}
+        className="flex flex-col bg-white border-r border-[#E2DDD6] z-[100] w-[240px] flex-shrink-0"
       >
         <div className="flex items-center gap-3 px-4 h-[56px] border-b border-[#E2DDD6] overflow-hidden">
-           <div
-             className="w-8 h-8 rounded-lg bg-[#EB5E28] flex items-center justify-center flex-shrink-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
-             onClick={() => setCollapsed(!collapsed)}
-           >
+           <div className="w-8 h-8 rounded-lg bg-[#EB5E28] flex items-center justify-center flex-shrink-0">
               <span className="text-white font-black text-sm italic">S</span>
            </div>
-           {!collapsed && (
-             <div className="animate-fade-right">
-                <div className="text-[15px] font-black tracking-tight text-[#1A1A1A] italic">SJM <span className="text-[#EB5E28]">Flow</span></div>
-                <div className="text-[9px] font-semibold text-[#9B9690]">v5.0</div>
-             </div>
-           )}
+           <div>
+              <div className="text-[15px] font-black tracking-tight text-[#1A1A1A] italic">SJM <span className="text-[#EB5E28]">Flow</span></div>
+           </div>
         </div>
 
-        <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto no-scrollbar py-1">
-          {NAV_MODULES
-            .filter(item => {
-              const moduleMap: Record<string, ModuleKey> = {
-                dashboard: "dashboard",
-                operasional: "so",
-                keuangan: "jurnal",
-                laporan: "laporan",
-                armada: "armada",
-                master: "master",
-              };
-              const key = moduleMap[item.key];
-              return key ? canView(currentUser.role, key) : true;
-            })
-            .map(item => {
-              const sectionLabels: Record<string, string> = {
-                operasional: "OPERASIONAL",
-                keuangan: "KEUANGAN",
-                laporan: "LAPORAN",
-                armada: "ARMADA",
-                master: "SISTEM",
-              };
-              const sectionLabel = sectionLabels[item.key];
-              return (
-                <React.Fragment key={item.key}>
-                  {sectionLabel && !collapsed && (
-                    <div className="nav-section-label">{sectionLabel}</div>
-                  )}
-                  <button
-                    onClick={() => handleNav(item.key)}
-                    title={collapsed ? item.label : ""}
-                    className={`nav-item w-full ${activeModule === item.key ? "active" : ""} ${collapsed ? "justify-center px-0" : ""}`}
-                  >
-                    <Icon name={item.icon} size={collapsed ? 18 : 16} strokeWidth={activeModule === item.key ? 2.5 : 2} />
-                    {!collapsed && <span className="flex-1 truncate tracking-tight text-left ml-px">{item.label}</span>}
-                  </button>
-                </React.Fragment>
-              );
-            })
-          }
-        </nav>
-
-        <div className="px-2 pb-1 border-t border-[#E2DDD6] pt-2 space-y-0.5">
-          {NAV_BOTTOM
-            .filter(item => canView(currentUser.role, item.moduleKey))
-            .map(item => (
-              <button
-                key={item.key}
-                onClick={() => handleNav(item.key)}
-                title={collapsed ? item.label : ""}
-                className={`nav-item w-full ${activeModule === item.key ? "active" : ""} ${collapsed ? "justify-center px-0" : ""}`}
-              >
-                <Icon name={item.icon} size={collapsed ? 18 : 16} strokeWidth={activeModule === item.key ? 2.5 : 2} />
-                {!collapsed && <span className="flex-1 truncate tracking-tight text-left ml-px">{item.label}</span>}
-              </button>
-            ))
-          }
-        </div>
-
-        <div className="px-2 pb-3 border-t border-[#E2DDD6] pt-2">
-          <button
-            onClick={handleLogout}
-            title={collapsed ? "Keluar" : ""}
-            className={`nav-item w-full text-[#9B9690] hover:text-[#B85450] hover:bg-[#FCEBEB] ${collapsed ? "justify-center px-0" : ""}`}
-          >
-            <LogOut size={collapsed ? 18 : 16} />
-            {!collapsed && <span className="flex-1 truncate tracking-tight text-left ml-px">Keluar</span>}
+        <nav className="flex-1 px-3 overflow-y-auto no-scrollbar py-2">
+          {/* DASHBOARD */}
+          <div className="text-[10px] uppercase tracking-wide text-[#8D8A85] font-semibold px-4 pt-3 pb-1">Dashboard</div>
+          <button onClick={() => handleNav("dashboard")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "dashboard" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+            <Icon name="LayoutDashboard" size={16} />
+            <span>Dashboard</span>
           </button>
-        </div>
 
-        <button 
-          onClick={() => setCollapsed(!collapsed)}
-          className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white border border-border-main flex items-center justify-center text-text-light hover:text-accent shadow-sm shadow-accent/5 transition-all opacity-0 group-hover:opacity-100 z-50 hover:scale-110 active:scale-95"
-        >
-          <Icon name={collapsed ? "ChevronRight" : "ChevronLeft"} size={14} />
-        </button>
+          {/* OPERASIONAL */}
+          {canView(currentUser.role, "so") && (<>
+            <div className="text-[10px] uppercase tracking-wide text-[#8D8A85] font-semibold px-4 pt-4 pb-1">Operasional</div>
+            <button onClick={() => handleNav("operasional", "so")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "operasional" && activeSub === "so" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+              <Icon name="FileText" size={16} />
+              <span>Sales Order</span>
+            </button>
+            <button onClick={() => handleNav("operasional", "updatemuatan")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "operasional" && activeSub === "updatemuatan" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+              <Icon name="MapPin" size={16} />
+              <span>Update Muatan</span>
+            </button>
+            <button onClick={() => handleNav("operasional", "quotation")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "operasional" && activeSub === "quotation" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+              <Icon name="ClipboardList" size={16} />
+              <span>Quotation</span>
+            </button>
+          </>)}
+
+          {/* KEUANGAN */}
+          {canView(currentUser.role, "jurnal") && (<>
+            <div className="text-[10px] uppercase tracking-wide text-[#8D8A85] font-semibold px-4 pt-4 pb-1">Keuangan</div>
+            <button onClick={() => handleNav("operasional", "invoice")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "operasional" && activeSub === "invoice" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+              <Icon name="Receipt" size={16} />
+              <span>Invoice</span>
+            </button>
+            <button onClick={() => handleNav("keuangan", "jurnal")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "keuangan" && activeSub === "jurnal" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+              <Icon name="BookOpen" size={16} />
+              <span>Jurnal Umum</span>
+            </button>
+            <button onClick={() => handleNav("keuangan", "hutangpiutang")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "keuangan" && activeSub === "hutangpiutang" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+              <Icon name="Scale" size={16} />
+              <span>Hutang & Piutang</span>
+            </button>
+            <button onClick={() => handleNav("laporan")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "laporan" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+              <Icon name="BarChart3" size={16} />
+              <span>Laporan</span>
+            </button>
+          </>)}
+
+          {/* ARMADA */}
+          {canView(currentUser.role, "armada") && (<>
+            <div className="text-[10px] uppercase tracking-wide text-[#8D8A85] font-semibold px-4 pt-4 pb-1">Armada</div>
+            <button onClick={() => handleNav("armada")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "armada" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+              <Icon name="Truck" size={16} />
+              <span>Armada</span>
+            </button>
+          </>)}
+
+          {/* SISTEM */}
+          <div className="text-[10px] uppercase tracking-wide text-[#8D8A85] font-semibold px-4 pt-4 pb-1">Sistem</div>
+          {canView(currentUser.role, "master") && (
+            <button onClick={() => handleNav("master")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "master" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+              <Icon name="Settings" size={16} />
+              <span>Master</span>
+            </button>
+          )}
+          {canView(currentUser.role, "users") && (
+            <button onClick={() => handleNav("users")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${activeModule === "users" ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
+              <Icon name="Users" size={16} />
+              <span>Users</span>
+            </button>
+          )}
+          <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] text-[#9B9690] hover:text-[#B85450] hover:bg-[#FCEBEB] transition-all">
+            <LogOut size={16} />
+            <span>Keluar</span>
+          </button>
+        </nav>
       </aside>
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">

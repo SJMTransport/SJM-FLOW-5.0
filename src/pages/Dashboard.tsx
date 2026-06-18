@@ -119,53 +119,47 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
 
   return (
     <PageShell>
-      {/* Header */}
-      <div className="mb-6">
-        <div className="text-[11px] text-[#EB5E28] mb-1">Dashboard</div>
-        <h1 className="text-[22px] font-black text-[#1A1A1A] leading-tight">Dashboard</h1>
-        <p className="text-[12px] text-[#52504A] mt-1">Ringkasan operasional dan keuangan</p>
-      </div>
-
       {/* KPI ROW 1 — Ringkasan Operasional */}
       <div className="mb-4">
         <div className="text-[10px] font-black text-[#9B9690] uppercase tracking-widest mb-2">Ringkasan Operasional</div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div
-            onClick={() => onNavigate?.("operasional", "so")}
-            className="bg-white rounded-xl border border-[#E2DDD6] p-5 cursor-pointer hover:border-[#EB5E28]/40 transition-all flex items-center justify-between"
-          >
-            <div>
+          <div onClick={() => onNavigate?.("operasional", "so")} className="bg-white rounded-xl border border-[#E2DDD6] p-5 cursor-pointer hover:border-[#EB5E28]/40 transition-all">
+            <div className="flex items-start justify-between">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#FEF0E8" }}>
+                <Icon name="Package" size={18} className="text-[#EB5E28]" />
+              </div>
+              <Icon name="ChevronRight" size={16} className="text-[#8D8A85]" />
+            </div>
+            <div className="mt-3">
               <div className="text-[32px] font-black text-[#EB5E28] tabular-nums leading-none">{soAktif}</div>
               <div className="text-[12px] font-medium text-[#52504A] mt-1">SO Aktif</div>
-              <div className="text-[10px] text-[#9B9690] mt-0.5">On Going + Loading + Arrived</div>
             </div>
-            <Icon name="ChevronRight" size={16} className="text-[#9B9690] shrink-0" />
           </div>
 
-          <div
-            onClick={() => onNavigate?.("operasional", "so")}
-            className="bg-white rounded-xl border border-[#E2DDD6] p-5 cursor-pointer hover:border-[#EB5E28]/40 transition-all flex items-center justify-between"
-          >
-            <div>
+          <div onClick={() => onNavigate?.("operasional", "so")} className="bg-white rounded-xl border border-[#E2DDD6] p-5 cursor-pointer hover:border-[#EB5E28]/40 transition-all">
+            <div className="flex items-start justify-between">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#FFF8EC" }}>
+                <Icon name="Clock" size={18} className="text-[#C4914A]" />
+              </div>
+              <Icon name="ChevronRight" size={16} className="text-[#8D8A85]" />
+            </div>
+            <div className="mt-3">
               <div className="text-[32px] font-black text-[#C4914A] tabular-nums leading-none">{soMenungguKonfirmasi}</div>
               <div className="text-[12px] font-medium text-[#52504A] mt-1">Menunggu Konfirmasi</div>
-              <div className="text-[10px] text-[#9B9690] mt-0.5">Status Order Confirmed</div>
             </div>
-            <Icon name="ChevronRight" size={16} className="text-[#9B9690] shrink-0" />
           </div>
 
-          <div
-            onClick={() => onNavigate?.("operasional", "muatan")}
-            className="bg-white rounded-xl border border-[#E2DDD6] p-5 cursor-pointer hover:border-[#EB5E28]/40 transition-all flex items-center justify-between"
-          >
-            <div>
-              <div className="flex items-center gap-2">
-                <div className="text-[32px] font-black text-[#EB5E28] tabular-nums leading-none">{soTidakAdaUpdate}</div>
-                {soTidakAdaUpdate > 0 && <Icon name="AlertTriangle" size={18} className="text-[#EB5E28]" />}
+          <div onClick={() => onNavigate?.("operasional", "muatan")} className="bg-white rounded-xl border border-[#E2DDD6] p-5 cursor-pointer hover:border-[#EB5E28]/40 transition-all">
+            <div className="flex items-start justify-between">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#FFF0F0" }}>
+                <Icon name="AlertTriangle" size={18} className="text-[#B85450]" />
               </div>
+              <Icon name="ChevronRight" size={16} className="text-[#8D8A85]" />
+            </div>
+            <div className="mt-3">
+              <div className="text-[32px] font-black text-[#B85450] tabular-nums leading-none">{soTidakAdaUpdate}</div>
               <div className="text-[12px] font-medium text-[#52504A] mt-1">Tidak Ada Update &gt;12 jam</div>
             </div>
-            <Icon name="ChevronRight" size={16} className="text-[#9B9690] shrink-0" />
           </div>
         </div>
       </div>
@@ -175,49 +169,52 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
         <div className="mb-6">
           <div className="text-[10px] font-black text-[#9B9690] uppercase tracking-widest mb-2">Ringkasan Keuangan</div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div
-              onClick={() => onNavigate?.("laporan")}
-              className="rounded-xl border border-[#E2DDD6] p-4 cursor-pointer hover:border-[#EB5E28]/40 transition-all flex items-center justify-between"
-              style={{ background: "#F8F6F3" }}
-            >
-              <div>
+            <div onClick={() => onNavigate?.("laporan")} className="rounded-xl border border-[#E2DDD6] p-4 cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3" }}>
+              <div className="flex items-start justify-between">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#F0F7EA" }}>
+                  <Icon name="TrendingUp" size={16} className="text-[#5C8A3C]" />
+                </div>
+                <Icon name="ChevronRight" size={14} className="text-[#8D8A85]" />
+              </div>
+              <div className="mt-3">
                 <div className="text-[24px] font-bold text-[#1A1A1A] tabular-nums leading-none">Rp{fmt(revenueBulanIni)}</div>
                 <div className="text-[12px] font-medium text-[#52504A] mt-1">Revenue Bulan Ini</div>
               </div>
-              <Icon name="ChevronRight" size={14} className="text-[#9B9690] shrink-0" />
             </div>
 
-            <div
-              onClick={() => onNavigate?.("operasional", "invoice")}
-              className="rounded-xl border border-[#E2DDD6] p-4 cursor-pointer hover:border-[#EB5E28]/40 transition-all flex items-center justify-between"
-              style={{ background: "#F8F6F3" }}
-            >
-              <div>
+            <div onClick={() => onNavigate?.("operasional", "invoice")} className="rounded-xl border border-[#E2DDD6] p-4 cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3" }}>
+              <div className="flex items-start justify-between">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#FFF0F0" }}>
+                  <Icon name="FileText" size={16} className="text-[#B85450]" />
+                </div>
+                <Icon name="ChevronRight" size={14} className="text-[#8D8A85]" />
+              </div>
+              <div className="mt-3">
                 <div className="text-[24px] font-bold text-[#1A1A1A] tabular-nums leading-none">0</div>
                 <div className="text-[12px] font-medium text-[#52504A] mt-1">Invoice Belum Lunas</div>
               </div>
-              <Icon name="ChevronRight" size={14} className="text-[#9B9690] shrink-0" />
             </div>
 
-            <div
-              onClick={() => onNavigate?.("operasional", "so")}
-              className="rounded-xl border border-[#E2DDD6] p-4 cursor-pointer hover:border-[#EB5E28]/40 transition-all flex items-center justify-between"
-              style={{ background: "#F8F6F3" }}
-            >
-              <div>
+            <div onClick={() => onNavigate?.("operasional", "so")} className="rounded-xl border border-[#E2DDD6] p-4 cursor-pointer hover:border-[#EB5E28]/40 transition-all" style={{ background: "#F8F6F3" }}>
+              <div className="flex items-start justify-between">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#FFF8EC" }}>
+                  <Icon name="ClipboardList" size={16} className="text-[#C4914A]" />
+                </div>
+                <Icon name="ChevronRight" size={14} className="text-[#8D8A85]" />
+              </div>
+              <div className="mt-3">
                 <div className="text-[24px] font-bold text-[#1A1A1A] tabular-nums leading-none">{soBelumDiinvoice}</div>
                 <div className="text-[12px] font-medium text-[#52504A] mt-1">SO Belum Diinvoice</div>
               </div>
-              <Icon name="ChevronRight" size={14} className="text-[#9B9690] shrink-0" />
             </div>
           </div>
         </div>
       )}
 
       {/* 2-column layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
+      <div className="flex gap-6 items-start">
         {/* LEFT — Shipment Terbaru */}
-        <div className="bg-white rounded-xl border border-[#E2DDD6] overflow-hidden flex flex-col">
+        <div className="flex-1 min-w-0 bg-white rounded-xl border border-[#E2DDD6] overflow-hidden flex flex-col">
           <div className="px-5 py-4 border-b border-[#E2DDD6] flex flex-col sm:flex-row sm:items-center justify-between gap-3" style={{ background: "#F8F6F3" }}>
             <h3 className="text-[13px] font-black text-[#1A1A1A] tracking-tight">Shipment Terbaru</h3>
             <select
@@ -232,7 +229,15 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
           </div>
 
           <div className="flex-1 overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="w-full border-collapse" style={{ tableLayout: "fixed" }}>
+              <colgroup>
+                <col style={{ width: 140 }} />
+                <col style={{ width: 180 }} />
+                <col style={{ width: 200 }} />
+                <col style={{ width: 180 }} />
+                <col style={{ width: 130 }} />
+                <col style={{ width: 120 }} />
+              </colgroup>
               <thead>
                 <tr style={{ background: "#F8F6F3" }}>
                   <th className="text-left px-4 py-2.5 text-[10px] font-black text-[#9B9690] uppercase tracking-wider">Order</th>
@@ -310,8 +315,8 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
           </div>
         </div>
 
-        {/* RIGHT PANEL — 280px */}
-        <div className="flex flex-col gap-4">
+        {/* RIGHT PANEL — 280px sticky */}
+        <div className="w-[280px] flex-shrink-0 flex flex-col gap-4 sticky top-6 self-start">
           {/* Dispatcher Hari Ini */}
           <div className="bg-white rounded-xl border border-[#E2DDD6] p-4">
             <h3 className="text-[13px] font-semibold text-[#1A1A1A] uppercase tracking-wide mb-3">Dispatcher Hari Ini</h3>
