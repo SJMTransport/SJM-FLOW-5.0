@@ -27,7 +27,8 @@ import { InvoicePage } from "@/src/pages/InvoicePage";
 import { QuotationPage } from "@/src/pages/QuotationPage";
 import { MasterPage } from "@/src/pages/Master";
 import { LogAktivitasPage } from "@/src/pages/LogAktivitas";
-import { Loader2, LogOut, Plus, ChevronRight, ChevronLeft, Search, User, Power, AlertCircle } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { List, CaretLeft, CaretRight, MagnifyingGlass, CalendarBlank, Bell, CaretDown, SquaresFour, ClipboardText, Truck, FileText, Receipt, BookOpen, Scales, ChartBar, Van, Gear, Users as UsersIcon, SignOut } from "@phosphor-icons/react";
 import { canView, getAccess, type ModuleKey } from "@/src/permissions";
 
 // ─── LOGIN PAGE ───────────────────────────────────────────────────────────────
@@ -1237,6 +1238,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
     // Persist
     await api.addLog(log, currentUser?.company_id || "");
   }, [currentUser]);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
   const handleLogin = ({ session, profile }: any) => {
@@ -1517,192 +1519,232 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
     <div className="flex h-screen w-screen overflow-hidden bg-bg text-text-main font-sans">
       <ConfirmModalUI />
       <ToastUI />
-      {/* Sidebar - Light */}
-      <aside
-        className="flex flex-col bg-white border-r border-[#E2DDD6] z-[100] w-[240px] flex-shrink-0"
-      >
-        <div className="flex items-center gap-3 px-4 h-[56px] border-b border-[#E2DDD6] overflow-hidden">
-           <div className="w-8 h-8 rounded-lg bg-[#EB5E28] flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-black text-sm italic">S</span>
-           </div>
-           <div>
-              <div className="text-[15px] font-black tracking-tight text-[#1A1A1A] italic">SJM <span className="text-[#EB5E28]">Flow</span></div>
-           </div>
+      {/* Sidebar */}
+      <aside style={{ width: sidebarCollapsed ? 64 : 220, background: 'white', borderRight: '1px solid #E2DDD6', height: '100vh', display: 'flex', flexDirection: 'column', flexShrink: 0, transition: 'width 200ms ease', overflow: 'hidden', zIndex: 100 }}>
+        {/* Logo area */}
+        <div style={{ height: 56, borderBottom: '1px solid #E2DDD6', display: 'flex', alignItems: 'center', padding: sidebarCollapsed ? '0 12px' : '0 16px', justifyContent: 'space-between', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#EB5E28', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ color: 'white', fontWeight: 900, fontSize: 14, fontStyle: 'italic' }}>S</span>
+            </div>
+            {!sidebarCollapsed && <span style={{ fontSize: 15, fontWeight: 900, color: '#1A1A1A', whiteSpace: 'nowrap' }}>SJM Flow</span>}
+          </div>
+          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ width: 28, height: 28, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#9B9690' }}>
+            {sidebarCollapsed ? <CaretRight size={16} /> : <CaretLeft size={16} />}
+          </button>
         </div>
 
-        <nav className="flex-1 px-3 overflow-y-auto no-scrollbar py-2">
-          {/* DASHBOARD */}
-          <div className="text-[10px] uppercase tracking-wide text-[#8D8A85] font-semibold px-4 pt-3 pb-1">Dashboard</div>
-          <button onClick={() => navigate("/")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
-            <Icon name="LayoutDashboard" size={16} />
-            <span>Dashboard</span>
-          </button>
+        <nav style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
+          {(() => {
+            const soAktifCount = (so || []).filter((s: any) => ["On Going", "Loading", "Arrived"].includes(s.status_muatan)).length;
 
-          {/* OPERASIONAL */}
-          {canView(currentUser.role, "so") && (<>
-            <div className="text-[10px] uppercase tracking-wide text-[#8D8A85] font-semibold px-4 pt-4 pb-1">Operasional</div>
-            <button onClick={() => navigate("/sales-order")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/sales-order") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
-              <Icon name="FileText" size={16} />
-              <span>Sales Order</span>
-            </button>
-            <button onClick={() => navigate("/update-muatan")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/update-muatan") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
-              <Icon name="MapPin" size={16} />
-              <span>Update Muatan</span>
-            </button>
-            <button onClick={() => navigate("/quotation")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/quotation") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
-              <Icon name="ClipboardList" size={16} />
-              <span>Quotation</span>
-            </button>
-          </>)}
+            const SectionLabel = ({ label, badge }: { label: string; badge?: number }) => {
+              if (sidebarCollapsed) return null;
+              return (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 4px', fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as any, letterSpacing: '0.8px', color: '#9B9690' }}>
+                  <span>{label}</span>
+                  {badge !== undefined && badge > 0 && (
+                    <span style={{ background: '#FEF0E8', color: '#EB5E28', fontSize: 10, fontWeight: 700, borderRadius: 10, padding: '2px 6px' }}>{badge}</span>
+                  )}
+                </div>
+              );
+            };
 
-          {/* KEUANGAN */}
-          {canView(currentUser.role, "jurnal") && (<>
-            <div className="text-[10px] uppercase tracking-wide text-[#8D8A85] font-semibold px-4 pt-4 pb-1">Keuangan</div>
-            <button onClick={() => navigate("/invoice")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/invoice") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
-              <Icon name="Receipt" size={16} />
-              <span>Invoice</span>
-            </button>
-            <button onClick={() => navigate("/jurnal")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/jurnal") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
-              <Icon name="BookOpen" size={16} />
-              <span>Jurnal Umum</span>
-            </button>
-            <button onClick={() => navigate("/hutang-piutang")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/hutang-piutang") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
-              <Icon name="Scale" size={16} />
-              <span>Hutang & Piutang</span>
-            </button>
-            <button onClick={() => navigate("/laporan")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/laporan") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
-              <Icon name="BarChart3" size={16} />
-              <span>Laporan</span>
-            </button>
-          </>)}
+            const NavItem = ({ icon, label, path, title }: { icon: React.ReactNode; label: string; path: string; title?: string }) => {
+              const active = isPathActive(path);
+              return (
+                <button
+                  onClick={() => navigate(path)}
+                  title={sidebarCollapsed ? (title || label) : undefined}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: sidebarCollapsed ? '8px' : '8px 16px',
+                    justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
+                    margin: '1px 8px', width: 'calc(100% - 16px)',
+                    borderRadius: 8, fontSize: 14, fontWeight: active ? 600 : 400,
+                    color: active ? '#EB5E28' : '#1A1A1A',
+                    background: active ? '#FEF0E8' : 'transparent',
+                    borderLeft: active && !sidebarCollapsed ? '3px solid #EB5E28' : '3px solid transparent',
+                    border: 'none', cursor: 'pointer', transition: 'all 150ms ease', whiteSpace: 'nowrap' as any,
+                  }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#FAF8F5'; }}
+                  onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent'; }}
+                >
+                  {icon}
+                  {!sidebarCollapsed && <span>{label}</span>}
+                </button>
+              );
+            };
 
-          {/* ARMADA */}
-          {canView(currentUser.role, "armada") && (<>
-            <div className="text-[10px] uppercase tracking-wide text-[#8D8A85] font-semibold px-4 pt-4 pb-1">Armada</div>
-            <button onClick={() => navigate("/armada")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/armada") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
-              <Icon name="Truck" size={16} />
-              <span>Armada</span>
-            </button>
-          </>)}
+            return (
+              <>
+                <SectionLabel label="Dashboard" />
+                <NavItem icon={<SquaresFour size={20} />} label="Dashboard" path="/" />
 
-          {/* SISTEM */}
-          <div className="text-[10px] uppercase tracking-wide text-[#8D8A85] font-semibold px-4 pt-4 pb-1">Sistem</div>
-          {canView(currentUser.role, "master") && (
-            <button onClick={() => navigate("/master")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/master") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
-              <Icon name="Settings" size={16} />
-              <span>Master</span>
-            </button>
-          )}
-          {canView(currentUser.role, "users") && (
-            <button onClick={() => navigate("/users")} className={`w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] transition-all ${isPathActive("/users") ? "bg-[#FEF0E8] text-[#EB5E28] font-semibold" : "text-[#1A1A1A] hover:bg-[#FAF8F5]"}`}>
-              <Icon name="Users" size={16} />
-              <span>Users</span>
-            </button>
-          )}
-          <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-4 py-2 rounded-lg text-[13px] text-[#9B9690] hover:text-[#B85450] hover:bg-[#FCEBEB] transition-all">
-            <LogOut size={16} />
-            <span>Keluar</span>
-          </button>
+                {canView(currentUser.role, "so") && (<>
+                  <SectionLabel label="Operasional" badge={soAktifCount} />
+                  <NavItem icon={<ClipboardText size={20} />} label="Sales Order" path="/sales-order" />
+                  <NavItem icon={<Truck size={20} />} label="Update Muatan" path="/update-muatan" />
+                  <NavItem icon={<FileText size={20} />} label="Quotation" path="/quotation" />
+                </>)}
+
+                {canView(currentUser.role, "jurnal") && (<>
+                  <SectionLabel label="Keuangan" />
+                  <NavItem icon={<Receipt size={20} />} label="Invoice" path="/invoice" />
+                  <NavItem icon={<BookOpen size={20} />} label="Jurnal Umum" path="/jurnal" />
+                  <NavItem icon={<Scales size={20} />} label="Hutang & Piutang" path="/hutang-piutang" />
+                  <NavItem icon={<ChartBar size={20} />} label="Laporan" path="/laporan" />
+                </>)}
+
+                {canView(currentUser.role, "armada") && (<>
+                  <SectionLabel label="Armada" />
+                  <NavItem icon={<Van size={20} />} label="Armada" path="/armada" />
+                </>)}
+
+                <SectionLabel label="Sistem" />
+                {canView(currentUser.role, "master") && (
+                  <NavItem icon={<Gear size={20} />} label="Master" path="/master" />
+                )}
+                {canView(currentUser.role, "users") && (
+                  <NavItem icon={<UsersIcon size={20} />} label="Users" path="/users" />
+                )}
+              </>
+            );
+          })()}
         </nav>
+
+        {/* Footer — Keluar */}
+        <div style={{ padding: 8, borderTop: '1px solid #E2DDD6', flexShrink: 0 }}>
+          <button
+            onClick={handleLogout}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: sidebarCollapsed ? '8px' : '8px 16px', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', borderRadius: 8, fontSize: 14, color: '#9B9690', background: 'transparent', border: 'none', cursor: 'pointer', transition: 'all 150ms ease' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#DC2626'; e.currentTarget.style.background = '#FEE2E2'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = '#9B9690'; e.currentTarget.style.background = 'transparent'; }}
+          >
+            <SignOut size={20} />
+            {!sidebarCollapsed && <span>Keluar</span>}
+          </button>
+        </div>
       </aside>
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
 
-        {/* TOPBAR GLOBAL */}
-        <header className="h-[56px] bg-white border-b border-[#E2DDD6] flex items-center justify-between px-6 flex-shrink-0 z-[90] sticky top-0">
+        {/* TOPBAR */}
+        <header style={{ height: 56, background: 'white', borderBottom: '1px solid #E2DDD6', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 16, position: 'sticky', top: 0, zIndex: 90, flexShrink: 0 }}>
+          {/* Toggle sidebar */}
+          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ width: 36, height: 36, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#52504A', flexShrink: 0 }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#F5F4F1'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            <List size={20} />
+          </button>
+
+          {/* Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#EB5E28', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: 'white', fontWeight: 900, fontSize: 14 }}>S</span>
+            </div>
+            <span style={{ fontSize: 15, fontWeight: 900, color: '#1A1A1A', fontStyle: 'italic' }}>SJM Flow</span>
+          </div>
 
           {/* Search */}
-          <div className="flex items-center gap-2 bg-[#F5F4F1] border border-[#E2DDD6] rounded-lg px-3 h-[34px] w-[320px] relative">
-            <Icon name="Search" size={13} className="text-[#9B9690]" />
-            <input
-              className="bg-transparent text-[12px] text-[#1A1A1A] placeholder:text-[#C0B8B0] outline-none flex-1"
-              placeholder="Cari shipment, order, armada, driver..."
-              value={globalSearch || ""}
-              onChange={(e) => setGlobalSearch(e.target.value)}
-            />
+          <div style={{ position: 'relative', maxWidth: 400, flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#F5F4F1', border: '1px solid #E2DDD6', borderRadius: 8, height: 36, padding: '0 12px' }}>
+              <MagnifyingGlass size={16} style={{ color: '#9B9690', flexShrink: 0 }} />
+              <input
+                style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: '#1A1A1A', flex: 1, width: '100%' }}
+                placeholder="Cari shipment, SO, customer, driver, armada..."
+                value={globalSearch || ""}
+                onChange={(e) => setGlobalSearch(e.target.value)}
+              />
+            </div>
             {globalSearch && (
-              <div className="absolute top-full left-0 w-[420px] mt-2 bg-white rounded-xl shadow-2xl border border-border-main overflow-hidden animate-fade-down z-[100] max-h-[500px] flex flex-col">
-                 <div className="p-4 border-b border-border-main bg-grey-100 flex justify-between items-center">
-                    <span className="text-[11px] font-bold text-text-main leading-none">Hasil Pencarian</span>
-                    <button onClick={() => setGlobalSearch("")} className="text-text-light hover:text-accent"><Icon name="X" size={16} /></button>
-                 </div>
-                 <div className="flex-1 overflow-y-auto no-scrollbar divide-y divide-border-main/40">
-                    {(() => {
-                        const sTerm = globalSearch.toLowerCase();
-                        const resSO = (so || []).filter((s:any) => String(s.order_id).toLowerCase().includes(sTerm) || String(s.customer).toLowerCase().includes(sTerm)).slice(0, 5);
-                        const resArm = (armada || []).filter((a:any) => String(a.no_polisi).toLowerCase().includes(sTerm)).slice(0, 5);
-
-                        if (resSO.length === 0 && resArm.length === 0) return <div className="p-8 text-center text-[12px] text-text-med font-medium">Tidak ada hasil ditemukan</div>;
-
-                        return (
-                           <>
-                              {resSO.map((s:any) => (
-                                 <div key={s.id} onClick={() => { handleSOClick(s.order_id); setGlobalSearch(""); }} className="p-3.5 hover:bg-slate-50 cursor-pointer group flex items-start gap-4 transition-colors">
-                                    <div className="p-2 rounded-lg bg-blue-brand-light text-blue-brand border border-blue-brand/10">
-                                       <Icon name="Package" size={16} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex justify-between items-baseline mb-1">
-                                         <div className="text-[13px] font-bold text-text-main group-hover:text-accent transition-colors truncate tracking-tight italic">{s.order_id}</div>
-                                         <span className="text-[9px] font-bold text-text-light opacity-70 italic">Sales Order</span>
-                                      </div>
-                                      <div className="text-[11px] font-bold text-text-med truncate opacity-80">{s.customer}</div>
-                                    </div>
-                                 </div>
-                              ))}
-                              {resArm.map((a:any) => (
-                                 <div key={a.id} onClick={() => { handleArmadaClick(a.no_polisi); setGlobalSearch(""); }} className="p-2.5 hover:bg-palladian cursor-pointer group flex items-start gap-4 transition-colors">
-                                    <div className="w-8 h-8 rounded-md bg-burning-flame/5 text-burning-flame flex items-center justify-center shrink-0">
-                                       <Icon name="Truck" size={14} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex justify-between items-baseline mb-0.5">
-                                         <div className="text-[12px] font-black text-abyssal-blue group-hover:text-accent transition-colors truncate tracking-tight">{a.no_polisi}</div>
-                                         <span className="text-[8px] font-bold text-text-light opacity-50 uppercase">Armada</span>
-                                      </div>
-                                      <div className="text-[10px] font-bold text-text-med truncate">{a.merk} {a.tipe}</div>
-                                    </div>
-                                 </div>
-                              ))}
-                           </>
-                        );
-                    })()}
-                 </div>
+              <div style={{ position: 'absolute', top: '100%', left: 0, width: 420, marginTop: 8, background: 'white', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.12)', border: '1px solid #E2DDD6', overflow: 'hidden', zIndex: 100, maxHeight: 500, display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: '12px 16px', borderBottom: '1px solid #E2DDD6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#1A1A1A' }}>Hasil Pencarian</span>
+                  <button onClick={() => setGlobalSearch("")} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9B9690' }}>✕</button>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto' }}>
+                  {(() => {
+                    const sTerm = globalSearch.toLowerCase();
+                    const resSO = (so || []).filter((s: any) => String(s.order_id).toLowerCase().includes(sTerm) || String(s.customer).toLowerCase().includes(sTerm)).slice(0, 5);
+                    const resArm = (armada || []).filter((a: any) => String(a.no_polisi).toLowerCase().includes(sTerm)).slice(0, 5);
+                    if (resSO.length === 0 && resArm.length === 0) return <div style={{ padding: 32, textAlign: 'center', fontSize: 13, color: '#9B9690' }}>Tidak ada hasil</div>;
+                    return (
+                      <>
+                        {resSO.map((s: any) => (
+                          <div key={s.id} onClick={() => { handleSOClick(s.order_id); setGlobalSearch(""); }} style={{ padding: '10px 16px', cursor: 'pointer', borderBottom: '1px solid #F0EBE4', display: 'flex', alignItems: 'center', gap: 12 }}
+                            onMouseEnter={e => { e.currentTarget.style.background = '#FAF8F5'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = ''; }}
+                          >
+                            <ClipboardText size={16} style={{ color: '#EB5E28', flexShrink: 0 }} />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: '#EB5E28', fontFamily: 'monospace' }}>{s.order_id}</div>
+                              <div style={{ fontSize: 11, color: '#52504A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.customer}</div>
+                            </div>
+                            <span style={{ fontSize: 10, color: '#9B9690' }}>SO</span>
+                          </div>
+                        ))}
+                        {resArm.map((a: any) => (
+                          <div key={a.id} onClick={() => { handleArmadaClick(a.no_polisi); setGlobalSearch(""); }} style={{ padding: '10px 16px', cursor: 'pointer', borderBottom: '1px solid #F0EBE4', display: 'flex', alignItems: 'center', gap: 12 }}
+                            onMouseEnter={e => { e.currentTarget.style.background = '#FAF8F5'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = ''; }}
+                          >
+                            <Truck size={16} style={{ color: '#16A34A', flexShrink: 0 }} />
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A' }}>{a.no_polisi}</div>
+                              <div style={{ fontSize: 11, color: '#52504A' }}>{a.merk} {a.tipe}</div>
+                            </div>
+                            <span style={{ fontSize: 10, color: '#9B9690' }}>Armada</span>
+                          </div>
+                        ))}
+                      </>
+                    );
+                  })()}
+                </div>
               </div>
             )}
           </div>
 
-          {/* Right side */}
-          <div className="flex items-center gap-3">
+          <div style={{ flex: 1 }} />
 
-            {/* Notifikasi */}
-            <div
-              className="relative w-8 h-8 rounded-lg flex items-center justify-center hover:bg-[#F5F4F1] cursor-pointer transition-colors"
-              onClick={() => navigate("/armada")}
-            >
-              <Icon name="Bell" size={18} className="text-[#52504A]" />
-              {(expiredDocsCount > 0 || (jurnal || []).filter((j:any) => j.status === "Draft").length > 0) && (
-                <div className="absolute top-1 right-1 w-2 h-2 bg-[#EB5E28] rounded-full border-2 border-white" />
-              )}
+          {/* Period filter */}
+          <div style={{ height: 36, border: '1px solid #E2DDD6', borderRadius: 8, background: 'white', display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', cursor: 'pointer', flexShrink: 0 }}>
+            <CalendarBlank size={16} style={{ color: '#52504A' }} />
+            <span style={{ fontSize: 13, color: '#1A1A1A', whiteSpace: 'nowrap' }}>
+              Bulan Ini | {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - {new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </span>
+            <CaretDown size={14} style={{ color: '#9B9690' }} />
+          </div>
+
+          {/* Bell */}
+          <div
+            onClick={() => navigate("/armada")}
+            style={{ position: 'relative', width: 36, height: 36, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#F5F4F1'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = ''; }}
+          >
+            <Bell size={20} style={{ color: '#52504A' }} />
+            {(expiredDocsCount > 0 || (jurnal || []).filter((j: any) => j.status === "Draft").length > 0) && (
+              <div style={{ position: 'absolute', top: 6, right: 6, width: 8, height: 8, background: '#EB5E28', borderRadius: '50%', border: '2px solid white' }} />
+            )}
+          </div>
+
+          {/* User info */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '4px 8px', borderRadius: 8, flexShrink: 0 }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#F5F4F1'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = ''; }}
+          >
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#EB5E28', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
+              {currentUser.nama?.[0] || "U"}
             </div>
-
-            {/* Divider */}
-            <div className="w-px h-5 bg-[#E2DDD6]" />
-
-            {/* User */}
-            <div className="flex items-center gap-2 cursor-pointer hover:bg-[#F5F4F1] rounded-lg px-2 py-1 transition-colors">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-black"
-                   style={{ background: ROLE_BG[currentUser.role], color: ROLE_COLOR[currentUser.role] }}>
-                {currentUser.nama?.[0]}
-              </div>
-              <div className="hidden md:block">
-                <div className="text-[12px] font-bold text-[#1A1A1A] leading-none">{currentUser.nama}</div>
-                <div className="text-[11px] text-[#9B9690] mt-0.5 truncate" style={{ maxWidth: "200px" }}>
-                  {currentUser.role}{activeCompany?.nama ? ` • ${activeCompany.nama}` : ""}
-                </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A', lineHeight: 1, whiteSpace: 'nowrap' }}>{currentUser.nama || currentUser.email}</div>
+              <div style={{ fontSize: 11, color: '#52504A', marginTop: 2, whiteSpace: 'nowrap' }}>
+                {currentUser.role}{activeCompany?.nama ? ` · ${activeCompany.nama}` : ""}
               </div>
             </div>
-
+            <CaretDown size={14} style={{ color: '#9B9690' }} />
           </div>
         </header>
 
