@@ -28,7 +28,7 @@ import { QuotationPage } from "@/src/pages/QuotationPage";
 import { MasterPage } from "@/src/pages/Master";
 import { LogAktivitasPage } from "@/src/pages/LogAktivitas";
 import { Loader2 } from "lucide-react";
-import { List, CaretLeft, CaretRight, MagnifyingGlass, CalendarBlank, Bell, CaretDown, SquaresFour, ClipboardText, Truck, FileText, Receipt, BookOpen, Scales, ChartBar, Van, Gear, Users as UsersIcon, SignOut, Buildings, Check } from "@phosphor-icons/react";
+import { List, CaretLeft, CaretRight, MagnifyingGlass, CalendarBlank, Bell, CaretDown, SquaresFour, ClipboardText, Truck, FileText, Receipt, BookOpen, Scales, ChartBar, Van, Gear, Users as UsersIcon, SignOut, Check } from "@phosphor-icons/react";
 import { canView, getAccess, type ModuleKey } from "@/src/permissions";
 
 // ─── LOGIN PAGE ───────────────────────────────────────────────────────────────
@@ -1191,14 +1191,14 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
   const [jurnalPrefill, setJurnalPrefill] = useState<any>(null);
   const [globalSearch, setGlobalSearch] = useState("");
   const [showQuickMenu, setShowQuickMenu] = useState(false);
-  const [showCompanyMenu, setShowCompanyMenu] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
-    if (!showCompanyMenu) return;
-    const handleClick = () => setShowCompanyMenu(false);
+    if (!showUserMenu) return;
+    const handleClick = () => setShowUserMenu(false);
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
-  }, [showCompanyMenu]);
+  }, [showUserMenu]);
 
   // Load invoices on mount
   useEffect(() => {
@@ -1740,57 +1740,68 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
             )}
           </div>
 
-          {/* Company Switcher */}
-          {companyList.length > 1 && (
-            <div style={{ position: 'relative', flexShrink: 0 }}>
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowCompanyMenu(!showCompanyMenu); }}
-                style={{ height: 36, padding: '0 12px', border: '1px solid #E2DDD6', borderRadius: 8, background: 'white', fontSize: 13, fontWeight: 500, color: '#1A1A1A', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', transition: 'all 150ms ease' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = '#EB5E28'; e.currentTarget.style.color = '#EB5E28'; }}
-                onMouseLeave={e => { if (!showCompanyMenu) { e.currentTarget.style.borderColor = '#E2DDD6'; e.currentTarget.style.color = '#1A1A1A'; } }}
-              >
-                <Buildings size={16} />
-                <span style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{activeCompany?.nama || "Pilih Perusahaan"}</span>
-                <CaretDown size={14} style={{ color: '#9B9690' }} />
-              </button>
-              {showCompanyMenu && (
-                <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, background: 'white', border: '1px solid #E2DDD6', borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', minWidth: 200, padding: 6, zIndex: 200 }}>
-                  <div style={{ padding: '8px 10px 4px', fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as any, letterSpacing: '0.8px', color: '#9B9690' }}>Pilih Perusahaan</div>
-                  {companyList.map((c: any) => {
-                    const isActive = activeCompany?.id === c.id;
-                    return (
-                      <div
-                        key={c.id}
-                        onClick={() => { switchCompany(c.id); setShowCompanyMenu(false); }}
-                        style={{ padding: '8px 10px', borderRadius: 8, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: isActive ? '#FEF0E8' : 'transparent', color: isActive ? '#EB5E28' : '#1A1A1A', fontWeight: isActive ? 600 : 400, transition: 'background 150ms ease' }}
-                        onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#FAF8F5'; }}
-                        onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
-                      >
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.nama}</span>
-                        {isActive && <Check size={16} style={{ color: '#EB5E28', flexShrink: 0 }} />}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* User info */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '4px 8px', borderRadius: 8, flexShrink: 0 }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#F5F4F1'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = ''; }}
-          >
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#EB5E28', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
-              {currentUser.nama?.[0] || "U"}
-            </div>
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A', lineHeight: 1, whiteSpace: 'nowrap' }}>{currentUser.nama || currentUser.email}</div>
-              <div style={{ fontSize: 11, color: '#52504A', marginTop: 2, whiteSpace: 'nowrap' }}>
-                {currentUser.role}{activeCompany?.nama ? ` · ${activeCompany.nama}` : ""}
+          {/* User info + dropdown */}
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <div
+              onClick={(e) => { e.stopPropagation(); setShowUserMenu(!showUserMenu); }}
+              style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '4px 8px', borderRadius: 8 }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#F5F4F1'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = ''; }}
+            >
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#EB5E28', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
+                {currentUser.nama?.[0] || "U"}
               </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A', lineHeight: 1, whiteSpace: 'nowrap' }}>{currentUser.nama || currentUser.email}</div>
+                <div style={{ fontSize: 11, color: '#52504A', marginTop: 2, whiteSpace: 'nowrap' }}>
+                  {currentUser.role}{activeCompany?.nama ? ` · ${activeCompany.nama}` : ""}
+                </div>
+              </div>
+              <CaretDown size={14} style={{ color: '#9B9690', transform: showUserMenu ? 'rotate(180deg)' : 'none', transition: 'transform 150ms ease' }} />
             </div>
-            <CaretDown size={14} style={{ color: '#9B9690' }} />
+            {showUserMenu && (
+              <div onClick={e => e.stopPropagation()} style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, background: 'white', border: '1px solid #E2DDD6', borderRadius: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', minWidth: 240, padding: 6, zIndex: 200 }}>
+                {/* Section 1: User info */}
+                <div style={{ padding: '10px 12px', borderBottom: '1px solid #F0EDEA' }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1A1A1A' }}>{currentUser.nama || currentUser.email}</div>
+                  <div style={{ fontSize: 12, color: '#9B9690', marginTop: 2 }}>{currentUser.email}</div>
+                  <div style={{ fontSize: 11, color: '#52504A', marginTop: 4, background: '#F5F4F1', display: 'inline-block', padding: '2px 8px', borderRadius: 4, fontWeight: 500 }}>{currentUser.role}</div>
+                </div>
+                {/* Section 2: Company list */}
+                {companyList.length > 1 && (
+                  <div style={{ padding: '6px 0', borderBottom: '1px solid #F0EDEA' }}>
+                    <div style={{ padding: '4px 12px 6px', fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as any, letterSpacing: '0.8px', color: '#9B9690' }}>Perusahaan</div>
+                    {companyList.map((c: any) => {
+                      const isActive = activeCompany?.id === c.id;
+                      return (
+                        <div
+                          key={c.id}
+                          onClick={() => { switchCompany(c.id); setShowUserMenu(false); }}
+                          style={{ padding: '7px 12px', borderRadius: 6, margin: '0 4px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: isActive ? '#FEF0E8' : 'transparent', color: isActive ? '#EB5E28' : '#1A1A1A', fontWeight: isActive ? 600 : 400, transition: 'background 150ms ease' }}
+                          onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#FAF8F5'; }}
+                          onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.nama}</span>
+                          {isActive && <Check size={16} style={{ color: '#EB5E28', flexShrink: 0 }} />}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {/* Section 3: Keluar */}
+                <div style={{ padding: '4px 0 2px' }}>
+                  <div
+                    onClick={() => { setShowUserMenu(false); handleLogout(); }}
+                    style={{ padding: '8px 12px', borderRadius: 6, margin: '0 4px', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, color: '#DC2626', transition: 'background 150ms ease' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#FEF2F2'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    <SignOut size={16} />
+                    <span>Keluar</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </header>
 
