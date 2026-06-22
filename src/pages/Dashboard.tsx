@@ -168,9 +168,6 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: "#1A1A1A" }}>
             Selamat {getGreeting()}, {firstName} 👋
           </h1>
-          <p style={{ fontSize: 13, color: "#52504A", marginTop: 4, marginBottom: 0 }}>
-            Ringkasan operasional hari ini
-          </p>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           {[
@@ -194,7 +191,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
       {/* [2] KPI ROW 1 — Operasional */}
       <div style={{ flexShrink: 0 }}>
         <div style={{ fontSize: 10, fontWeight: 600, color: "#9B9690", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8 }}>Ringkasan Operasional</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+        <div style={{ display: "flex", gap: 12, flexShrink: 0 }}>
           {[
             { icon: <Truck size={24} />, iconBg: "#DBEAFE", iconColor: "#2563EB", value: soAktif, label: "SO Aktif", onClick: () => navigate("/sales-order") },
             { icon: <ClockCountdown size={24} />, iconBg: "#FEF3C7", iconColor: "#D97706", value: soMenungguKonfirmasi, label: "Menunggu Konfirmasi", onClick: () => navigate("/sales-order") },
@@ -203,7 +200,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
             <div
               key={k.label}
               onClick={k.onClick}
-              style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "all 150ms ease", flexShrink: 0 }}
+              style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "all 150ms ease", flex: 1 }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = "#EB5E28"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(235,94,40,0.08)"; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = "#E2DDD6"; e.currentTarget.style.boxShadow = "none"; }}
             >
@@ -222,7 +219,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
       {isFinanceRole && (
         <div style={{ flexShrink: 0 }}>
           <div style={{ fontSize: 10, fontWeight: 600, color: "#9B9690", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8 }}>Ringkasan Keuangan</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+          <div style={{ display: "flex", gap: 12, flexShrink: 0 }}>
             {[
               { icon: <ChartLineUp size={24} />, iconBg: "#DCFCE7", iconColor: "#16A34A", value: `Rp ${fmt(revenueBulanIni)}`, label: "Revenue Bulan Ini", onClick: () => navigate("/laporan") },
               { icon: <Receipt size={24} />, iconBg: "#FEE2E2", iconColor: "#DC2626", value: "0", label: "Invoice Belum Lunas", onClick: () => navigate("/invoice") },
@@ -231,7 +228,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
               <div
                 key={k.label}
                 onClick={k.onClick}
-                style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "all 150ms ease", flexShrink: 0 }}
+                style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "all 150ms ease", flex: 1 }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "#EB5E28"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(235,94,40,0.08)"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "#E2DDD6"; e.currentTarget.style.boxShadow = "none"; }}
               >
