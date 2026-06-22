@@ -160,7 +160,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
   const firstName = currentUser?.nama?.split(" ")[0] || currentUser?.email?.split("@")[0] || "User";
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 56px)", padding: "20px 24px", gap: 12, overflow: "hidden", background: "#F5F4F1" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 56px)", padding: "20px 24px", gap: 12, overflow: "hidden", background: "#F5F4F1", boxSizing: "border-box" as any }}>
 
       {/* [1] HEADER ROW */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexShrink: 0 }}>
@@ -203,7 +203,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
             <div
               key={k.label}
               onClick={k.onClick}
-              style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "all 150ms ease" }}
+              style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "all 150ms ease", flexShrink: 0 }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = "#EB5E28"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(235,94,40,0.08)"; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = "#E2DDD6"; e.currentTarget.style.boxShadow = "none"; }}
             >
@@ -212,7 +212,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
                 <div style={{ fontSize: 13, color: "#52504A", marginBottom: 4 }}>{k.label}</div>
                 <div style={{ fontSize: 28, fontWeight: 700, color: "#1A1A1A", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
               </div>
-              <CaretRight size={16} style={{ color: "#9B9690", flexShrink: 0 }} />
+              <CaretRight size={16} color="#9B9690" style={{ flexShrink: 0 }} />
             </div>
           ))}
         </div>
@@ -231,7 +231,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
               <div
                 key={k.label}
                 onClick={k.onClick}
-                style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "all 150ms ease" }}
+                style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "all 150ms ease", flexShrink: 0 }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "#EB5E28"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(235,94,40,0.08)"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "#E2DDD6"; e.currentTarget.style.boxShadow = "none"; }}
               >
@@ -240,7 +240,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
                   <div style={{ fontSize: 13, color: "#52504A", marginBottom: 4 }}>{k.label}</div>
                   <div style={{ fontSize: 22, fontWeight: 700, color: "#1A1A1A", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
                 </div>
-                <CaretRight size={16} style={{ color: "#9B9690", flexShrink: 0 }} />
+                <CaretRight size={16} color="#9B9690" style={{ flexShrink: 0 }} />
               </div>
             ))}
           </div>
@@ -251,7 +251,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
       <div style={{ display: "flex", gap: 16, flex: 1, minHeight: 0, overflow: "hidden" }}>
 
         {/* LEFT — Shipment Table */}
-        <div style={{ flex: 1, minWidth: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 12, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <div style={{ flex: 1, minWidth: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 12, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
           {/* Toolbar */}
           <div style={{ padding: "12px 16px", borderBottom: "1px solid #E2DDD6", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
             <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "#9B9690" }}>Shipment Aktif</span>
@@ -394,7 +394,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
         </div>
 
         {/* RIGHT — Panel 300px */}
-        <div style={{ width: 300, flexShrink: 0, display: "flex", flexDirection: "column", gap: 12, overflow: "hidden" }}>
+        <div style={{ width: 300, flexShrink: 0, display: "flex", flexDirection: "column", gap: 12, overflow: "hidden", minHeight: 0 }}>
 
           {/* Dispatcher Hari Ini */}
           <div style={{ flexShrink: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: 14 }}>
@@ -465,7 +465,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
                 style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, marginBottom: 6, cursor: "pointer", borderLeft: `3px solid ${a.border}`, background: a.bg, transition: "all 150ms ease" }}
               >
                 <div style={{ width: 28, height: 28, borderRadius: 6, background: a.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{a.icon}</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A1A", minWidth: 32, fontVariantNumeric: "tabular-nums" }}>{a.count}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A1A", minWidth: 36, fontVariantNumeric: "tabular-nums" }}>{a.count}</div>
                 <div style={{ flex: 1, fontSize: 12, color: "#52504A", lineHeight: 1.3 }}>{a.label}</div>
                 <CaretRight size={14} style={{ color: "#9B9690", flexShrink: 0 }} />
               </div>

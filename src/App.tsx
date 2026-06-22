@@ -1639,13 +1639,15 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
             <List size={20} />
           </button>
 
-          {/* Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#EB5E28', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ color: 'white', fontWeight: 900, fontSize: 14 }}>S</span>
+          {/* Logo — only when sidebar collapsed */}
+          {sidebarCollapsed && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: '#EB5E28', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ color: 'white', fontWeight: 900, fontSize: 14 }}>S</span>
+              </div>
+              <span style={{ fontSize: 15, fontWeight: 900, color: '#1A1A1A', fontStyle: 'italic' }}>SJM Flow</span>
             </div>
-            <span style={{ fontSize: 15, fontWeight: 900, color: '#1A1A1A', fontStyle: 'italic' }}>SJM Flow</span>
-          </div>
+          )}
 
           {/* Search */}
           <div style={{ position: 'relative', maxWidth: 400, flex: 1 }}>
