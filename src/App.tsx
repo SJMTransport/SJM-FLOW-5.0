@@ -1190,7 +1190,6 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
   const [hpPrefill, setHpPrefill] = useState<any>(null);
   const [jurnalPrefill, setJurnalPrefill] = useState<any>(null);
   const [globalSearch, setGlobalSearch] = useState("");
-  const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
@@ -1544,16 +1543,20 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
 
         <nav style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
           {(() => {
-            const soAktifCount = (so || []).filter((s: any) => ["On Going", "Loading", "Arrived"].includes(s.status_muatan)).length;
+            const soAktifCount = (so || []).filter((s: any) => ["On Going", "Loading", "Arrived", "Order Confirmed"].includes(s.status_muatan)).length;
+            const armadaCount = (armada || []).length;
 
             const SectionLabel = ({ label, badge }: { label: string; badge?: number }) => {
               if (sidebarCollapsed) return null;
               return (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px 4px', fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as any, letterSpacing: '0.8px', color: '#9B9690' }}>
+                <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px 4px', fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as any, letterSpacing: '0.8px', color: '#9B9690' }}>
                   <span>{label}</span>
-                  {badge !== undefined && badge > 0 && (
-                    <span style={{ background: '#FEF0E8', color: '#EB5E28', fontSize: 10, fontWeight: 700, borderRadius: 10, padding: '2px 6px' }}>{badge}</span>
-                  )}
+                  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {badge !== undefined && badge > 0 && (
+                      <span style={{ background: '#FEF0E8', color: '#EB5E28', fontSize: 10, fontWeight: 700, borderRadius: 10, padding: '2px 6px' }}>{badge}</span>
+                    )}
+                    <CaretRight size={10} style={{ color: '#9B9690' }} />
+                  </div>
                 </div>
               );
             };
@@ -1597,7 +1600,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
                 </>)}
 
                 {canView(currentUser.role, "jurnal") && (<>
-                  <SectionLabel label="Keuangan" />
+                  <SectionLabel label="Keuangan" badge={0} />
                   <NavItem icon={<Receipt size={20} />} label="Invoice" path="/invoice" />
                   <NavItem icon={<BookOpen size={20} />} label="Jurnal Umum" path="/jurnal" />
                   <NavItem icon={<Scales size={20} />} label="Hutang & Piutang" path="/hutang-piutang" />
@@ -1605,7 +1608,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
                 </>)}
 
                 {canView(currentUser.role, "armada") && (<>
-                  <SectionLabel label="Armada" />
+                  <SectionLabel label="Armada" badge={armadaCount} />
                   <NavItem icon={<Van size={20} />} label="Armada" path="/armada" />
                 </>)}
 
