@@ -1,691 +1,517 @@
-# SJM Flow 5.0 — UI/UX Design Guidelines FINAL
+# SJM Flow 5.0 — UI/UX Design System
 > Source of truth untuk semua keputusan desain di SJM Flow 5.0
 > Wajib dibaca sebelum membuat atau mengubah komponen apapun
 > Konsistensi adalah prioritas utama — jangan sok ide
-> Last updated: 2026-06-10
+> Last updated: 2026-06-22
+> Referensi visual: SJM Flow 5.0 UI/UX Design System (Juni 2026)
 
 ---
 
-## 0. Prinsip Utama
+## PRINSIP DESAIN
 
-> "Setiap elemen di layar harus punya alasan untuk ada.
-> Kalau tidak membantu user menyelesaikan pekerjaannya, hapus."
+- **Operational** — Fokus pada data & aksi
+- **Calm · Structured** — Profesional · Master · Trustworthy · Clean · Calm · Focused
+- **Consistent** — Komponen konsisten di seluruh sistem
+- **Accessible** — Mudah digunakan di desktop & mobile
+- **Design for Impact** — Fokus pada efisiensi operasional harian dan membuat keputusan yang tepat, lebih cepat
 
-1. **Konsistensi di atas kreativitas** — gunakan komponen yang sudah ada
-2. **Zero ambiguity** — setiap elemen jelas fungsinya tanpa penjelasan
-3. **Tidak ada magic number** — semua nilai dari token yang sudah dikunci
-4. **Mobile-first untuk Operasional** — Update Muatan didesain HP dulu
-5. **Data tidak boleh terpotong** — setiap kolom punya lebar minimum + tooltip
+**Platform:** Web Desktop First · Responsive · Mobile Ready
 
 ---
 
-## 1. Color System
+## 01. WARNA
 
-### 1.1 Token Warna
+### Primary
 
-```css
-/* Brand */
---color-primary:        #EB5E28;   /* CTA utama, link aktif, accent */
---color-primary-hover:  #D4531F;   /* Hover state primary */
---color-primary-light:  #FEF0E8;   /* Background primary subtle */
---color-primary-border: #FCDAC8;   /* Border primary subtle */
-
-/* Background */
---color-bg:             #F5F4F1;   /* Background halaman */
---color-surface:        #FFFFFF;   /* Card, modal, input, sidebar */
---color-surface-hover:  #FAF8F5;   /* Row hover, menu hover */
---color-surface-secondary: #FAF8F5; /* Table header, section muted */
-
-/* Text */
---color-text-primary:   #1A1A1A;   /* Konten primer, judul */
---color-text-secondary: #52504A;   /* Konten sekunder, subtitle */
---color-text-tertiary:  #9B9690;   /* Label, caption, placeholder */
---color-text-disabled:  #C0B8B0;   /* Disabled state */
-
-/* Border */
---color-border:         #E2DDD6;   /* Default border semua elemen */
---color-border-strong:  #C0B8B0;   /* Hover border, emphasis */
---color-border-subtle:  #F0EBE4;   /* Row divider, subtle separator */
-
-/* Semantic */
---color-success:        #5C8A3C;
---color-success-light:  #EEF8E8;
---color-success-border: #C3E6A0;
---color-error:          #B85450;
---color-error-light:    #FDEEEE;
---color-error-border:   #F0B8B6;
---color-warning:        #C4914A;
---color-warning-light:  #FDF3E3;
---color-warning-border: #F0D4A8;
---color-info:           #2563EB;
---color-info-light:     #EAF2FF;
---color-info-border:    #BFDBFE;
-
-/* Sidebar */
---color-sidebar-bg:     #FFFFFF;
---color-sidebar-border: #E2DDD6;
---color-sidebar-active-bg: #FEF0E8;
---color-sidebar-active-text: #EB5E28;
---color-sidebar-active-border: #EB5E28;
---color-sidebar-hover:  #FAF8F5;
---color-sidebar-label:  #9B9690;
+```
+#FF6A00 → #FF6433 → #FF4466 → #FFD0CC
 ```
 
-### 1.2 Aturan Warna
+Token CSS:
+```css
+--color-primary:        #EB5E28;
+--color-primary-hover:  #D4531F;
+--color-primary-light:  #FEF0E8;
+--color-primary-border: #FCDAC8;
+```
+
+### Neutral
+
+```
+#111827 → #374151 → #6B7280 → #9CA3AF → #E5E7EB → #F5F6FB → #FFFFFF
+```
+
+Token CSS:
+```css
+--color-bg:                #F5F4F1;
+--color-surface:           #FFFFFF;
+--color-surface-hover:     #FAF8F5;
+--color-surface-secondary: #F8F6F3;
+--color-text-primary:      #1A1A1A;
+--color-text-secondary:    #52504A;
+--color-text-tertiary:     #9B9690;
+--color-text-disabled:     #C0B8B0;
+--color-border:            #E2DDD6;
+--color-border-strong:     #C0B8B0;
+--color-border-subtle:     #F0EBE4;
+```
+
+### Semantic
+
+```css
+--color-success:        #16A34A;
+--color-success-light:  #DCFCE7;
+--color-warning:        #F59E0B;
+--color-warning-light:  #FEF3C7;
+--color-danger:         #EF4444;
+--color-danger-light:   #FEE2E2;
+--color-info:           #3B80F6;
+--color-info-light:     #DBEAFE;
+--color-purple:         #8B00F6;
+--color-purple-light:   #F3E8FF;
+```
+
+### Aturan Warna
 
 - **JANGAN** hardcode hex di komponen — selalu pakai CSS variables
 - **JANGAN** pakai Tailwind utility color (`text-red-500`, `bg-green-500`)
-- Warna primary hanya untuk **satu tombol utama per halaman**
+- Warna primary hanya untuk **satu CTA utama per halaman**
 - Background card selalu `--color-surface` (putih)
-- Warna semantik hanya untuk status/badge/feedback — bukan dekorasi
-
-### 1.3 Status Badge Colors
-
-| Status | Background | Text | Border |
-|---|---|---|---|
-| On Going | `--color-info-light` | `--color-info` | `--color-info-border` |
-| Completed | `--color-success-light` | `--color-success` | `--color-success-border` |
-| Loading | `--color-warning-light` | `--color-warning` | `--color-warning-border` |
-| Cancelled | `--color-error-light` | `--color-error` | `--color-error-border` |
-| Order Confirmed | `#F1EFE8` | `#5F5E5A` | `#E2DDD6` |
-| Lunas | `--color-success-light` | `--color-success` | `--color-success-border` |
-| Belum Bayar | `--color-error-light` | `--color-error` | `--color-error-border` |
-| Parsial | `--color-warning-light` | `--color-warning` | `--color-warning-border` |
-| Draft | `#F1EFE8` | `#5F5E5A` | `#E2DDD6` |
+- Warna semantik hanya untuk status/badge/feedback
 
 ---
 
-## 2. Typography
+## 02. TIPOGRAFI
 
-### 2.1 Font Family
+**Font:** Inter (Sans Serif)
 
-```css
---font-sans: 'Inter', -apple-system, sans-serif;
---font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-```
+| Style | Size / Line | Weight | Penggunaan |
+|---|---|---|---|
+| Display 1 | 32px / 40px | 700 | Untuk judul halaman besar |
+| Display 2 | 24px / 32px | 600 | Untuk section besar |
+| Heading 1 | 20px / 28px | 600 | Untuk judul section |
+| Heading 2 | 16px / 24px | 600 | Untuk sub judul |
+| Body Large | 15px / 20px | 500 | Untuk body penting |
+| Body Regular | 14px / 20px | 400 | Untuk body normal |
+| Body Small | 12px / 16px | 400 | Untuk informasi tambahan |
+| Caption | 11px / 16px | 400 | Untuk catatan kecil |
 
-### 2.2 Typographic Scale
-
-**HANYA 6 ukuran yang boleh dipakai. Tidak ada pengecualian.**
-
-| Level | Size | Weight | Line Height | Usage |
-|---|---|---|---|---|
-| Display | 22px | 700 | 1.2 | Judul halaman |
-| Title | 15px | 600 | 1.3 | Section header, judul card |
-| Body | 13px | 400 | 1.5 | Mobile body text |
-| Body SM | 12px | 400 | 1.5 | Desktop body, tabel, form |
-| Label | 11px | 500 | 1.4 | Sub-info, secondary data |
-| Caption | 10px | 600 | 1.3 | Label uppercase, header tabel |
-| Micro | 9px | 600 | 1.2 | Badge, timestamp kecil |
-
-### 2.3 Font Weight yang Dipakai
-
-```
-400 — regular    → body text biasa
-500 — medium     → body emphasis, label
-600 — semibold   → section header, nilai penting
-700 — bold       → judul halaman, nama customer
-800 — extrabold  → angka KPI, nomor referensi
-```
-
-### 2.4 Nomor Referensi (SO, Invoice, Jurnal)
-
-```css
-font-family: var(--font-mono);
-font-size: 12px;
-font-weight: 700;
-color: var(--color-primary);
-font-style: normal;
-letter-spacing: -0.2px;
-```
-
-### 2.5 Label Uppercase
-
-```css
-font-size: 10px;
-font-weight: 600;
-text-transform: uppercase;
-letter-spacing: 0.8px;
-color: var(--color-text-tertiary);
-```
-
-### 2.6 Aturan Typography
+### Aturan Typography
 
 - **JANGAN** `text-sm`, `text-xs`, `text-base` — selalu pixel eksplisit
 - Angka selalu `font-variant-numeric: tabular-nums`
+- Nomor referensi (SO, Invoice) pakai font-mono + warna primary
 - Teks panjang di tabel: `overflow: hidden; text-overflow: ellipsis; white-space: nowrap`
 - Teks yang di-truncate WAJIB punya `title` attribute untuk tooltip
 
 ---
 
-## 3. Spacing — 8pt Grid
+## 03. ICON
 
-**Semua spacing kelipatan 4 atau 8. Tidak ada magic number.**
+**Style:** Outline  
+**Stroke:** 2px  
+**Corner:** Rounded  
+**Library:** @phosphor-icons/react  
 
-```
-4px  → gap icon-to-text, padding badge
-8px  → gap antar elemen dalam grup, padding kecil
-12px → padding komponen medium
-16px → padding card dalam, gap kolom form, cell padding horizontal
-20px → padding card utama
-24px → gap antar section
-28px → —
-32px → gap section besar, margin halaman
-40px → —
-48px → section sangat besar
+```tsx
+// Semua icon gunakan weight="regular" (outline style)
+import { House, GridFour, Truck } from '@phosphor-icons/react';
+<Truck size={20} />
 ```
 
----
-
-## 4. Border & Shadow
-
-### 4.1 Border
-
-```css
-/* Ketebalan */
-border: 1px solid;          /* Default semua elemen */
-border: 2px solid;          /* Active state, selected state */
-
-/* Warna */
-border-color: var(--color-border);         /* Default */
-border-color: var(--color-border-strong);  /* Hover */
-border-color: var(--color-primary);        /* Focus, active, selected */
-border-color: var(--color-error);          /* Error state */
-
-/* Style */
-border-style: solid;    /* Default */
-border-style: dashed;   /* Upload area, drag & drop zone */
+**Ukuran standar:**
+```
+16px → icon dalam badge, label kecil
+20px → icon dalam nav item, tabel
+24px → icon dalam KPI card, button
+32px → icon dalam card hero
 ```
 
-### 4.2 Border Radius
-
+**Icon per menu:**
 ```
-4px  → badge kecil, tag
-8px  → button, input field, komponen kecil
-12px → card standar, filter item, dropdown
-14px → card mobile
-16px → modal, slide panel, card hero
-20px → modal besar
-50%  → avatar, status dot
-```
-
-### 4.3 Shadow
-
-Card di SJM Flow 5.0 **tidak menggunakan shadow** — hanya border tipis.
-Shadow hanya untuk elemen yang "mengambang" di atas konten:
-
-```css
-/* Tidak ada shadow di card biasa */
-
-/* Dropdown, popover */
-box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
-
-/* Slide panel kanan */
-box-shadow: -4px 0 16px rgba(0,0,0,0.08);
-
-/* Modal */
-box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-
-/* Toast */
-box-shadow: 0 4px 12px rgba(0,0,0,0.10);
+Dashboard      → SquaresFour
+Sales Order    → ClipboardText
+Update Muatan  → Truck
+Quotation      → FileText
+Invoice        → Receipt
+Jurnal Umum    → BookOpen
+Hutang & Piutang → Scales
+Laporan        → ChartBar
+Armada         → Van
+Master         → Gear
+Users          → Users
+Keluar         → SignOut
 ```
 
 ---
 
-## 5. Layout System
+## 04. BUTTON
 
-### 5.1 Desktop Layout
+### Primary Button
 
-```
-┌─────────────────────────────────────────────────────┐
-│ Topbar (56px, sticky)                               │
-├──────────────┬──────────────────────────────────────┤
-│ Sidebar      │ Page Content                         │
-│ (240px)      │ padding: 24px                        │
-│              │                                      │
-│ collapsible  │ [Breadcrumb]                         │
-│ ke 64px      │ [Page Header]                        │
-│              │ [Alert Banner — opsional]            │
-│              │ [KPI Grid — opsional]                │
-│              │ [Filter Bar]                         │
-│              │ [Content / Table]                    │
-│              │                                      │
-└──────────────┴──────────────────────────────────────┘
-
-Slide panel kanan (480px) — muncul saat klik row/item:
-├──────────────┬────────────────────┬─────────────────┤
-│ Sidebar      │ Page Content       │ Slide Panel     │
-│              │ (menyempit)        │ (480px)         │
-└──────────────┴────────────────────┴─────────────────┘
-```
-
-### 5.2 Topbar
-
-```
-Kiri:   Logo SJM + teks "FLOW 5.0"
-Tengah: Search bar global (max-width 480px)
-Kanan:  Icon notifikasi (badge count) | Icon chat | Avatar + Nama + Role + chevron
-```
-
-- Height: 56px
-- Background: white
-- Border bottom: 1px solid --color-border
-- Sticky — selalu terlihat saat scroll
-
-### 5.3 Sidebar Terang
-
-```
-Background: white (#FFFFFF)
-Border kanan: 1px solid --color-border
-Width expanded: 240px
-Width collapsed: 64px
-Transition: 200ms ease
-```
-
-**Struktur sidebar:**
-```
-[Logo area — 56px]
-
-[Section label: OPERASIONAL]
-  Menu item
-  Menu item
-
-[Section label: RESOURCE]
-  Menu item
-
-[Section label: ADMIN]
-  Menu item
-
-──── divider ────
-
-[Nama perusahaan aktif + chevron]  ← Company switcher
-
-[Avatar + Nama + Role]
-[Logout]
-```
-
-**Menu item states:**
 ```css
-/* Default */
-padding: 8px 12px;
+background: var(--color-primary);   /* #EB5E28 */
+color: white;
+padding: 8px 16px;   /* Large: 10px 24px, Medium: 8px 16px, Small: 6px 12px */
 border-radius: 8px;
-font-size: 13px;
+font-size: 14px;
 font-weight: 500;
-color: var(--color-text-secondary);
+border: none;
+cursor: pointer;
+transition: background 150ms ease;
+```
+
+```
+Large:  padding 10px 24px, height 44px
+Medium: padding 8px 16px, height 36px
+Small:  padding 6px 12px, height 32px
+```
+
+**States:**
+```css
+/* Hover */
+background: var(--color-primary-hover);
+
+/* Disabled */
+opacity: 0.4;
+cursor: not-allowed;
+```
+
+### Secondary Button
+
+```css
+background: white;
+color: var(--color-text-primary);
+border: 1px solid var(--color-border);
+padding: 8px 16px;
+border-radius: 8px;
+font-size: 14px;
+font-weight: 500;
+cursor: pointer;
 
 /* Hover */
-background: var(--color-sidebar-hover);
-color: var(--color-text-primary);
-
-/* Active */
-background: var(--color-sidebar-active-bg);
-color: var(--color-sidebar-active-text);
-font-weight: 600;
-border-left: 3px solid var(--color-sidebar-active-border);
+background: var(--color-surface-hover);
+border-color: var(--color-border-strong);
 ```
 
-**Section label:**
-```css
-font-size: 10px;
-font-weight: 600;
-text-transform: uppercase;
-letter-spacing: 0.8px;
-color: var(--color-sidebar-label);
-padding: 16px 12px 4px;
-```
-
-**Tombol minimize sidebar:**
-- Posisi: tengah kanan sidebar, absolute
-- Icon: ChevronLeft (expanded) / ChevronRight (collapsed)
-- Size: 20x20px, border radius 50%
-- Background: white, border 1px solid --color-border
-
-### 5.4 Page Header
-
-```html
-<!-- Selalu ada di setiap halaman -->
-<div class="page-header">
-  <!-- Breadcrumb -->
-  <div class="breadcrumb">
-    Operasional › Sales Order
-  </div>
-
-  <!-- Judul + Aksi -->
-  <div class="header-row">
-    <div>
-      <h1>Sales Order</h1>
-      <p>Manajemen order pengiriman alat berat</p>
-    </div>
-    <div class="header-actions">
-      <!-- Tombol aksi di sini -->
-    </div>
-  </div>
-</div>
-```
+### Tertiary (Text) Button
 
 ```css
-.breadcrumb {
-  font-size: 11px;
-  color: var(--color-primary);    /* "Operasional" = orange */
-  margin-bottom: 6px;
-}
-.breadcrumb .separator {
-  color: var(--color-text-tertiary);
-  margin: 0 4px;
-}
-.breadcrumb .current {
-  color: var(--color-text-secondary);
-}
+background: transparent;
+color: var(--color-primary);
+border: none;
+padding: 8px 12px;
+font-size: 14px;
+font-weight: 500;
+cursor: pointer;
 
-h1.page-title {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  line-height: 1.2;
-}
-p.page-subtitle {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  margin-top: 4px;
-}
+/* Hover */
+background: var(--color-primary-light);
 ```
 
-### 5.5 Slide Panel Kanan
+### Danger Button
 
-```
-Width: 480px
-Background: white
-Border left: 1px solid --color-border
-Shadow: -4px 0 16px rgba(0,0,0,0.08)
-Position: fixed, kanan layar
-Z-index: 100
+```css
+background: var(--color-danger);
+color: white;
+border: none;
+padding: 8px 16px;
+border-radius: 8px;
 
-Tombol minimize: ada di kiri atas panel (icon ChevronRight)
-Tombol close (X): ada di kanan atas panel
-```
-
-**Behavior:**
-- Klik row SO 001 → panel terbuka dengan isi SO 001
-- Klik row SO 002 saat panel sudah terbuka → panel UPDATE isinya ke SO 002, tidak tutup
-- Navigasi ke menu lain → panel otomatis tutup
-- Klik X → panel tutup
-- Klik di luar panel → TIDAK tutup (harus klik X)
-
-### 5.6 Breakpoint
-
-```
-< 768px   → Mobile layout (bottom nav, card list, full screen form)
-768-1024px → Tablet (sidebar collapsed by default)
-> 1024px  → Desktop full
+/* Hover */
+background: #DC2626;
 ```
 
 ---
 
-## 6. Components
+## 05. INPUT
 
-### 6.1 Button
-
-**3 varian. Tidak ada yang lain.**
+### Default Input
 
 ```css
-/* PRIMARY — aksi utama, satu per halaman */
-.btn-primary {
-  height: 36px;           /* Desktop */
-  padding: 0 16px;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
+height: 40px;
+border: 1px solid var(--color-border);
+border-radius: 8px;
+padding: 0 12px;
+font-size: 14px;
+background: white;
+color: var(--color-text-primary);
+transition: border-color 150ms ease;
+
+/* Placeholder */
+color: var(--color-text-tertiary);
+
+/* Focus */
+border-color: var(--color-primary);
+outline: none;
+box-shadow: 0 0 0 3px var(--color-primary-light);
+
+/* Disabled */
+background: var(--color-surface-secondary);
+opacity: 0.6;
+cursor: not-allowed;
+```
+
+### Select (Dropdown)
+
+```css
+height: 40px;
+border: 1px solid var(--color-border);
+border-radius: 8px;
+padding: 0 36px 0 12px;   /* ruang untuk chevron kanan */
+font-size: 14px;
+background: white;
+appearance: none;
+cursor: pointer;
+```
+
+### Date Picker
+
+Gunakan native `<input type="date">` dengan styling custom atau komponen DatePicker.
+
+```css
+height: 40px;
+border: 1px solid var(--color-border);
+border-radius: 8px;
+padding: 0 12px;
+font-size: 14px;
+```
+
+### Search Input
+
+```css
+height: 40px;
+border: 1px solid var(--color-border);
+border-radius: 8px;
+padding: 0 40px 0 12px;   /* ruang untuk icon kaca */
+font-size: 14px;
+background: var(--color-surface-secondary);
+```
+
+### Textarea
+
+```css
+border: 1px solid var(--color-border);
+border-radius: 8px;
+padding: 10px 12px;
+font-size: 14px;
+resize: vertical;
+min-height: 80px;
+```
+
+### Label
+
+```css
+font-size: 14px;
+font-weight: 500;
+color: var(--color-text-secondary);
+margin-bottom: 6px;
+display: block;
+```
+
+---
+
+## 06. STATUS / BADGE
+
+### Status Shipment
+
+```css
+/* Base badge */
+.badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: background 150ms ease;
-  white-space: nowrap;
-}
-.btn-primary:hover   { background: var(--color-primary-hover); }
-.btn-primary:active  { transform: scale(0.98); }
-.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-
-/* GHOST — aksi sekunder */
-.btn-ghost {
-  height: 36px;
-  padding: 0 14px;
-  background: white;
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  padding: 4px 12px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: all 150ms ease;
   white-space: nowrap;
 }
-.btn-ghost:hover   { border-color: var(--color-border-strong); color: var(--color-text-primary); }
-.btn-ghost:disabled { opacity: 0.4; cursor: not-allowed; }
-
-/* DANGER — hapus, batalkan */
-.btn-danger {
-  height: 36px;
-  padding: 0 14px;
-  background: var(--color-error);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: background 150ms ease;
-}
-.btn-danger:hover { background: #a04846; }
-
-/* MOBILE — height lebih besar untuk touch */
-.btn-primary-mobile { height: 44px; border-radius: 12px; font-size: 13px; }
-.btn-ghost-mobile   { height: 44px; border-radius: 12px; font-size: 13px; }
 ```
 
-**Aturan button:**
-- Icon dalam button: 14px (desktop), 16px (mobile)
-- Loading state: spinner + text berubah + disabled
-- Tidak ada button tanpa hover state
-- Tidak ada button tanpa cursor: pointer
+| Status | Background | Text |
+|---|---|---|
+| Loading | #FEF3C7 | #D97706 |
+| On Going | #DBEAFE | #2563EB |
+| Arrived | #E0E7FF | #4F46E5 |
+| Completed | #DCFCE7 | #16A34A |
+| Cancelled | #FEE2E2 | #DC2626 |
 
-### 6.2 Input Field
+### Status Invoice
 
-**1 varian untuk semua input.**
+| Status | Background | Text |
+|---|---|---|
+| Draft | #F3F4F6 | #6B7280 |
+| Issued | #DBEAFE | #2563EB |
+| Partial Paid | #FEF3C7 | #D97706 |
+| Paid | #DCFCE7 | #16A34A |
+| Overdue | #FEE2E2 | #DC2626 |
+
+### Status SO
+
+| Status | Background | Text |
+|---|---|---|
+| Draft | #F3F4F6 | #6B7280 |
+| Confirmed | #DBEAFE | #2563EB |
+| Loading | #FEF3C7 | #D97706 |
+| On Going | #E0E7FF | #4F46E5 |
+| Arrived | #F3E8FF | #7C3AED |
+| Completed | #DCFCE7 | #16A34A |
+| Cancelled | #FEE2E2 | #DC2626 |
+
+---
+
+## 07. KARTU (CARD)
+
+### Card Standar
 
 ```css
-.input {
-  height: 36px;
-  padding: 0 12px;
-  background: white;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  font-size: 12px;
-  font-family: var(--font-sans);
-  color: var(--color-text-primary);
-  width: 100%;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
-}
-.input::placeholder { color: var(--color-text-disabled); }
-.input:hover        { border-color: var(--color-border-strong); }
-.input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(235, 94, 40, 0.12);
-  outline: none;
-}
-.input:disabled {
-  background: var(--color-surface-secondary);
-  color: var(--color-text-tertiary);
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-.input.error {
-  border-color: var(--color-error);
-  box-shadow: 0 0 0 3px rgba(184, 84, 80, 0.12);
-}
-
-/* Mobile */
-.input-mobile {
-  height: 44px;
-  border-radius: 12px;
-  font-size: 13px;
-  padding: 0 14px;
-}
+background: white;
+border: 1px solid var(--color-border);
+border-radius: 12px;
+padding: 16px;
 ```
 
-### 6.3 Form Layout & Validation
+### Card dengan Status
 
-```html
-<!-- Field standar -->
-<div class="form-field">
-  <label class="form-label">
-    Nama Customer
-    <span class="required-indicator">Wajib diisi</span>
-  </label>
-  <input class="input" placeholder="..." />
-  <span class="field-error">Nama customer tidak boleh kosong</span>
-</div>
+Card punya border-left 4px berwarna sesuai status:
+```css
+border-left: 4px solid [warna-status];
+border-radius: 0 12px 12px 0;
+```
+
+### Card dengan Aksi
+
+Tambahkan chevron `>` di kanan bawah, klik seluruh card bisa navigate.
+
+### Card Stat (mini)
+
+```
+┌─────────────────────────┐
+│ [Icon 32px]  Card Title │
+│              Deskripsi  │
+│              singkat    │
+│                       > │
+└─────────────────────────┘
+```
+
+---
+
+## 08. KPI CARD PATTERN
+
+### Layout — Horizontal
+
+```
+┌──────────────────────────────────────────────────┐
+│ [Icon 48px]   Label / Judul              [>]     │
+│               Value (angka/nominal)              │
+└──────────────────────────────────────────────────┘
 ```
 
 ```css
-.form-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
-}
-.required-indicator {
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--color-error);
-}
-.field-error {
-  font-size: 11px;
-  color: var(--color-error);
-  margin-top: 4px;
-  display: none;
-}
-.form-field.has-error .field-error { display: block; }
-.form-field.has-error .input { border-color: var(--color-error); }
-
-/* Spasi antar field */
-.form-grid { display: grid; gap: 16px; }
-.form-grid-2 { grid-template-columns: 1fr 1fr; gap: 16px; }
-.form-section { margin-bottom: 24px; }
-```
-
-**Validasi:**
-- Dijalankan saat blur (keluar dari field) dan saat submit
-- Bukan real-time saat mengetik
-- Field valid: tidak ada indikator (tidak perlu border hijau)
-- Field error: border merah + pesan di bawah
-
-### 6.4 Card
-
-```css
-/* Card standar — border tanpa shadow */
-.card {
-  background: white;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 20px;
-}
-
-/* Card section dalam form */
-.card-section {
-  background: white;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-.card-section-title {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--color-text-tertiary);
-  margin-bottom: 14px;
-}
-
-/* Card mobile */
-.card-mobile {
-  background: white;
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
-  padding: 12px 14px;
-}
-
-/* KPI Card */
+/* Container */
 .kpi-card {
   background: white;
   border: 1px solid var(--color-border);
   border-radius: 12px;
-  padding: 20px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   gap: 16px;
+  cursor: pointer;
+  transition: all 150ms ease;
 }
+.kpi-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(235, 94, 40, 0.08);
+}
+
+/* Icon container */
 .kpi-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-.kpi-value {
-  font-size: 22px;
-  font-weight: 800;
-  line-height: 1;
+
+/* Content */
+.kpi-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.kpi-label {
+  font-size: 13px;
+  color: var(--color-text-secondary);
   margin-bottom: 4px;
 }
-.kpi-label {
-  font-size: 11px;
-  color: var(--color-text-secondary);
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
-.kpi-sub {
-  font-size: 10px;
+
+/* Untuk nilai Rupiah */
+.kpi-value-currency {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* Chevron */
+.kpi-chevron {
   color: var(--color-text-tertiary);
-  margin-top: 2px;
+  flex-shrink: 0;
 }
 ```
 
-### 6.5 Badge / Status
+### KPI Row 1 — Operasional (semua role)
 
-```css
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-  border: 1px solid transparent;
-}
-.badge::before {
-  content: '●';
-  font-size: 8px;
-}
-/* Warna badge sesuai section 1.3 */
+```
+SO Aktif:
+  Icon: Truck, bg #DBEAFE (biru muda), icon color #2563EB
+  Value: jumlah SO On Going + Loading + Arrived
+  Label: "SO Aktif"
+
+Menunggu Konfirmasi:
+  Icon: Clock, bg #FEF3C7 (kuning muda), icon color #D97706
+  Value: jumlah SO Order Confirmed
+  Label: "Menunggu Konfirmasi"
+
+Tidak Update >12 Jam:
+  Icon: Warning, bg #FEE2E2 (merah muda), icon color #DC2626
+  Value: jumlah SO aktif tanpa update >12 jam
+  Label: "Tidak Ada Update >12 Jam"
 ```
 
-### 6.6 Table
+### KPI Row 2 — Keuangan (Admin + Keuangan saja)
+
+```
+Revenue Bulan Ini:
+  Icon: ChartLine, bg #DCFCE7 (hijau muda), icon color #16A34A
+  Value: format "Rp 304.522.799" — gunakan fmtShort untuk nilai besar
+  Label: "Revenue Bulan Ini"
+
+Invoice Belum Lunas:
+  Icon: Receipt, bg #FEE2E2 (merah muda), icon color #DC2626
+  Value: jumlah invoice
+  Label: "Invoice Belum Lunas"
+
+SO Belum Diinvoice:
+  Icon: ClipboardText, bg #FEF3C7 (kuning muda), icon color #D97706
+  Value: jumlah SO Completed + invoice_count = 0
+  Label: "SO Belum Diinvoice"
+```
+
+---
+
+## 09. TABLE
+
+### Struktur
 
 ```css
 /* Container */
@@ -694,295 +520,818 @@ Tombol close (X): ada di kanan atas panel
   border: 1px solid var(--color-border);
   border-radius: 12px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Scroll wrapper untuk banyak kolom */
+/* Toolbar */
+.table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+/* Scroll area */
 .table-scroll {
+  flex: 1;
+  overflow-y: auto;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 /* Table */
 table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
-  table-layout: fixed;     /* Penting untuk kolom tidak bergeser */
 }
 
-/* Header — FROZEN */
+/* Header */
 thead {
   position: sticky;
   top: 0;
-  z-index: 10;
   background: var(--color-surface-secondary);
+  z-index: 1;
 }
-thead th {
-  height: 40px;
-  padding: 0 16px;
-  font-size: 10px;
+
+th {
+  padding: 10px 16px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.5px;
   color: var(--color-text-tertiary);
-  border-bottom: 1px solid var(--color-border);
-  white-space: nowrap;
   text-align: left;
-}
-thead th:last-child { text-align: center; }
-
-/* Body row */
-tbody tr {
-  height: 52px;
-  border-bottom: 1px solid var(--color-border-subtle);
-  transition: background 100ms ease;
-  cursor: pointer;
-}
-tbody tr:last-child { border-bottom: none; }
-
-/* Zebra striping — subtle */
-tbody tr:nth-child(even) { background: #FDFCFB; }
-tbody tr:hover            { background: var(--color-surface-hover) !important; }
-
-/* Cell */
-tbody td {
-  padding: 0 16px;
-  font-size: 12px;
-  color: var(--color-text-primary);
-  vertical-align: middle;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  border-bottom: 1px solid var(--color-border);
 }
 
-/* Aksi di tabel — selalu visible */
-.table-actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-.table-action-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid var(--color-border);
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Sort indicator */
+th.sortable {
   cursor: pointer;
-  transition: all 150ms ease;
+  user-select: none;
 }
-.table-action-btn:hover { background: var(--color-surface-hover); border-color: var(--color-border-strong); }
-.table-action-btn.danger:hover { background: var(--color-error-light); border-color: var(--color-error-border); }
-.table-action-btn.danger:hover svg { color: var(--color-error); }
+th.sortable::after {
+  content: ' ↕';
+  color: var(--color-text-disabled);
+}
+th.sort-asc::after { content: ' ↑'; color: var(--color-primary); }
+th.sort-desc::after { content: ' ↓'; color: var(--color-primary); }
+
+/* Body */
+td {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-subtle);
+  vertical-align: middle;
+}
+
+tr:hover td {
+  background: var(--color-surface-hover);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+/* Checkbox kolom */
+td.col-check, th.col-check {
+  width: 48px;
+  text-align: center;
+}
+
+/* Action kolom */
+td.col-action, th.col-action {
+  width: 48px;
+  text-align: center;
+}
+
+/* Footer */
+.table-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
 ```
 
-### 6.7 Lebar Kolom Minimum Tabel
+### Pagination — Number Based
 
-**Wajib dipatuhi — data tidak boleh terpotong untuk nilai penting:**
+```
+< Prev  [1] [2] [3] ... [50]  Next >
 
-| Kolom | Min Width | Behavior |
-|---|---|---|
-| No SO | 140px | No-wrap, mono font |
-| No Invoice | 180px | No-wrap, mono font |
-| No Jurnal | 160px | No-wrap, mono font |
-| Tanggal | 110px | No-wrap |
-| Customer | 180px | Truncate + title tooltip |
-| Muatan | 160px | Truncate + title tooltip |
-| Rute | 180px | No-wrap (Asal → Tujuan) |
-| Sopir + Armada | 150px | Truncate |
-| Nilai / Harga | 130px | No-wrap, text-align right |
-| Status | 120px | No-wrap, badge |
-| Keterangan | 200px | Truncate + title tooltip |
-| Aksi | 80px | text-align center |
-
-### 6.8 Pagination
-
-```html
-<div class="pagination">
-  <span class="pagination-info">Menampilkan 1-25 dari 360 SO</span>
-  <div class="pagination-controls">
-    <select class="rows-per-page">
-      <option value="25" selected>25 per halaman</option>
-      <option value="50">50 per halaman</option>
-      <option value="100">100 per halaman</option>
-    </select>
-    <div class="page-nav">
-      <button class="page-btn">←</button>
-      <button class="page-btn active">1</button>
-      <button class="page-btn">2</button>
-      <button class="page-btn">3</button>
-      <span class="page-ellipsis">...</span>
-      <button class="page-btn">15</button>
-      <button class="page-btn">→</button>
-    </div>
-  </div>
-</div>
+Info: "Menampilkan 1 - 8 dari 399 data"
 ```
 
 ```css
+/* Pagination container */
 .pagination {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-top: 1px solid var(--color-border-subtle);
+  gap: 4px;
 }
-.pagination-info {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-}
+
+/* Page button */
 .page-btn {
   width: 32px;
   height: 32px;
   border-radius: 8px;
   border: 1px solid var(--color-border);
   background: white;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--color-text-secondary);
+  font-size: 13px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+/* Active page */
 .page-btn.active {
   background: var(--color-primary);
   color: white;
   border-color: var(--color-primary);
   font-weight: 600;
 }
-.page-btn:hover:not(.active) { background: var(--color-surface-hover); }
+
+/* Ellipsis */
+.page-ellipsis {
+  padding: 0 4px;
+  color: var(--color-text-tertiary);
+}
 ```
 
-### 6.9 Modal
+### Kolom Dashboard Shipment Aktif
+
+| Kolom | Width | Format |
+|---|---|---|
+| Checkbox | 48px | — |
+| No SO | 130px | mono orange, link |
+| Tanggal | 100px | 15 Jun 2026 |
+| Customer | 160px | truncate + tooltip |
+| Rute | 160px | Asal → Tujuan |
+| Sopir & Armada | 160px | 2 baris: nama / plat · jenis |
+| Nilai | 120px | Rp format, right |
+| Status | 120px | badge |
+| Aksi | 48px | ⋯ menu |
+
+---
+
+## 10. GLOBAL FILTER PATTERN
 
 ```
-Ukuran:
-  Small:  max-width 400px  — konfirmasi, peringatan
-  Medium: max-width 560px  — form sederhana
-  Large:  max-width 720px  — form kompleks
-  XLarge: max-width 900px  — form dengan banyak section
-
-Struktur wajib:
-1. Overlay: rgba(0,0,0,0.4) backdrop-blur-sm
-2. Container: border-radius 16px, shadow modal
-3. Header: judul (15px, 600) + tombol X (kanan)
-4. Body: scrollable, padding 20px
-5. Footer: [Batal] [Aksi Utama] — selalu rata kanan
-
-Behavior:
-- Klik overlay: TIDAK menutup modal
-- Klik X: menutup modal
-- ESC key: menutup modal
+Layout: horizontal row
+Gap: 8px
+Padding: 12px 24px
 ```
 
-### 6.10 Dropdown / Select
+**Urutan dari kiri:**
+```
+[🔍 Search — min 200px]  [Status ▾]  [Periode: 1 Jun - 30 Jun ▾]  [Filter Lainnya ▾]  [Export ▾]
+```
 
 ```css
-.dropdown {
-  height: 36px;
-  padding: 0 12px;
-  background: white;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  font-size: 12px;
-  color: var(--color-text-primary);
-  cursor: pointer;
+/* Filter bar */
+.filter-bar {
   display: flex;
   align-items: center;
   gap: 8px;
-  white-space: nowrap;
+  padding: 12px 24px;
+  flex-shrink: 0;
 }
-.dropdown:hover { border-color: var(--color-border-strong); }
 
-/* Dropdown menu */
-.dropdown-menu {
-  background: white;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  min-width: 180px;
-  overflow: hidden;
-}
-.dropdown-item {
-  padding: 8px 14px;
+/* Active filter chip */
+.filter-chip {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary-border);
+  border-radius: 6px;
+  padding: 4px 8px;
   font-size: 12px;
-  color: var(--color-text-primary);
-  cursor: pointer;
-  transition: background 100ms ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-.dropdown-item:hover    { background: var(--color-surface-hover); }
-.dropdown-item.selected { background: var(--color-primary-light); color: var(--color-primary); font-weight: 500; }
 ```
 
-### 6.11 Alert Banner
+---
+
+## 11. DATE PICKER PATTERN
+
+Date picker menampilkan preset range:
+
+```
+Preset options (dari atas):
+  Hari Ini
+  Kemarin
+  Minggu Ini
+  Bulan Ini      ← default
+  Tahun Ini
+  7 Hari Terakhir
+  30 Hari Terakhir
+  90 Hari Terakhir
+  Custom Range
+
+Tampilan kalender: bulan berjalan
+[Batal]  [Terapkan]
+```
+
+---
+
+## 12. SIDEBAR PATTERN
+
+### Expanded (220px)
+
+```
+┌─────────────────────┐
+│ [Logo SJM Flow]  [«]│  ← toggle collapse
+├─────────────────────┤
+│ 🔲 Dashboard        │  ← active: orange bg
+├─────────────────────┤
+│ OPERASIONAL    [12] │  ← group dengan badge
+│   📋 Sales Order    │
+│   🚛 Update Muatan  │
+│   📄 Quotation      │
+├─────────────────────┤
+│ KEUANGAN       [4 >]│
+│   🧾 Invoice        │
+│   📒 Jurnal Umum    │
+│   ⚖️ Hutang & Piutang│
+│   📊 Laporan        │
+├─────────────────────┤
+│ ARMADA         [2 >]│
+│   🚛 Armada         │
+├─────────────────────┤
+│ SISTEM              │
+│   ⚙️ Master         │
+│   👥 Users          │
+├─────────────────────┤
+│ [→ Keluar]          │
+└─────────────────────┘
+```
+
+### Collapsed (64px)
+
+Hanya tampil icon saja, tidak ada teks:
+```
+[S]  ← logo kecil
+[🔲] ← Dashboard icon
+[📋] ← Operasional group icon + badge
+[💰] ← Keuangan group icon + badge
+[🚛] ← Armada group icon + badge
+[⚙️] ← Sistem group icon
+[→]  ← Keluar icon
+```
+
+### Accordion Open (satu group expand)
+
+Saat hover/klik group di collapsed mode, tampil flyout menu:
+```
+[📋 Operasional] →  ┌──────────────────┐
+                    │ Sales Order      │
+                    │ Update Muatan    │
+                    │ Quotation        │
+                    └──────────────────┘
+```
+
+### Active Menu State
 
 ```css
-/* Banner notifikasi di bawah page header */
-.alert-banner {
+.nav-item.active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 600;
+  border-left: 3px solid var(--color-primary);
+}
+```
+
+### CSS Sidebar
+
+```css
+.sidebar {
+  width: 220px;
+  background: white;
+  border-right: 1px solid var(--color-border);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: width 200ms ease;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 64px;
+}
+
+.sidebar-logo {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.nav-section-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--color-text-tertiary);
+}
+
+.nav-section-badge {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 2px 6px;
+}
+
+.nav-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid;
+  padding: 8px 16px;
+  margin: 1px 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 150ms ease;
+  white-space: nowrap;
+}
+
+.nav-item:hover {
+  background: var(--color-surface-hover);
+}
+
+.nav-item.active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.sidebar-footer {
+  padding: 8px;
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+```
+
+---
+
+## 13. TOPBAR PATTERN
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│ [≡] [S SJM Flow] │ [🔍 Cari shipment, SO...] │ [📅 Bulan Ini ▾] [🔔³] [A Audya Pratama ▾] │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+```css
+.topbar {
+  height: 56px;
+  background: white;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+  flex-shrink: 0;
+}
+```
+
+**Elemen kiri ke kanan:**
+
+1. **Toggle Sidebar** — icon hamburger `≡`, 36px, ghost button
+2. **Logo** — kotak orange 32px rounded-8 + "S" bold + "SJM Flow" italic 15px
+3. **Search Bar** — max 400px, height 36px, bg #F5F4F1
+4. **Period Filter** — "📅 Bulan Ini | 1 Jun 2026 - 30 Jun 2026 ▾", height 36px, border
+5. **Bell** — icon notifikasi dengan badge count orange
+6. **User Info**:
+   - Avatar: 32px circle, warna sesuai role, initial huruf pertama
+   - Nama: 14px semibold, "Audya Pratama"
+   - Role + Perusahaan: 11px text-secondary, "Admin · PT Sugiarto Jaya Mandiri Transport"
+   - Chevron ▾
+
+**Panel Kanan Topbar:**
+```
+Dispatcher Hari Ini | Aktivitas Terbaru | Action Center
+```
+Topbar menampilkan summary 3 panel → klik expand ke detail.
+
+---
+
+## 14. DASHBOARD PATTERN
+
+### Layout — No Scroll
+
+```
+height: calc(100vh - 56px)
+overflow: hidden
+display: flex
+flex-direction: column
+padding: 20px 24px
+gap: 12px
+background: #F5F4F1
+```
+
+### Struktur Vertikal
+
+```
+[1] Header Row — Greeting + Quick Actions      (flex-shrink: 0)
+[2] KPI Row 1 — 3 kartu Operasional           (flex-shrink: 0)
+[3] KPI Row 2 — 3 kartu Keuangan              (flex-shrink: 0, hanya Admin/Keuangan)
+[4] Content Row — Tabel kiri + Panel kanan    (flex: 1, overflow: hidden)
+```
+
+### [1] Header Row
+
+```tsx
+<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexShrink: 0 }}>
+  <div>
+    <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>
+      Selamat Pagi, Audya 👋
+    </h1>
+    <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+      Ringkasan operasional hari ini
+    </p>
+  </div>
+  <div style={{ display: 'flex', gap: 8 }}>
+    <button className="btn-quick-action">+ SO Baru</button>
+    <button className="btn-quick-action">+ Update Muatan</button>
+    <button className="btn-quick-action">+ Invoice Baru</button>
+  </div>
+</div>
+```
+
+Quick action button:
+```css
+.btn-quick-action {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  background: white;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 150ms ease;
+}
+.btn-quick-action:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+```
+
+### [2] KPI Row 1
+
+```tsx
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, flexShrink: 0 }}>
+  <KPICard ... />
+  <KPICard ... />
+  <KPICard ... />
+</div>
+```
+
+### [3] KPI Row 2
+
+Sama dengan Row 1, tampil hanya jika role Admin atau Keuangan.
+
+### [4] Content Row
+
+```tsx
+<div style={{ display: 'flex', gap: 16, flex: 1, minHeight: 0, overflow: 'hidden' }}>
+  
+  {/* Tabel — kiri */}
+  <div style={{ flex: 1, minWidth: 0, background: 'white', border: '1px solid var(--color-border)', borderRadius: 12, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+    {/* toolbar */}
+    {/* table */}
+    {/* pagination */}
+  </div>
+
+  {/* Panel kanan — 300px */}
+  <div style={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 12, overflow: 'hidden' }}>
+    {/* Dispatcher Hari Ini */}
+    {/* Aktivitas Terbaru */}
+    {/* Action Center */}
+  </div>
+
+</div>
+```
+
+### Tabel — Shipment Aktif
+
+**Toolbar:**
+```
+Kiri: "SHIPMENT AKTIF" label uppercase
+Kanan: [Semua Status ▾] [🔽 Filter]
+```
+
+**Kolom:**
+```
+ORDER (130px)    — mono orange, link ke detail
+TGL MUAT (100px) — sortable ↕, format "15 Jun 2026"
+CUSTOMER (150px) — truncate + tooltip
+RUTE (160px)     — "Asal → Tujuan"
+SOPIR & ARMADA (160px) — 2 baris:
+  baris 1: nama_sopir (13px normal)
+  baris 2: no_polisi · jenis_truk (11px text-secondary)
+STATUS (120px)   — badge
+DURASI (90px)    — "2 Jam" / "1 Hari 6 Jam"
+NILAI (100px)    — Rp format, right-aligned
+⋮ (40px)        — action menu
+```
+
+**DURASI kalkulasi:**
+```
+Jika On Going/Loading: sekarang - tgl_muat
+Jika Completed: tgl_bongkar - tgl_muat
+Format: < 1 jam → "X Mnt", < 24 jam → "X Jam", ≥ 1 hari → "X Hari Y Jam"
+```
+
+**Pagination:**
+```
+< Prev  [1] [2] [3] ... [50]  Next >
+Info: "Menampilkan 1 - 8 dari 399 data"
+Per page: 8 rows
+```
+
+### Panel Kanan — Dispatcher Hari Ini
+
+```css
+.panel-card {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.panel-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--color-text-tertiary);
+  margin-bottom: 12px;
+}
+```
+
+Grid 2x2:
+```
+[🚛 0          ] [🚌 0         ]
+ Shipment Hari Ini  Armada Aktif
+
+[👥 0          ] [🧭 7         ]
+ Sopir Tersedia    Dalam Perjalanan
+```
+
+Setiap cell:
+```css
+.dispatcher-cell {
+  background: var(--color-surface-secondary);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dispatcher-icon {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+.dispatcher-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.dispatcher-label {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+```
+
+### Panel Kanan — Aktivitas Terbaru
+
+5 item timeline dari posisi_log SO aktif, terbaru di atas.
+
+```
+10:45 [🟠] SJM.ID-0394.26 dibuat      [On Going]
+            oleh Endang
+09:30 [🟢] Update muatan SJM.ID-0395.26 [On Going]
+            Marunda → Solok Selatan
+08:15 [🟡] Invoice INV/2026/0612 jatuh [Completed]
+            tempo dalam 5 hari
+07:20 [🔵] Shipment SJM.ID-0392.26    [On Going]
+            berstatus On Going Jakarta → Jepara
+06:50 [🔴] SO SJM.ID-0388.26          [Completed]
+            dibatalkan oleh Halim
+
+[Lihat semua aktivitas >]
+```
+
+```css
+.activity-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.activity-time {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  margin-top: 2px;
+  min-width: 36px;
+}
+.activity-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.activity-content {
+  flex: 1;
+  min-width: 0;
+}
+.activity-title {
   font-size: 12px;
   font-weight: 500;
+  color: var(--color-text-primary);
+}
+.activity-sub {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+.activity-badge {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* "Lihat semua" link */
+.activity-see-all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--color-surface-secondary);
+  border-radius: 8px;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-primary);
   cursor: pointer;
-  margin-bottom: 16px;
+  transition: background 150ms ease;
 }
-.alert-banner.warning {
-  background: var(--color-warning-light);
-  border-color: var(--color-warning-border);
-  color: var(--color-warning);
+.activity-see-all:hover {
+  background: var(--color-primary-light);
 }
-.alert-banner.info {
-  background: var(--color-info-light);
-  border-color: var(--color-info-border);
-  color: var(--color-info);
-}
-.alert-banner.error {
-  background: var(--color-error-light);
-  border-color: var(--color-error-border);
-  color: var(--color-error);
-}
-/* Chevron kanan untuk navigasi */
-.alert-banner-arrow { margin-left: auto; }
 ```
 
-### 6.12 Toast Notification
-
+**Tipe aksi dan warna icon:**
 ```
-Posisi:
-  Desktop: kanan atas (top: 16px, right: 16px)
-  Mobile:  bawah tengah (bottom: 80px, center)
-
-Ukuran: min-width 280px, max-width 360px
-Border radius: 12px
-Shadow: 0 4px 12px rgba(0,0,0,0.10)
-Durasi tampil: 3 detik
-Animasi: slide in dari kanan (desktop), slide up (mobile)
-
-Struktur:
-  [Icon] [Teks pesan] [X optional]
-
-Pesan yang baik:
-  ❌ "Berhasil"
-  ✅ "SO SJM.ID-0361.26 berhasil disimpan"
-  ❌ "Terjadi kesalahan"
-  ✅ "Gagal menyimpan: nomor SO sudah digunakan"
+Dibuat/Baru   → orange  #EB5E28
+Diupdate      → biru    #2563EB
+Completed     → hijau   #16A34A
+Cancelled     → merah   #DC2626
+Invoice/Keu   → kuning  #D97706
 ```
 
-### 6.13 Empty State
+### Panel Kanan — Action Center
 
-**Wajib ada di setiap tabel dan list.**
+4 item alert, tampil hanya jika count > 0, sortir severity:
 
-```html
-<div class="empty-state">
-  <div class="empty-icon"><!-- Icon 32px, opacity 30% --></div>
-  <div class="empty-title">Belum ada Sales Order</div>
-  <div class="empty-desc">Klik + SO Baru untuk membuat order pertama.</div>
-  <!-- Tombol aksi opsional -->
-</div>
+```
+[🔴] 82   Sales Order masih berupa Draft      [>]
+[🟠] 366  SO belum diinvoice                  [>]
+[🟡] 3    Shipment tidak update >12 jam       [>]
+[🔵] 5    Invoice jatuh tempo minggu ini      [>]
+```
+
+```css
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all 150ms ease;
+  border-left: 3px solid transparent;
+}
+
+/* Severity colors */
+.action-item.critical {
+  background: #FEF2F2;
+  border-left-color: #DC2626;
+}
+.action-item.high {
+  background: #FFF7ED;
+  border-left-color: #EA580C;
+}
+.action-item.medium {
+  background: #FFFBEB;
+  border-left-color: #D97706;
+}
+.action-item.info {
+  background: #EFF6FF;
+  border-left-color: #2563EB;
+}
+
+.action-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.action-count {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  min-width: 28px;
+}
+
+.action-desc {
+  flex: 1;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.3;
+}
+
+.action-chevron {
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+```
+
+---
+
+## 15. ACTIVITY TIMELINE PATTERN
+
+Dipakai di: Dashboard panel kanan, Log Aktivitas, SO detail.
+
+```
+[Waktu]  [Icon circle]  [Konten]          [Status badge]
+10:45    🟠             SO-0394 dibuat    On Going
+                        oleh Endang
+09:30    🟢             Update SJM-0395   On Going
+                        Marunda → Solok
+```
+
+Lihat Section 14 untuk CSS detail.
+
+---
+
+## 16. EMPTY STATE PATTERN
+
+```
+┌─────────────────────────────────────────┐
+│                                         │
+│     [Icon 40px, warna tertiary]         │
+│     Belum ada Sales Order               │
+│     Mulai buat Sales Order pertama.     │
+│                                         │
+│          [+ Buat SO Baru]               │
+│                                         │
+└─────────────────────────────────────────┘
 ```
 
 ```css
@@ -990,136 +1339,195 @@ Pesan yang baik:
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
   padding: 48px 24px;
   text-align: center;
+  flex: 1;
 }
-.empty-icon    { opacity: 0.3; margin-bottom: 4px; }
-.empty-title   { font-size: 13px; font-weight: 600; color: var(--color-text-primary); }
-.empty-desc    { font-size: 12px; color: var(--color-text-tertiary); max-width: 280px; }
+.empty-icon {
+  color: var(--color-text-disabled);
+  margin-bottom: 16px;
+}
+.empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+.empty-desc {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-bottom: 20px;
+  max-width: 280px;
+}
 ```
 
-**Pesan empty state per halaman:**
+---
 
-| Halaman | Pesan |
-|---|---|
-| SO | "Belum ada Sales Order. Klik + SO Baru untuk mulai." |
-| Invoice | "Belum ada invoice. Buat dari halaman Sales Order." |
-| Jurnal | "Belum ada jurnal bulan ini." |
-| Hasil filter | "Tidak ada hasil. Coba ubah filter atau kata kunci." |
-| Hutang & Piutang | "Tidak ada transaksi outstanding." |
-| Update Muatan | "Tidak ada SO aktif saat ini." |
+## 17. LOADING STATE PATTERN
 
-### 6.14 Loading State
+### KPI Loading (Skeleton)
 
 ```css
-/* Skeleton shimmer */
-@keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
 .skeleton {
-  background: linear-gradient(90deg, #F0EBE4 25%, #FAF8F5 50%, #F0EBE4 75%);
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-secondary) 25%,
+    #FAF8F5 50%,
+    var(--color-surface-secondary) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 6px;
 }
 
-/* Tabel loading: 5 baris skeleton */
-/* Button loading */
-.btn-loading {
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+```
+
+### Table Loading
+
+Tampilkan 8 row skeleton dengan kolom sesuai tabel yang dimuat.
+
+### Button Loading
+
+```css
+button.loading {
   opacity: 0.7;
-  cursor: not-allowed;
   pointer-events: none;
+  position: relative;
 }
+/* Spinner 14px di kiri teks */
+/* Teks berubah: "Menyimpan...", "Memuat...", "Mengirim..." */
 ```
-
-### 6.15 Divider
-
-```css
-.divider {
-  height: 1px;
-  background: var(--color-border-subtle);
-  border: none;
-  margin: 16px 0;
-}
-.divider-strong {
-  background: var(--color-border);
-}
-```
-
-**Kapan pakai divider vs whitespace:**
-- Divider: memisahkan section yang berbeda konten dalam satu card
-- Whitespace (margin/gap): memisahkan antar card atau antar section
 
 ---
 
-## 7. Icon
+## 18. SLIDE PANEL PATTERN (DETAIL)
 
-**Semua icon dari Lucide React via komponen `<Icon />`.**
+Muncul dari kanan saat klik row tabel.
 
-```css
-/* Ukuran standar */
-Icon dalam button desktop:  14px
-Icon dalam button mobile:   16px
-Icon aksi tabel:            14px (selalu visible)
-Icon sidebar expanded:      18px
-Icon sidebar collapsed:     20px
-Icon empty state:           32px, opacity 30%
-Icon close modal:           18px
-Icon badge:                 10px
-Icon input prefix:          14px
-
-/* Stroke width */
-Default:  1.5px
-Active:   2px
+```
+┌──────────────┬────────────────────┬─────────────────────┐
+│ Sidebar      │ List (menyempit)   │ Detail Slide Panel  │
+│              │                    │ 480px               │
+│              │                    │ ┌──────────────────┐│
+│              │                    │ │ Detail Sales Order││
+│              │                    │ ├──────────────────┤│
+│              │                    │ │ [konten detail]  ││
+│              │                    │ │                  ││
+│              │                    │ │ Timeline         ││
+│              │                    │ └──────────────────┘│
+└──────────────┴────────────────────┴─────────────────────┘
 ```
 
-**Aturan:**
-- Selalu via `<Icon name="..." />` — JANGAN import langsung dari lucide-react
-- Icon tanpa label teks WAJIB punya `title` atau `aria-label`
-- Warna icon mengikuti warna teks parent
+```css
+.slide-panel {
+  width: 480px;
+  height: 100%;
+  background: white;
+  border-left: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  box-shadow: -4px 0 16px rgba(0,0,0,0.08);
+}
+
+.slide-panel-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.slide-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+```
 
 ---
 
-## 8. Mobile Design
+## 19. MODAL PATTERN
 
-### 8.1 Layout Mobile
+### Ukuran
 
 ```
-┌─────────────────┐
-│ Mobile Topbar   │  ← Hamburger + Judul + Aksi (56px)
-├─────────────────┤
-│ Tab/Filter Bar  │  ← Opsional (40px)
-├─────────────────┤
-│                 │
-│ Content         │  ← Scrollable, padding-bottom 80px
-│ (card list)     │
-│                 │
-├─────────────────┤
-│ Bottom Nav      │  ← 4 tab: Dashboard|Muatan|SO|Lainnya (56px)
-└─────────────────┘
+Confirm: 400px  — konfirmasi hapus
+Small:   480px  — form sederhana
+Medium:  640px  — form SO, Invoice
+Large:   860px  — form kompleks
+XL:      1100px — detail dengan tabel
 ```
 
-### 8.2 Touch Targets
+### Struktur
 
-- Semua tombol aksi: **minimum 44px height**
-- Semua tap target: **minimum 44x44px**
-- Gap antar tombol berdekatan: minimum 8px
-- Tidak ada elemen interaktif < 32px
+```css
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
 
-### 8.3 Mobile Cards (pengganti tabel)
+.modal {
+  background: white;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
 
-Di mobile, tabel diganti dengan card list:
+.modal-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
 ```
-[No SO + Status badge (kanan atas)]
-[Nama Customer (bold)]
-[Rute: Asal → Tujuan]
-[Sopir · No Polisi]
-[Waktu update (kanan bawah)]
-```
 
-### 8.4 Bottom Navigation
+### 3 Tipe Modal
+
+**Confirm Modal** — "Yakin ingin menghapus data ini?"
+**Delete Modal** — "Data yang dihapus tidak dapat dikembalikan."
+**Approval Modal** — "Setujui Sales Order ini?"
+
+---
+
+## 20. MOBILE PATTERN
+
+### Bottom Navigation (5 tab)
+
+```
+[Dashboard] [Muatan] [SO] [Invoice] [Lainnya]
+```
 
 ```css
 .bottom-nav {
@@ -1142,266 +1550,243 @@ Di mobile, tabel diganti dengan card list:
   font-weight: 500;
   color: var(--color-text-tertiary);
   cursor: pointer;
-  position: relative;
 }
 .bottom-nav-item.active {
   color: var(--color-primary);
 }
-.bottom-nav-badge {
-  position: absolute;
-  top: 6px;
-  right: calc(50% - 18px);
-  width: 16px; height: 16px;
-  background: var(--color-primary);
-  border-radius: 50%;
-  font-size: 9px;
-  font-weight: 700;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 ```
 
-### 8.5 Mobile Typography
+### Mobile Card (SO)
 
 ```
-Judul halaman:  17px, font-weight 700
-Body:           13px (bukan 12px — lebih mudah dibaca)
-Label:          11px, weight 500
-Caption:        10px, weight 600
-Nomor ref:      12px, mono
+┌─────────────────────────────────────────┐
+│ SJM.ID-0395.26              [On Going]  │
+│ PT. Kasana Teknindo Gemilang            │
+│ Marunda → Solok Selatan                 │
+│ Nur Hakim · B 9231 PYW                  │
+│ Update terakhir: 09:30                  │
+│ [Kirim WA]          [Simpan Update]     │
+└─────────────────────────────────────────┘
 ```
 
 ---
 
-## 9. Format Data
+## 21. STATUS FLOW DIAGRAM
 
-### 9.1 Tanggal & Waktu
+### Sales Order Flow
 
 ```
-Tanggal panjang:   09 Jun 2026
-Tanggal pendek:    09/06/26  (hanya kalau space terbatas)
-Waktu:             09:41 WIB
-Datetime:          09 Jun 2026, 09:41 WIB
+Draft → Confirmed → Loading → On Going → Arrived → Completed
+                                                  ↘
+                                               Cancelled
+```
+
+### Shipment Flow
+
+```
+Loading → On Going → Arrived → Completed
+                             ↘ Cancelled
+```
+
+### Invoice Flow
+
+```
+Draft → Issued → Partial Paid → Paid
+                              ↘ Overdue
+```
+
+---
+
+## 22. SPACING SYSTEM (8px Grid)
+
+```
+Base unit: 8px
+
+4px  → xs: gap icon-teks, padding badge
+8px  → sm: gap antar elemen, padding kecil
+12px → md: padding komponen
+16px → lg: padding card, cell horizontal
+20px → xl: padding halaman
+24px → 2xl: gap section
+32px → 3xl: gap section besar
+40px → 4xl: —
+48px → 5xl: section sangat besar
+64px → 6xl: hero section
+80px → 7xl: —
+96px → 8xl: —
+```
+
+**Border Radius:**
+```
+4px  → badge kecil
+8px  → button, input, nav-item
+12px → card, container
+16px → modal, panel
+20px → modal besar
+50%  → avatar, dot
+```
+
+---
+
+## 23. ELEVATION (Z-INDEX GUIDE)
+
+```
+Dropdown / Popover   → 1000
+Modal                → 2000
+Slide Panel          → 3000
+Notification Toast   → 4000
+```
+
+---
+
+## 24. FORMAT DATA
+
+### Tanggal & Waktu
+
+```
+Tanggal panjang:   15 Jun 2026
+Tanggal pendek:    15/06/26  (hanya space terbatas)
+Waktu:             09:30
+Datetime:          15 Jun 2026, 09:30
 Relatif < 24 jam:  "2 jam lalu", "30 menit lalu"
-Relatif > 24 jam:  tanggal eksplisit "09 Jun 2026"
+Relatif ≥ 24 jam:  tanggal eksplisit "15 Jun 2026"
 ```
 
-### 9.2 Angka & Mata Uang
+### Angka & Mata Uang
 
 ```typescript
-// Rupiah penuh
-fmt(27000000)       // → "Rp 27.000.000"
+// Rupiah penuh — di tabel, form
+fmt(27000000)          // → "Rp 27.000.000"
+fmt(304522799)         // → "Rp 304.522.799"
 
-// Rupiah disingkat (KPI cards)
-fmtShort(27000000)  // → "Rp 27 Jt"
+// Rupiah disingkat — di KPI cards
+fmtShort(27000000)     // → "Rp 27 Jt"
+fmtShort(304522799)    // → "Rp 304,5 Jt"
 
-// Parsing — SELALU parseNumSafe, JANGAN parseFloat
-parseNumSafe("27.000.000") // → 27000000
-parseFloat("27.000.000")   // → 27 (SALAH!)
+// Parsing — SELALU parseNumSafe
+parseNumSafe("27.000.000") // → 27000000  ✅
+parseFloat("27.000.000")   // → 27         ❌ SALAH
 
 // Angka selalu tabular-nums
 font-variant-numeric: tabular-nums;
 ```
 
-### 9.3 Status Text
+### Status Text — Selalu Konsisten
 
-Selalu konsisten — jangan ganti-ganti:
 ```
-"On Going"       bukan "Dalam Perjalanan" atau "ongoing"
-"Completed"      bukan "Selesai" atau "Done"
+"On Going"        bukan "Dalam Perjalanan"
+"Completed"       bukan "Selesai" atau "Done"
 "Order Confirmed" bukan "Confirmed"
-"Belum Bayar"    bukan "Unpaid"
-"Lunas"          bukan "Paid" atau "Sudah Bayar"
+"Loading"         bukan "Muat"
+"Cancelled"       bukan "Batal"
+"Belum Bayar"     bukan "Unpaid"
+"Lunas"           bukan "Paid"
+"Draft"           bukan "draft"
 ```
 
 ---
 
-## 10. Interaction States
-
-**Setiap elemen interaktif WAJIB punya semua state:**
+## 25. INTERACTION STATES
 
 ```
 Default   → tampilan normal
-Hover     → bg change, cursor pointer, border darkens
-Focus     → ring primary 3px (accessibility)
+Hover     → bg ringan, cursor pointer, border gelap
+Focus     → ring primary 3px
 Active    → scale(0.98) — tombol saja
 Disabled  → opacity 0.4, cursor not-allowed
-Loading   → spinner + text berubah + pointer-events none
+Loading   → spinner + disabled + teks berubah
 ```
 
 ```css
-/* Transition timing standar */
 transition: background 150ms ease;
 transition: border-color 150ms ease;
 transition: all 150ms ease;
-transition: transform 100ms ease;  /* Untuk scale */
+transition: transform 100ms ease;
 ```
 
 ---
 
-## 11. Login & Company Picker
+## 26. CHECKLIST SEBELUM COMMIT UI
 
-### 11.1 Login Page
-
-```
-Layout: full screen #F5F4F1, centered
-Card: white, border-radius 16px, border 1px solid --color-border
-Card width: 400px
-Padding: 32px
-
-Struktur:
-  Logo SJM Flow 5.0 (centered)
-  Judul: "Selamat Datang" (22px, 700)
-  Subtitle: "Masuk ke akun SJM Flow Anda" (13px, secondary)
-  Field Username
-  Field Password + toggle show/hide
-  Tombol "Masuk" (full width, 44px, primary)
-  Footer: "SJM Flow 5.0 · PT Sugiarto Jaya Mandiri" (11px, tertiary)
-```
-
-### 11.2 Company Picker
-
-```
-Layout: full screen #F5F4F1, centered
-Card: white, border-radius 16px, max-width 400px
-
-Struktur:
-  Logo SJM Flow 5.0
-  Judul: "Pilih Perusahaan" (22px, 700)
-  Subtitle: "Anda memiliki akses ke beberapa perusahaan" (13px)
-  Dropdown pilih perusahaan (urutan: alfabetis)
-  Tombol "Lanjutkan" (full width, 44px, primary, disabled kalau belum pilih)
-  Teks: "Anda bisa switch perusahaan kapan saja dari sidebar" (11px, tertiary)
-
-User dengan 1 perusahaan:
-  Dropdown tetap tampil tapi hanya 1 opsi
-  Tidak di-skip — user tetap harus klik Lanjutkan
-```
-
----
-
-## 12. Dashboard per Role
-
-### 12.1 Admin
-
-```
-Greeting: "Selamat Pagi, [Nama] 👋"
-Hero section: placeholder image area (akan diisi gambar)
-KPI summary dalam hero: Shipment Aktif | Menunggu Approval | Loading Terlambat | Selesai
-CTA: "+ Buat Shipment Baru"
-
-KPI Cards (4): Shipment Aktif | Dalam Perjalanan | Menunggu Approval | Kendala Operasional
-
-Panel kanan (280px):
-  - Dispatcher Hari Ini (ringkasan cepat)
-  - Aktivitas Terbaru (timeline)
-  - Alert (dokumen expired, kendaraan overdue)
-
-Konten utama:
-  - Tabel Shipment Terbaru dengan filter
-```
-
-### 12.2 Keuangan
-
-```
-KPI: Omzet | Laba Bersih | Piutang Beredar | Kas & Bank
-Panel kanan: Invoice outstanding, aging piutang
-Konten: Posting jurnal terbaru
-```
-
-### 12.3 Operasional
-
-```
-KPI: Total Trip | On Going | Completed | Armada Aktif
-Tidak ada panel kanan
-Konten: SO aktif + logistik ops terkini
-```
-
----
-
-## 13. Checklist Wajib Sebelum Commit UI
+### Layout
+- [ ] Dashboard muat 1 layar tanpa scroll?
+- [ ] `<main>` tidak punya padding yang menyebabkan overflow?
+- [ ] Semua halaman: `height: calc(100vh - 56px)`, `overflow: hidden`?
 
 ### Typography
-- [ ] Font size dari scale (9/10/11/12/13/15/22px)?
-- [ ] Tidak ada text-sm, text-xs, text-base, text-lg?
-- [ ] Angka pakai tabular-nums?
-- [ ] Nomor referensi pakai font-mono?
+- [ ] Font size dari scale yang disetujui?
+- [ ] KPI angka sesuai (Row 1: 28px, Row 2: 22px)?
+- [ ] Nomor referensi: mono font + orange?
+- [ ] Angka: tabular-nums?
 
 ### Color
-- [ ] Warna dari CSS variables?
+- [ ] Semua warna dari CSS variables?
 - [ ] Tidak ada hardcode hex?
-- [ ] Status badge pakai warna semantik yang benar?
-- [ ] Tidak ada Tailwind color utility?
+- [ ] Status badge dari tabel Section 06?
 
-### Spacing
-- [ ] Semua spacing kelipatan 4 atau 8?
-- [ ] Tidak ada magic number?
+### Icon
+- [ ] Semua icon dari @phosphor-icons/react?
+- [ ] Style outline (default, tanpa weight)?
 
-### Components
-- [ ] Button pakai btn-primary/ghost/danger?
-- [ ] Input pakai class input?
-- [ ] Icon via `<Icon />` bukan import langsung?
-- [ ] Semua elemen interaktif punya hover state?
+### KPI
+- [ ] Layout horizontal (icon kiri, angka kanan)?
+- [ ] Semua KPI bisa diklik dan navigate?
+- [ ] Row 2 hanya tampil untuk Admin/Keuangan?
 
-### Table
-- [ ] Header frozen (sticky)?
-- [ ] Kolom punya lebar minimum?
-- [ ] Teks panjang di-truncate + ada title tooltip?
-- [ ] Zebra striping aktif?
-- [ ] Empty state ada dan kontekstual?
+### Tabel
+- [ ] Header sticky?
+- [ ] `table-layout: fixed` dengan width eksplisit?
+- [ ] Pagination number-based?
+- [ ] Empty state ada?
 - [ ] Loading skeleton ada?
+- [ ] Truncate + title tooltip untuk teks panjang?
 
-### Form
-- [ ] Label di atas field?
-- [ ] Required indicator "Wajib diisi" merah?
-- [ ] Error state: border merah + pesan di bawah?
-- [ ] Validasi saat blur + submit (bukan real-time)?
+### Dashboard
+- [ ] Greeting + quick actions di header?
+- [ ] Panel kanan: Dispatcher + Aktivitas + Action Center?
+- [ ] Action Center sortir by severity?
+- [ ] Kolom tabel: ORDER | TGL MUAT | CUSTOMER | RUTE | SOPIR & ARMADA | STATUS | DURASI | NILAI | ⋮?
 
-### Mobile
-- [ ] Touch target minimum 44px?
-- [ ] Tabel diganti card list di mobile?
-- [ ] Bottom action bar untuk aksi utama?
-- [ ] Content padding-bottom 80px (ruang bottom nav)?
-
-### General
-- [ ] Empty state ada di semua tabel/list?
-- [ ] Loading state ada untuk semua async?
-- [ ] Toast pesan kontekstual (bukan hanya "Berhasil")?
-- [ ] Slide panel behavior benar (replace, tidak tutup)?
+### Sidebar
+- [ ] Collapsible dengan toggle `≡` / `«`?
+- [ ] Badge count di group label?
+- [ ] Active state border-left orange?
+- [ ] Keluar di bagian bawah?
 
 ---
 
-## 14. Anti-Patterns — JANGAN DILAKUKAN
+## 27. ANTI-PATTERNS
 
 ```
-❌ Hardcode hex: style={{ color: '#FF8F00' }}
-❌ Tailwind color: className="bg-orange-500 text-green-600"
-❌ Font size acak: text-sm, text-xs, text-[13.5px]
-❌ Magic number: marginTop: 13, padding: 7
-❌ Import icon langsung dari lucide-react
-❌ Shadow di card biasa (hanya border)
-❌ Tabel di mobile tanpa horizontal scroll
-❌ Touch target < 44px
-❌ Empty state tanpa deskripsi kontekstual
-❌ Loading state tanpa disabled
+❌ Hardcode hex di komponen
+❌ Tailwind color utility (text-red-500, bg-green-500)
+❌ Font size tidak dari scale
+❌ Magic number spacing
+❌ Icon dari lucide-react
+❌ Shadow di card biasa
+❌ Dashboard dengan vertical scroll
+❌ p-5 atau padding di <main>
+❌ KPI card layout vertikal
+❌ Breadcrumb (tidak dipakai)
+❌ Horizontal tabs di dalam halaman
+❌ Pagination hanya Prev/Next
+❌ Tabel tanpa sticky header
+❌ Empty state tanpa deskripsi
+❌ Loading tanpa disabled state
 ❌ Form submit tanpa validasi
 ❌ Delete tanpa konfirmasi
-❌ Delete data penting tanpa konfirmasi 2 lapis
-❌ Toast "Berhasil" atau "Error" tanpa konteks
-❌ Inline style untuk layout dan spacing
-❌ Async tanpa try/catch + showToast
-❌ parseFloat() untuk angka format Indonesia
-❌ Teks panjang terpotong tanpa title tooltip
-❌ Header tabel tidak frozen
-❌ Status text tidak konsisten ("On Going" vs "Dalam Perjalanan")
-❌ Kolom tanpa lebar minimum
-❌ Border radius tidak konsisten dalam satu halaman
+❌ parseFloat() untuk angka Indonesia
+❌ Teks panjang tanpa title tooltip
+❌ Status text tidak konsisten
+❌ Kolom tabel tanpa width eksplisit
+❌ Quick action lebih dari 3 per halaman
+❌ Action Center tampil item dengan count = 0
+❌ Panel kanan tanpa flex-shrink-0
 ```
 
 ---
 
 *Dokumen ini adalah source of truth untuk semua keputusan desain SJM Flow 5.0.*
 *Diupdate setiap kali ada keputusan desain baru yang disepakati.*
-*Referensi visual: Dashboard dan SO dari ChatGPT mockup (Juni 2026).*
+*Referensi visual: SJM Flow 5.0 UI/UX Design System + Mockup ChatGPT (Juni 2026).*
+*Wajib dibaca Claude Code sebelum membuat atau mengubah komponen apapun.*

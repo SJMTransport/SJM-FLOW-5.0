@@ -1,19 +1,8 @@
 import React, { useState, useMemo } from "react";
-import { C } from "../constants";
 import { fmtShort, filterByPeriod } from "@/src/utils";
 import { useCompany } from "@/src/context/CompanyContext";
 import { useNavigate } from "react-router-dom";
-import { Truck, ClockCountdown, WarningCircle, ChartLineUp, Receipt, ClipboardText, CalendarBlank, Users, NavigationArrow, NotePencil, CreditCard, FileX, CaretRight } from "@phosphor-icons/react";
-
-const STATUS_BADGE: Record<string, string> = {
-  "Order Confirmed": "bg-[#F1EFE8] text-[#5F5E5A]",
-  "Loading": "bg-[var(--color-warning-light,#FDF3E3)] text-[var(--color-warning,#C4914A)]",
-  "On Going": "bg-[var(--color-info-light,#EAF2FF)] text-[var(--color-info,#2563EB)]",
-  "Arrived": "bg-[var(--color-info-light,#EAF2FF)] text-[var(--color-info,#2563EB)]",
-  "Completed": "bg-[var(--color-success-light,#EEF8E8)] text-[var(--color-success,#5C8A3C)]",
-  "Cancelled": "bg-[var(--color-error-light,#FDEEEE)] text-[var(--color-error,#B85450)]",
-  "Hold": "bg-[var(--color-error-light,#FDEEEE)] text-[var(--color-error,#B85450)]",
-};
+import { Truck, ClockCountdown, WarningCircle, ChartLineUp, Receipt, ClipboardText, CalendarBlank, Users, NavigationArrow, CaretRight, CaretLeft, Plus, DotsThree } from "@phosphor-icons/react";
 
 const fmt = (n: number) => new Intl.NumberFormat("id-ID").format(Math.round(n));
 
@@ -24,10 +13,38 @@ const fmtTglMuat = (d: string | null | undefined) => {
   return date.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
 };
 
-const ALERT_TINT: Record<string, string> = {
-  "#EB5E28": "#FEF0E8",
-  "#B85450": "#FDEEEE",
-  "#C4914A": "#FDF3E3",
+const fmtDurasi = (tglMuat: string | null, tglBongkar: string | null, status: string) => {
+  if (!tglMuat) return "—";
+  const start = new Date(tglMuat).getTime();
+  if (isNaN(start)) return "—";
+  const end = (status === "Completed" && tglBongkar) ? new Date(tglBongkar).getTime() : Date.now();
+  if (isNaN(end)) return "—";
+  const diff = end - start;
+  if (diff < 0) return "—";
+  const mins = Math.floor(diff / 60000);
+  const hrs = Math.floor(mins / 60);
+  const days = Math.floor(hrs / 24);
+  if (mins < 60) return `${mins} Mnt`;
+  if (hrs < 24) return `${hrs} Jam`;
+  return `${days} Hari ${hrs % 24} Jam`;
+};
+
+const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
+  "Order Confirmed": { bg: "#DBEAFE", text: "#2563EB" },
+  "Loading": { bg: "#FEF3C7", text: "#D97706" },
+  "On Going": { bg: "#DBEAFE", text: "#2563EB" },
+  "Arrived": { bg: "#E0E7FF", text: "#4F46E5" },
+  "Completed": { bg: "#DCFCE7", text: "#16A34A" },
+  "Cancelled": { bg: "#FEE2E2", text: "#DC2626" },
+  "Hold": { bg: "#FEE2E2", text: "#DC2626" },
+};
+
+const getGreeting = () => {
+  const h = new Date().getHours();
+  if (h < 11) return "Selamat Pagi";
+  if (h < 15) return "Selamat Siang";
+  if (h < 18) return "Selamat Sore";
+  return "Selamat Malam";
 };
 
 export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], armadaDokumen = [], currentUser, onSOClick, onJurnalClick }: any) => {
@@ -38,7 +55,6 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
   const [shipmentPage, setShipmentPage] = useState(1);
   const SHIPMENT_PER_PAGE = 8;
 
-  // ── Existing financial calculations (preserved) ──────────────────
   const jurnalBulan = useMemo(() => filterByPeriod(jurnal || [], period), [jurnal, period]);
   const soBulan = useMemo(() => filterByPeriod(so || [], period, "tgl_muat"), [so, period]);
 
@@ -47,10 +63,9 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
 
   const totalPendapatan = useMemo(() => jurnalBulan.reduce((s: number, j: any) => s + (j.jurnal_detail || []).filter((e: any) => coaPendapatan.has(e.coa_kode)).reduce((a: number, e: any) => a + Number(e.kredit), 0), 0), [jurnalBulan, coaPendapatan]);
   const totalBeban = useMemo(() => jurnalBulan.reduce((s: number, j: any) => s + (j.jurnal_detail || []).filter((e: any) => coaBeban.has(e.coa_kode)).reduce((a: number, e: any) => a + Number(e.debit), 0), 0), [jurnalBulan, coaBeban]);
-  const labaRugi = totalPendapatan - totalBeban;
   const totalPiutang = useMemo(() => (piutang || []).reduce((s: number, p: any) => s + Number(p.sisa_piutang || 0), 0), [piutang]);
 
-  // ── KPI Row 1 — Operasional ──────────────────────────────────────
+  // KPI Row 1
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
 
@@ -69,7 +84,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
     }).length;
   }, [so]);
 
-  // ── KPI Row 2 — Keuangan ────────────────────────────────────────
+  // KPI Row 2
   const isFinanceRole = currentUser?.role === "Admin" || currentUser?.role === "Keuangan";
   const nowMonth = today.getMonth();
   const nowYear = today.getFullYear();
@@ -82,9 +97,10 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
     }).reduce((sum: number, s: any) => sum + Number(s.total_harga_pajak || s.total_harga || s.harga_pengiriman || 0), 0);
   }, [so, nowMonth, nowYear]);
 
+  const invoiceBelumLunas = useMemo(() => (so || []).filter((s: any) => s.status_muatan === "Completed").length, [so]);
   const soBelumDiinvoice = useMemo(() => (so || []).filter((s: any) => s.status_muatan === "Completed" && (s.invoice_count === 0 || !s.invoice_count)).length, [so]);
 
-  // ── Shipment table ───────────────────────────────────────────────
+  // Shipment table
   const shipmentSorted = useMemo(() =>
     [...(so || [])].sort((a: any, b: any) => String(b.tgl_muat || "").localeCompare(String(a.tgl_muat || "")))
   , [so]);
@@ -96,98 +112,165 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
     shipmentFiltered.slice((shipmentPage - 1) * SHIPMENT_PER_PAGE, shipmentPage * SHIPMENT_PER_PAGE)
   , [shipmentFiltered, shipmentPage]);
 
-  // ── Dispatcher ────────────────────────────────────────────────────
+  // Dispatcher
   const dalamPerjalanan = useMemo(() => (so || []).filter((s: any) => s.status_muatan === "On Going").length, [so]);
   const dispatcherItems = [
-    { label: "Shipment Hari Ini", value: (so || []).filter((s: any) => s.tgl_muat === todayStr).length, icon: <CalendarBlank size={18} weight="fill" className="text-[#EB5E28]" /> },
-    { label: "Armada Aktif", value: (armada || []).filter((a: any) => a.status === "Aktif").length, icon: <Truck size={18} weight="fill" className="text-[#5C8A3C]" /> },
-    { label: "Sopir Tersedia", value: (sopir || []).filter((d: any) => d.status === "Aktif").length, icon: <Users size={18} weight="fill" className="text-[#2563EB]" /> },
-    { label: "Dalam Perjalanan", value: dalamPerjalanan, icon: <NavigationArrow size={18} weight="fill" className="text-[#C4914A]" /> },
+    { label: "Shipment Hari Ini", value: (so || []).filter((s: any) => s.tgl_muat === todayStr).length, icon: <Truck size={18} style={{ color: "var(--color-primary)" }} /> },
+    { label: "Armada Aktif", value: (armada || []).filter((a: any) => a.status === "Aktif").length, icon: <Truck size={18} style={{ color: "var(--color-success)" }} /> },
+    { label: "Sopir Tersedia", value: (sopir || []).filter((d: any) => d.status === "Aktif").length, icon: <Users size={18} style={{ color: "var(--color-info)" }} /> },
+    { label: "Dalam Perjalanan", value: dalamPerjalanan, icon: <NavigationArrow size={18} style={{ color: "var(--color-warning)" }} /> },
   ];
 
-  // ── Aktivitas Terbaru (from posisi_log) ──────────────────────────
+  // Aktivitas Terbaru
   const recentCargoActivity = useMemo(() => {
     const allLogs: any[] = [];
     (so || []).forEach((s: any) => {
       if (!["On Going", "Loading", "Arrived"].includes(s.status_muatan)) return;
       (s.posisi_log || []).forEach((l: any) => {
-        allLogs.push({ ...l, order_id: s.order_id, customer: s.customer });
+        allLogs.push({ ...l, order_id: s.order_id, customer: s.customer, status: s.status_muatan });
       });
     });
     return allLogs.sort((a, b) => {
       const ta = new Date(`${a.date} ${a.time}`).getTime();
       const tb = new Date(`${b.date} ${b.time}`).getTime();
       return tb - ta;
-    }).slice(0, 4);
+    }).slice(0, 5);
   }, [so]);
 
-  // ── Alerts ────────────────────────────────────────────────────────
-  const soDraft = useMemo(() => (so || []).filter((s: any) => s.is_posted === false).length, [so]);
+  const ACTIVITY_COLORS: Record<string, string> = {
+    "On Going": "#2563EB",
+    "Loading": "#D97706",
+    "Arrived": "#4F46E5",
+    "Completed": "#16A34A",
+    "Cancelled": "#DC2626",
+  };
 
-  const alerts = useMemo(() => {
+  // Action Center
+  const soDraft = useMemo(() => (so || []).filter((s: any) => s.is_posted === false).length, [so]);
+  const actionItems = useMemo(() => {
     const list: any[] = [];
-    if (soDraft > 0) list.push({ icon: <NotePencil size={16} weight="fill" style={{ color: "#EB5E28" }} />, label: `${soDraft} Sales Order masih berupa Draft`, color: "#EB5E28", action: () => navigate("/sales-order") });
-    list.push({ icon: <CreditCard size={16} weight="fill" style={{ color: "#B85450" }} />, label: `0 Invoice belum lunas`, color: "#B85450", action: () => navigate("/invoice") });
-    if (soBelumDiinvoice > 0) list.push({ icon: <FileX size={16} weight="fill" style={{ color: "#C4914A" }} />, label: `${soBelumDiinvoice} SO belum diinvoice`, color: "#C4914A", action: () => navigate("/sales-order") });
-    return list.filter(a => !a.label.startsWith("0 "));
-  }, [so, soDraft, soBelumDiinvoice]);
+    if (soDraft > 0) list.push({ severity: "critical", count: soDraft, label: "Sales Order masih berupa Draft", action: () => navigate("/sales-order") });
+    if (soBelumDiinvoice > 0) list.push({ severity: "high", count: soBelumDiinvoice, label: "SO belum diinvoice", action: () => navigate("/sales-order") });
+    if (soTidakAdaUpdate > 0) list.push({ severity: "medium", count: soTidakAdaUpdate, label: "Shipment tidak update >12 jam", action: () => navigate("/update-muatan") });
+    return list;
+  }, [soDraft, soBelumDiinvoice, soTidakAdaUpdate]);
+
+  const SEVERITY_STYLES: Record<string, { bg: string; border: string }> = {
+    critical: { bg: "#FEF2F2", border: "#DC2626" },
+    high: { bg: "#FFF7ED", border: "#EA580C" },
+    medium: { bg: "#FFFBEB", border: "#D97706" },
+    info: { bg: "#EFF6FF", border: "#2563EB" },
+  };
+
+  // Pagination helpers
+  const getPageNumbers = () => {
+    const pages: (number | "...")[] = [];
+    if (shipmentTotalPages <= 5) {
+      for (let i = 1; i <= shipmentTotalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (shipmentPage > 3) pages.push("...");
+      for (let i = Math.max(2, shipmentPage - 1); i <= Math.min(shipmentTotalPages - 1, shipmentPage + 1); i++) pages.push(i);
+      if (shipmentPage < shipmentTotalPages - 2) pages.push("...");
+      pages.push(shipmentTotalPages);
+    }
+    return pages;
+  };
+
+  const firstName = currentUser?.nama?.split(" ")[0] || currentUser?.email?.split("@")[0] || "User";
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 56px - 40px)", gap: 12, overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 56px)", padding: "20px 24px", gap: 12, overflow: "hidden", background: "var(--color-bg)" }}>
 
-      {/* ── KPI ROW 1 — Ringkasan Operasional ── */}
-      <div style={{ flexShrink: 0 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: "#8D8A85", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Ringkasan Operasional</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+      {/* [1] Header Row */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexShrink: 0 }}>
+        <div>
+          <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: "var(--color-text-primary)" }}>
+            {getGreeting()}, {firstName} 👋
+          </h1>
+          <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginTop: 4, marginBottom: 0 }}>
+            Ringkasan operasional hari ini
+          </p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
           {[
-            { icon: <Truck size={20} weight="fill" className="text-[#EB5E28]" />, bg: "#FEF0E8", value: soAktif, color: "#EB5E28", label: "SO Aktif", sub: "On Going + Loading", onClick: () => navigate("/sales-order") },
-            { icon: <ClockCountdown size={20} weight="fill" className="text-[#C4914A]" />, bg: "#FFF8EC", value: soMenungguKonfirmasi, color: "#C4914A", label: "Menunggu Konfirmasi", onClick: () => navigate("/sales-order") },
-            { icon: <WarningCircle size={20} weight="fill" className="text-[#B85450]" />, bg: "#FFF0F0", value: soTidakAdaUpdate, color: "#B85450", label: "Tidak Ada Update >12 jam", onClick: () => navigate("/update-muatan") },
-          ].map((k) => (
-            <div key={k.label} onClick={k.onClick} style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: k.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{k.icon}</div>
-              <div>
-                <div style={{ fontSize: 26, fontWeight: 900, color: k.color, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
-                <div style={{ fontSize: 12, color: "#52504A", marginTop: 2 }}>{k.label}</div>
-              </div>
-            </div>
+            { label: "+ SO Baru", path: "/sales-order" },
+            { label: "+ Update Muatan", path: "/update-muatan" },
+            { label: "+ Invoice Baru", path: "/invoice" },
+          ].map(q => (
+            <button
+              key={q.label}
+              onClick={() => navigate(q.path)}
+              style={{ height: 36, padding: "0 16px", borderRadius: 8, fontSize: 13, fontWeight: 500, border: "1px solid var(--color-border)", background: "white", color: "var(--color-text-primary)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.color = "var(--color-primary)"; e.currentTarget.style.background = "var(--color-primary-light)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.color = "var(--color-text-primary)"; e.currentTarget.style.background = "white"; }}
+            >
+              {q.label}
+            </button>
           ))}
         </div>
       </div>
 
-      {/* ── KPI ROW 2 — Ringkasan Keuangan ── */}
-      {isFinanceRole && (
-        <div style={{ flexShrink: 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#8D8A85", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Ringkasan Keuangan</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-            {[
-              { icon: <ChartLineUp size={20} weight="fill" className="text-[#5C8A3C]" />, bg: "#F0F7EA", value: `Rp ${fmt(revenueBulanIni)}`, label: "Revenue Bulan Ini", onClick: () => navigate("/laporan") },
-              { icon: <Receipt size={20} weight="fill" className="text-[#B85450]" />, bg: "#FFF0F0", value: `${(so || []).filter((s: any) => s.status_muatan === "Completed").length}`, label: "Invoice Belum Lunas", sub: "invoice", onClick: () => navigate("/invoice") },
-              { icon: <ClipboardText size={20} weight="fill" className="text-[#C4914A]" />, bg: "#FFF8EC", value: `${soBelumDiinvoice}`, label: "SO Belum Diinvoice", sub: "SO", onClick: () => navigate("/sales-order") },
-            ].map((k) => (
-              <div key={k.label} onClick={k.onClick} style={{ background: "#F8F6F3", border: "1px solid #E2DDD6", borderRadius: 10, padding: "10px 16px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
-                <div style={{ width: 40, height: 40, borderRadius: 10, background: k.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{k.icon}</div>
-                <div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: "#1A1A1A", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
-                  <div style={{ fontSize: 12, color: "#52504A", marginTop: 2 }}>{k.label}</div>
-                </div>
-              </div>
-            ))}
+      {/* [2] KPI Row 1 — Operasional */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, flexShrink: 0 }}>
+        {[
+          { icon: <Truck size={24} />, iconBg: "#DBEAFE", iconColor: "#2563EB", value: soAktif, label: "SO Aktif", onClick: () => navigate("/sales-order") },
+          { icon: <ClockCountdown size={24} />, iconBg: "#FEF3C7", iconColor: "#D97706", value: soMenungguKonfirmasi, label: "Menunggu Konfirmasi", onClick: () => navigate("/sales-order") },
+          { icon: <WarningCircle size={24} />, iconBg: "#FEE2E2", iconColor: "#DC2626", value: soTidakAdaUpdate, label: "Tidak Ada Update >12 Jam", onClick: () => navigate("/update-muatan") },
+        ].map((k) => (
+          <div
+            key={k.label}
+            onClick={k.onClick}
+            style={{ background: "white", border: "1px solid var(--color-border)", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "all 150ms ease" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(235,94,40,0.08)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
+          >
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: k.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: k.iconColor }}>{k.icon}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 4 }}>{k.label}</div>
+              <div style={{ fontSize: 28, fontWeight: 700, color: "var(--color-text-primary)", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
+            </div>
+            <CaretRight size={16} style={{ color: "var(--color-text-tertiary)", flexShrink: 0 }} />
           </div>
+        ))}
+      </div>
+
+      {/* [3] KPI Row 2 — Keuangan */}
+      {isFinanceRole && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, flexShrink: 0 }}>
+          {[
+            { icon: <ChartLineUp size={24} />, iconBg: "#DCFCE7", iconColor: "#16A34A", value: `Rp ${fmtShort(revenueBulanIni)}`, label: "Revenue Bulan Ini", onClick: () => navigate("/laporan") },
+            { icon: <Receipt size={24} />, iconBg: "#FEE2E2", iconColor: "#DC2626", value: `${invoiceBelumLunas}`, label: "Invoice Belum Lunas", onClick: () => navigate("/invoice") },
+            { icon: <ClipboardText size={24} />, iconBg: "#FEF3C7", iconColor: "#D97706", value: `${soBelumDiinvoice}`, label: "SO Belum Diinvoice", onClick: () => navigate("/sales-order") },
+          ].map((k) => (
+            <div
+              key={k.label}
+              onClick={k.onClick}
+              style={{ background: "white", border: "1px solid var(--color-border)", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "all 150ms ease" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--color-primary)"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(235,94,40,0.08)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--color-border)"; e.currentTarget.style.boxShadow = "none"; }}
+            >
+              <div style={{ width: 48, height: 48, borderRadius: 12, background: k.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: k.iconColor }}>{k.icon}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 4 }}>{k.label}</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: "var(--color-text-primary)", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
+              </div>
+              <CaretRight size={16} style={{ color: "var(--color-text-tertiary)", flexShrink: 0 }} />
+            </div>
+          ))}
         </div>
       )}
 
-      {/* ── KONTEN BAWAH ── */}
-      <div style={{ flex: 1, minHeight: 0, display: "flex", gap: 16 }}>
+      {/* [4] Content Row — Table + Right Panel */}
+      <div style={{ display: "flex", gap: 16, flex: 1, minHeight: 0, overflow: "hidden" }}>
 
-        {/* KIRI — Tabel Shipment */}
-        <div style={{ flex: 1, minWidth: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 10, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-          {/* Header */}
-          <div style={{ padding: "12px 16px", borderBottom: "1px solid #E2DDD6", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: "#1A1A1A" }}>Shipment Terbaru</span>
+        {/* LEFT — Shipment Table */}
+        <div style={{ flex: 1, minWidth: 0, background: "white", border: "1px solid var(--color-border)", borderRadius: 12, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          {/* Toolbar */}
+          <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
+            <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "var(--color-text-tertiary)" }}>Shipment Aktif</span>
             <select
-              className="input-field"
-              style={{ height: 32, fontSize: 11, fontWeight: 600, width: 150 }}
+              style={{ height: 32, fontSize: 13, border: "1px solid var(--color-border)", borderRadius: 8, padding: "0 28px 0 10px", background: "white", appearance: "none" as any, cursor: "pointer" }}
               value={shipmentFilter}
               onChange={(e) => { setShipmentFilter(e.target.value); setShipmentPage(1); }}
             >
@@ -202,139 +285,175 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
             <table style={{ width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}>
               <colgroup>
                 <col style={{ width: 130 }} />
-                <col style={{ width: 90 }} />
+                <col style={{ width: 100 }} />
                 <col style={{ width: 150 }} />
-                <col style={{ width: 170 }} />
+                <col style={{ width: 160 }} />
                 <col style={{ width: 160 }} />
                 <col style={{ width: 120 }} />
+                <col style={{ width: 90 }} />
                 <col style={{ width: 100 }} />
+                <col style={{ width: 40 }} />
               </colgroup>
-              <thead style={{ position: "sticky", top: 0, zIndex: 10, background: "#F8F6F3" }}>
+              <thead style={{ position: "sticky", top: 0, zIndex: 1, background: "var(--color-surface-secondary)" }}>
                 <tr>
-                  {["ORDER", "TGL MUAT", "CUSTOMER", "RUTE", "SOPIR & ARMADA", "STATUS", "NILAI"].map((h, i) => (
-                    <th key={h} style={{ textAlign: i === 6 ? "right" : "left", padding: "8px 12px", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "#8D8A85", borderBottom: "1px solid #E2DDD6" }}>{h}</th>
+                  {["ORDER", "TGL MUAT", "CUSTOMER", "RUTE", "SOPIR & ARMADA", "STATUS", "DURASI", "NILAI", ""].map((h, i) => (
+                    <th key={h || "action"} style={{ textAlign: h === "NILAI" ? "right" : "left", padding: "10px 16px", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "var(--color-text-tertiary)", borderBottom: "1px solid var(--color-border)", whiteSpace: "nowrap" }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {shipmentPaged.length === 0 ? (
-                  <tr><td colSpan={7} style={{ padding: "48px 0", textAlign: "center", fontSize: 12, color: "#9B9690" }}>Tidak ada data</td></tr>
+                  <tr><td colSpan={9} style={{ padding: "48px 16px", textAlign: "center", fontSize: 13, color: "var(--color-text-tertiary)" }}>Tidak ada data shipment</td></tr>
                 ) : (
-                  shipmentPaged.map((s: any) => (
-                    <tr key={s.id} style={{ borderBottom: "1px solid #F0EDE8", cursor: "pointer" }} onMouseEnter={e => (e.currentTarget.style.background = "#FAF8F5")} onMouseLeave={e => (e.currentTarget.style.background = "")}>
-                      <td style={{ padding: "10px 12px" }}>
-                        <button onClick={() => onSOClick?.(s.order_id)} style={{ fontSize: 13, fontWeight: 700, color: "#EB5E28", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-                          {s.order_id}
-                        </button>
-                      </td>
-                      <td style={{ padding: "10px 12px", fontSize: 13, color: "#52504A", fontVariantNumeric: "tabular-nums" }}>{fmtTglMuat(s.tgl_muat)}</td>
-                      <td style={{ padding: "10px 12px", fontSize: 13, fontWeight: 500, color: "#1A1A1A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.customer || ""}>{s.customer || "—"}</td>
-                      <td style={{ padding: "10px 12px", fontSize: 13, color: "#52504A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={`${s.lokasi_muat || ""} → ${s.lokasi_bongkar || ""}`}>
-                        {s.lokasi_muat || "—"} → {s.lokasi_bongkar || "—"}
-                      </td>
-                      <td style={{ padding: "10px 12px" }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A1A", lineHeight: 1.3 }}>{s.nama_sopir || "—"}</div>
-                        <div style={{ fontSize: 11, color: "#9B9690" }}>{s.no_polisi || ""}{s.jenis_truk ? ` · ${s.jenis_truk}` : ""}</div>
-                      </td>
-                      <td style={{ padding: "10px 12px" }}>
-                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${STATUS_BADGE[s.status_muatan] || "bg-[#F1EFE8] text-[#5F5E5A]"}`}>
-                          {s.status_muatan}
-                        </span>
-                      </td>
-                      <td style={{ padding: "10px 12px", textAlign: "right", fontSize: 13, fontWeight: 600, color: "#1A1A1A", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
-                        Rp{fmt(Number(s.total_harga_pajak || s.total_harga || s.harga_pengiriman || 0))}
-                      </td>
-                    </tr>
-                  ))
+                  shipmentPaged.map((s: any) => {
+                    const sc = STATUS_COLORS[s.status_muatan] || { bg: "#F3F4F6", text: "#6B7280" };
+                    return (
+                      <tr key={s.id} style={{ borderBottom: "1px solid var(--color-border-subtle)", cursor: "pointer" }} onMouseEnter={e => { for (const td of e.currentTarget.children as any) td.style.background = "var(--color-surface-hover)"; }} onMouseLeave={e => { for (const td of e.currentTarget.children as any) td.style.background = ""; }}>
+                        <td style={{ padding: "12px 16px" }}>
+                          <button onClick={() => onSOClick?.(s.order_id)} style={{ fontSize: 14, fontWeight: 600, color: "var(--color-primary)", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "monospace" }}>
+                            {s.order_id}
+                          </button>
+                        </td>
+                        <td style={{ padding: "12px 16px", fontSize: 14, color: "var(--color-text-primary)", fontVariantNumeric: "tabular-nums" }}>{fmtTglMuat(s.tgl_muat)}</td>
+                        <td style={{ padding: "12px 16px", fontSize: 14, color: "var(--color-text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.customer || ""}>{s.customer || "—"}</td>
+                        <td style={{ padding: "12px 16px", fontSize: 14, color: "var(--color-text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={`${s.lokasi_muat || ""} → ${s.lokasi_bongkar || ""}`}>
+                          {s.lokasi_muat || "—"} → {s.lokasi_bongkar || "—"}
+                        </td>
+                        <td style={{ padding: "12px 16px" }}>
+                          <div style={{ fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)", lineHeight: 1.3 }}>{s.nama_sopir || "—"}</div>
+                          <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>{s.no_polisi || ""}{s.jenis_truk ? ` · ${s.jenis_truk}` : ""}</div>
+                        </td>
+                        <td style={{ padding: "12px 16px" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", padding: "4px 12px", borderRadius: 999, fontSize: 12, fontWeight: 500, whiteSpace: "nowrap", background: sc.bg, color: sc.text }}>
+                            {s.status_muatan}
+                          </span>
+                        </td>
+                        <td style={{ padding: "12px 16px", fontSize: 13, color: "var(--color-text-secondary)", fontVariantNumeric: "tabular-nums" }}>
+                          {["On Going", "Loading", "Completed"].includes(s.status_muatan) ? fmtDurasi(s.tgl_muat, s.tgl_bongkar, s.status_muatan) : "—"}
+                        </td>
+                        <td style={{ padding: "12px 16px", textAlign: "right", fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
+                          Rp {fmt(Number(s.total_harga_pajak || s.total_harga || s.harga_pengiriman || 0))}
+                        </td>
+                        <td style={{ padding: "12px 16px", textAlign: "center" }}>
+                          <DotsThree size={20} style={{ color: "var(--color-text-tertiary)", cursor: "pointer" }} />
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
           </div>
 
-          {/* Pagination */}
-          <div style={{ padding: "10px 16px", borderTop: "1px solid #E2DDD6", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0, fontSize: 12 }}>
-            <span style={{ color: "#9B9690" }}>
+          {/* Pagination — number based */}
+          <div style={{ padding: "12px 16px", borderTop: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0, fontSize: 13, color: "var(--color-text-secondary)" }}>
+            <span>
               Menampilkan {shipmentFiltered.length === 0 ? 0 : (shipmentPage - 1) * SHIPMENT_PER_PAGE + 1} - {Math.min(shipmentPage * SHIPMENT_PER_PAGE, shipmentFiltered.length)} dari {shipmentFiltered.length} data
             </span>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <button
                 disabled={shipmentPage <= 1}
-                onClick={() => setShipmentPage(p => Math.max(1, p - 1))}
-                style={{ padding: "4px 12px", borderRadius: 6, border: "1px solid #E2DDD6", background: "white", fontSize: 12, color: "#52504A", cursor: shipmentPage <= 1 ? "not-allowed" : "pointer", opacity: shipmentPage <= 1 ? 0.3 : 1 }}
+                onClick={() => setShipmentPage(p => p - 1)}
+                style={{ width: 32, height: 32, borderRadius: 8, border: "1px solid var(--color-border)", background: "white", fontSize: 13, cursor: shipmentPage <= 1 ? "not-allowed" : "pointer", opacity: shipmentPage <= 1 ? 0.4 : 1, display: "flex", alignItems: "center", justifyContent: "center" }}
               >
-                ‹ Prev
+                <CaretLeft size={14} />
               </button>
-              <span style={{ fontSize: 12, color: "#52504A" }}>Halaman {shipmentPage} / {shipmentTotalPages}</span>
+              {getPageNumbers().map((p, i) =>
+                p === "..." ? (
+                  <span key={`e${i}`} style={{ padding: "0 4px", color: "var(--color-text-tertiary)" }}>…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => setShipmentPage(p as number)}
+                    style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${shipmentPage === p ? "var(--color-primary)" : "var(--color-border)"}`, background: shipmentPage === p ? "var(--color-primary)" : "white", color: shipmentPage === p ? "white" : "var(--color-text-primary)", fontSize: 13, fontWeight: shipmentPage === p ? 600 : 400, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
               <button
                 disabled={shipmentPage >= shipmentTotalPages}
-                onClick={() => setShipmentPage(p => Math.min(shipmentTotalPages, p + 1))}
-                style={{ padding: "4px 12px", borderRadius: 6, border: "1px solid #E2DDD6", background: "white", fontSize: 12, color: shipmentPage >= shipmentTotalPages ? "#C0B8B0" : "#EB5E28", fontWeight: 600, cursor: shipmentPage >= shipmentTotalPages ? "not-allowed" : "pointer", opacity: shipmentPage >= shipmentTotalPages ? 0.3 : 1 }}
+                onClick={() => setShipmentPage(p => p + 1)}
+                style={{ width: 32, height: 32, borderRadius: 8, border: "1px solid var(--color-border)", background: "white", fontSize: 13, cursor: shipmentPage >= shipmentTotalPages ? "not-allowed" : "pointer", opacity: shipmentPage >= shipmentTotalPages ? 0.4 : 1, display: "flex", alignItems: "center", justifyContent: "center" }}
               >
-                Next ›
+                <CaretRight size={14} />
               </button>
             </div>
           </div>
         </div>
 
-        {/* KANAN — Panel */}
-        <div style={{ width: 260, flexShrink: 0, display: "flex", flexDirection: "column", gap: 10, overflow: "hidden" }}>
+        {/* RIGHT — Panel 300px */}
+        <div style={{ width: 300, flexShrink: 0, display: "flex", flexDirection: "column", gap: 12, overflow: "hidden" }}>
 
           {/* Dispatcher Hari Ini */}
-          <div style={{ flexShrink: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 10, padding: 12 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "#8D8A85", marginBottom: 10 }}>Dispatcher Hari Ini</div>
+          <div style={{ flexShrink: 0, background: "white", border: "1px solid var(--color-border)", borderRadius: 12, padding: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px", color: "var(--color-text-tertiary)", marginBottom: 12 }}>Dispatcher Hari Ini</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               {dispatcherItems.map((d) => (
-                <div key={d.label} style={{ background: "#F8F6F3", borderRadius: 8, padding: 10 }}>
-                  <div style={{ marginBottom: 6 }}>{d.icon}</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: "#1A1A1A", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{d.value}</div>
-                  <div style={{ fontSize: 11, color: "#52504A", marginTop: 4 }}>{d.label}</div>
+                <div key={d.label} style={{ background: "var(--color-surface-secondary)", borderRadius: 8, padding: 10, display: "flex", flexDirection: "column", gap: 4 }}>
+                  <div style={{ marginBottom: 4 }}>{d.icon}</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "var(--color-text-primary)", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{d.value}</div>
+                  <div style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>{d.label}</div>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Aktivitas Terbaru */}
-          <div style={{ flexShrink: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 10, padding: 12 }}>
-            <div style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "#8D8A85", marginBottom: 8 }}>Aktivitas Terbaru</div>
+          <div style={{ flexShrink: 0, background: "white", border: "1px solid var(--color-border)", borderRadius: 12, padding: 14 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px", color: "var(--color-text-tertiary)", marginBottom: 12 }}>Aktivitas Terbaru</div>
             {recentCargoActivity.length === 0 ? (
-              <div style={{ padding: "16px 0", textAlign: "center", fontSize: 11, color: "#9B9690" }}>Belum ada aktivitas</div>
+              <div style={{ padding: "16px 0", textAlign: "center", fontSize: 13, color: "var(--color-text-tertiary)" }}>Belum ada aktivitas</div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ display: "flex", flexDirection: "column" }}>
                 {recentCargoActivity.map((l: any, i: number) => (
-                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#B85450", marginTop: 5, flexShrink: 0 }} />
-                    <div style={{ minWidth: 0 }}>
-                      <button onClick={() => onSOClick?.(l.order_id)} style={{ fontSize: 12, fontWeight: 700, color: "#EB5E28", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                  <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "8px 0", borderBottom: i < recentCargoActivity.length - 1 ? "1px solid var(--color-border-subtle)" : "none" }}>
+                    <div style={{ fontSize: 11, color: "var(--color-text-tertiary)", whiteSpace: "nowrap", marginTop: 2, minWidth: 36 }}>{l.time || ""}</div>
+                    <div style={{ width: 24, height: 24, borderRadius: "50%", background: ACTIVITY_COLORS[l.status] || "#EB5E28", opacity: 0.15, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative" }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: ACTIVITY_COLORS[l.status] || "#EB5E28", position: "absolute" }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <button onClick={() => onSOClick?.(l.order_id)} style={{ fontSize: 12, fontWeight: 500, color: "var(--color-text-primary)", background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left" }}>
                         {l.order_id || "Draft"}
                       </button>
-                      <div style={{ fontSize: 12, color: "#52504A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.location || "Transito"}</div>
-                      <div style={{ fontSize: 11, color: "#9B9690" }}>
-                        {l.date} • {l.time}
-                      </div>
+                      <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.location || "Transito"}</div>
                     </div>
+                    <span style={{ display: "inline-flex", alignItems: "center", padding: "2px 8px", borderRadius: 999, fontSize: 10, fontWeight: 500, background: (STATUS_COLORS[l.status] || { bg: "#F3F4F6" }).bg, color: (STATUS_COLORS[l.status] || { text: "#6B7280" }).text, flexShrink: 0, marginTop: 2 }}>
+                      {l.status}
+                    </span>
                   </div>
                 ))}
               </div>
             )}
+            <div
+              onClick={() => navigate("/log-aktivitas")}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "var(--color-surface-secondary)", borderRadius: 8, marginTop: 8, fontSize: 13, fontWeight: 500, color: "var(--color-primary)", cursor: "pointer" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "var(--color-primary-light)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "var(--color-surface-secondary)"; }}
+            >
+              <span>Lihat semua aktivitas</span>
+              <CaretRight size={14} />
+            </div>
           </div>
 
-          {/* Alert */}
-          {alerts.length > 0 && (
-            <div style={{ flex: 1, overflowY: "auto", background: "white", border: "1px solid #E2DDD6", borderRadius: 10, padding: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "#8D8A85", marginBottom: 8 }}>Alert</div>
-              {alerts.map((a, i) => (
-                <div
-                  key={i}
-                  onClick={a.action}
-                  style={{ padding: "8px 10px", borderLeft: `3px solid ${a.color}`, background: ALERT_TINT[a.color] || "#F8F6F3", borderRadius: "0 6px 6px 0", marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
-                    <span style={{ flexShrink: 0 }}>{a.icon}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1A1A", lineHeight: 1.3 }}>{a.label}</span>
+          {/* Action Center */}
+          {actionItems.length > 0 && (
+            <div style={{ flex: 1, overflowY: "auto", background: "white", border: "1px solid var(--color-border)", borderRadius: 12, padding: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px", color: "var(--color-text-tertiary)", marginBottom: 12 }}>Action Center</div>
+              {actionItems.map((a, i) => {
+                const sev = SEVERITY_STYLES[a.severity] || SEVERITY_STYLES.info;
+                return (
+                  <div
+                    key={i}
+                    onClick={a.action}
+                    style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, marginBottom: 6, cursor: "pointer", borderLeft: `3px solid ${sev.border}`, background: sev.bg, transition: "all 150ms ease" }}
+                  >
+                    <div style={{ fontSize: 18, fontWeight: 700, color: "var(--color-text-primary)", minWidth: 28, fontVariantNumeric: "tabular-nums" }}>{a.count}</div>
+                    <div style={{ flex: 1, fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.3 }}>{a.label}</div>
+                    <CaretRight size={14} style={{ color: "var(--color-text-tertiary)", flexShrink: 0 }} />
                   </div>
-                  <CaretRight size={14} weight="fill" style={{ color: "#9B9690", flexShrink: 0 }} />
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
