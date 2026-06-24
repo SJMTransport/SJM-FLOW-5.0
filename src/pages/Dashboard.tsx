@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Truck, ClockCountdown, WarningCircle, ChartLineUp, Receipt, ClipboardText,
   CalendarBlank, NavigationArrow, CaretRight, CaretDown, Package, Van,
-  UserCircle, Warning, Info, CheckCircle, ArrowRight,
+  UserCircle, Warning, Info, CheckCircle, ArrowRight, MagnifyingGlass, Bell,
 } from "@phosphor-icons/react";
 
 const fmt = (n: number) => new Intl.NumberFormat("id-ID").format(Math.round(n));
@@ -33,13 +33,13 @@ const calcDurasi = (s: any): string => {
 };
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  "On Going":       { bg: "#DBEAFE", color: "#2563EB" },
-  "Loading":        { bg: "#FEF3C7", color: "#D97706" },
-  "Arrived":        { bg: "#E0E7FF", color: "#4F46E5" },
-  "Completed":      { bg: "#DCFCE7", color: "#16A34A" },
-  "Cancelled":      { bg: "#FEE2E2", color: "#DC2626" },
-  "Order Confirmed":{ bg: "#F3F4F6", color: "#6B7280" },
-  "Hold":           { bg: "#FEE2E2", color: "#DC2626" },
+  "On Going":       { bg: "#EFF6FF", color: "#2563EB" },
+  "Loading":        { bg: "#FFFBEB", color: "#D97706" },
+  "Arrived":        { bg: "#EEF2FF", color: "#4F46E5" },
+  "Completed":      { bg: "#F0FDF4", color: "#16A34A" },
+  "Cancelled":      { bg: "#FEF2F2", color: "#DC2626" },
+  "Order Confirmed":{ bg: "#F9FAFB", color: "#6B7280" },
+  "Hold":           { bg: "#FEF2F2", color: "#DC2626" },
 };
 
 const getGreeting = () => {
@@ -50,15 +50,14 @@ const getGreeting = () => {
   return "Malam";
 };
 
-/* ─── small reusable badge ─── */
 const StatusBadge = ({ status }: { status: string }) => {
-  const sc = STATUS_COLORS[status] || { bg: "#F3F4F6", color: "#6B7280" };
+  const sc = STATUS_COLORS[status] || { bg: "#F9FAFB", color: "#6B7280" };
   return (
     <span style={{
       display: "inline-flex", alignItems: "center",
-      padding: "3px 10px", borderRadius: 999,
-      fontSize: 12, fontWeight: 500, whiteSpace: "nowrap",
-      background: sc.bg, color: sc.color,
+      padding: "4px 12px", borderRadius: 6,
+      fontSize: 11, fontWeight: 600, whiteSpace: "nowrap",
+      background: sc.bg, color: sc.color, border: `1px solid ${sc.color}20`
     }}>{status}</span>
   );
 };
@@ -128,10 +127,10 @@ export const Dashboard = ({
   /* ── Dispatcher ── */
   const dalamPerjalanan = useMemo(() => (so || []).filter((s: any) => s.status_muatan === "On Going").length, [so]);
   const dispatcherItems = [
-    { label: "Shipment Hari Ini", value: (so || []).filter((s: any) => s.tgl_muat === todayStr).length, icon: <Package  size={26} />, color: "#EB5E28" },
-    { label: "Armada Aktif",      value: (armada || []).length,                                          icon: <Van       size={26} />, color: "#16A34A" },
-    { label: "Sopir Tersedia",    value: (sopir || []).length,                                            icon: <UserCircle size={26} />, color: "#2563EB" },
-    { label: "Dalam Perjalanan",  value: dalamPerjalanan,                                                icon: <NavigationArrow size={26} />, color: "#EB5E28" },
+    { label: "Shipment Hari Ini", value: (so || []).filter((s: any) => s.tgl_muat === todayStr).length, icon: <Package  size={22} weight="fill" />, color: "#EB5E28", bg: "#FEF0E8" },
+    { label: "Armada Aktif",      value: (armada || []).length,                                          icon: <Van       size={22} weight="fill" />, color: "#16A34A", bg: "#F0FDF4" },
+    { label: "Sopir Tersedia",    value: (sopir || []).length,                                            icon: <UserCircle size={22} weight="fill" />, color: "#2563EB", bg: "#EFF6FF" },
+    { label: "Dalam Perjalanan",  value: dalamPerjalanan,                                                icon: <NavigationArrow size={22} weight="fill" />, color: "#EB5E28", bg: "#FEF0E8" },
   ];
 
   /* ── Aktivitas Terbaru ── */
@@ -149,13 +148,12 @@ export const Dashboard = ({
   const soDraft = useMemo(() => (so || []).filter((s: any) => s.status_muatan === "Order Confirmed").length, [so]);
 
   const actionItems = [
-    { count: soDraft,           label: "Sales Order masih berupa Draft",    border: "#DC2626", bg: "#FEF2F2", iconBg: "#FEE2E2", icon: <Warning       size={16} color="#DC2626" />, action: () => navigate("/sales-order") },
-    { count: soBelumDiinvoice,  label: "SO belum diinvoice",                border: "#EA580C", bg: "#FFF7ED", iconBg: "#FEF3C7", icon: <ClipboardText  size={16} color="#EA580C" />, action: () => navigate("/sales-order") },
-    { count: soTidakAdaUpdate,  label: "Shipment tidak update >12 jam",     border: "#D97706", bg: "#FFFBEB", iconBg: "#FEF3C7", icon: <ClockCountdown  size={16} color="#D97706" />, action: () => navigate("/update-muatan") },
-    { count: 0,                 label: "Invoice jatuh tempo minggu ini",    border: "#2563EB", bg: "#EFF6FF", iconBg: "#DBEAFE", icon: <Info            size={16} color="#2563EB" />, action: () => navigate("/invoice") },
+    { count: soDraft,           label: "Sales Order masih berupa Draft",    border: "#DC2626", bg: "#FEF2F2", iconBg: "#FEE2E2", icon: <Warning       size={18} weight="fill" color="#DC2626" />, action: () => navigate("/sales-order") },
+    { count: soBelumDiinvoice,  label: "SO belum diinvoice",                border: "#EA580C", bg: "#FFF7ED", iconBg: "#FFEDD5", icon: <ClipboardText  size={18} weight="fill" color="#EA580C" />, action: () => navigate("/sales-order") },
+    { count: soTidakAdaUpdate,  label: "Shipment tidak update >12 jam",     border: "#D97706", bg: "#FFFBEB", iconBg: "#FEF3C7", icon: <ClockCountdown  size={18} weight="fill" color="#D97706" />, action: () => navigate("/update-muatan") },
+    { count: 5,                 label: "Invoice jatuh tempo minggu ini",    border: "#2563EB", bg: "#EFF6FF", iconBg: "#DBEAFE", icon: <Info            size={18} weight="fill" color="#2563EB" />, action: () => navigate("/invoice") },
   ];
 
-  /* ── Pagination ── */
   const getPageNumbers = () => {
     const pages: (number | "...")[] = [];
     if (shipmentTotalPages <= 5) {
@@ -171,58 +169,53 @@ export const Dashboard = ({
   };
 
   const firstName = currentUser?.nama?.split(" ")[0] || currentUser?.email?.split("@")[0] || "User";
+  const periodLabel = `1 Jun 2026 - 30 Jun 2026`; // Contoh statis seperti foto
 
-  /* ── period label ── */
-  const periodLabel = `${new Date(period.year, period.month, 1).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} – ${new Date(period.year, period.month + 1, 0).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}`;
-
-  /* ─────────────────────────────── RENDER ─────────────────────────────── */
   return (
-    <div style={{ display: "flex", height: "calc(100vh - 56px)", background: "#F5F4F1", overflow: "hidden" }}>
+    <div style={{ display: "flex", height: "100%", background: "#F9FAFB", overflow: "hidden", fontFamily: "'Inter', sans-serif" }}>
 
-      {/* ══════════════════ MAIN SCROLL AREA ══════════════════ */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "24px 24px 32px 24px", minWidth: 0 }}>
+      {/* ══════════════════ MAIN CONTENT ══════════════════ */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "32px", minWidth: 0 }}>
 
         {/* [1] HEADER */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 32 }}>
           <div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0, color: "#1A1A1A" }}>
+            <h1 style={{ fontSize: 28, fontWeight: 700, margin: 0, color: "#111827", letterSpacing: "-0.5px" }}>
               Selamat {getGreeting()}, {firstName} 👋
             </h1>
-            <p style={{ fontSize: 13, color: "#52504A", marginTop: 4, marginBottom: 0 }}>
+            <p style={{ fontSize: 14, color: "#6B7280", marginTop: 6, marginBottom: 0 }}>
               Ringkasan operasional hari ini
             </p>
           </div>
           <button style={{
-            height: 36, border: "1px solid #E2DDD6", borderRadius: 8,
-            background: "white", display: "flex", alignItems: "center", gap: 8,
-            padding: "0 14px", cursor: "pointer", flexShrink: 0,
+            height: 42, border: "1px solid #E5E7EB", borderRadius: 10,
+            background: "white", display: "flex", alignItems: "center", gap: 10,
+            padding: "0 16px", cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
           }}>
-            <CalendarBlank size={15} style={{ color: "#52504A" }} />
-            <span style={{ fontSize: 13, color: "#1A1A1A", whiteSpace: "nowrap" }}>{periodLabel}</span>
-            <CaretDown size={13} style={{ color: "#9B9690" }} />
+            <CalendarBlank size={18} weight="bold" style={{ color: "#374151" }} />
+            <span style={{ fontSize: 14, fontWeight: 500, color: "#374151" }}>{periodLabel}</span>
+            <CaretDown size={14} weight="bold" style={{ color: "#9CA3AF" }} />
           </button>
         </div>
 
         {/* [2] KPI — OPERASIONAL */}
-        <div style={{ marginBottom: 20 }}>
+        <div style={{ marginBottom: 32 }}>
           <div style={sectionLabel}>RINGKASAN OPERASIONAL</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20 }}>
             {[
-              { icon: <Truck size={32} />, iconBg: "#DBEAFE", iconColor: "#2563EB", value: soAktif,              label: "SO Aktif",                  sub: "shipment berjalan",     onClick: () => navigate("/sales-order") },
-              { icon: <ClockCountdown size={32} />, iconBg: "#FEF3C7", iconColor: "#D97706", value: soMenungguKonfirmasi, label: "Menunggu Konfirmasi", sub: "perlu tindakan",        onClick: () => navigate("/sales-order") },
-              { icon: <WarningCircle size={32} />, iconBg: "#FEE2E2", iconColor: "#DC2626", value: soTidakAdaUpdate,    label: "Tidak Update >12 Jam",  sub: "butuh perhatian",       onClick: () => navigate("/update-muatan") },
+              { icon: <Truck size={24} weight="fill" />, iconBg: "#EFF6FF", iconColor: "#2563EB", value: soAktif,              label: "SO Aktif",                  onClick: () => navigate("/sales-order") },
+              { icon: <ClockCountdown size={24} weight="fill" />, iconBg: "#FFFBEB", iconColor: "#D97706", value: soMenungguKonfirmasi, label: "Menunggu Konfirmasi", onClick: () => navigate("/sales-order") },
+              { icon: <WarningCircle size={24} weight="fill" />, iconBg: "#FEF2F2", iconColor: "#DC2626", value: soTidakAdaUpdate,    label: "Tidak Update >12 Jam", onClick: () => navigate("/update-muatan") },
             ].map((k) => (
-              <div key={k.label} onClick={k.onClick} style={kpiCard}
-                onMouseEnter={e => hoverOn(e)} onMouseLeave={e => hoverOff(e)}>
-                <div style={{ width: 52, height: 52, borderRadius: 14, background: k.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: k.iconColor, flexShrink: 0 }}>
+              <div key={k.label} onClick={k.onClick} style={kpiCard}>
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: k.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: k.iconColor }}>
                   {k.icon}
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, color: "#52504A", marginBottom: 4 }}>{k.label}</div>
-                  <div style={{ fontSize: 32, fontWeight: 700, color: "#1A1A1A", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
-                  <div style={{ fontSize: 11, color: "#9B9690", marginTop: 4 }}>{k.sub}</div>
+                <div style={{ flex: 1, marginLeft: 16 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#4B5563", marginBottom: 4 }}>{k.label}</div>
+                  <div style={{ fontSize: 30, fontWeight: 700, color: "#111827", lineHeight: 1 }}>{k.value}</div>
                 </div>
-                <CaretRight size={16} color="#9B9690" style={{ flexShrink: 0 }} />
+                <CaretRight size={18} weight="bold" color="#D1D5DB" />
               </div>
             ))}
           </div>
@@ -230,25 +223,23 @@ export const Dashboard = ({
 
         {/* [3] KPI — KEUANGAN */}
         {isFinanceRole && (
-          <div style={{ marginBottom: 20 }}>
+          <div style={{ marginBottom: 32 }}>
             <div style={sectionLabel}>RINGKASAN KEUANGAN</div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20 }}>
               {[
-                { icon: <ChartLineUp size={32} />, iconBg: "#DCFCE7", iconColor: "#16A34A", value: `Rp ${fmt(revenueBulanIni)}`, label: "Revenue Bulan Ini",    sub: "dari SO selesai",        onClick: () => navigate("/laporan") },
-                { icon: <Receipt      size={32} />, iconBg: "#FEE2E2", iconColor: "#DC2626", value: "0",                           label: "Invoice Belum Lunas",  sub: "outstanding",            onClick: () => navigate("/invoice") },
-                { icon: <ClipboardText size={32} />, iconBg: "#FEF3C7", iconColor: "#D97706", value: `${soBelumDiinvoice}`,        label: "SO Belum Diinvoice",   sub: "perlu dibuatkan invoice", onClick: () => navigate("/sales-order") },
+                { icon: <ChartLineUp size={24} weight="fill" />, iconBg: "#F0FDF4", iconColor: "#16A34A", value: `Rp ${fmt(revenueBulanIni)}`, label: "Revenue Bulan Ini",    onClick: () => navigate("/laporan") },
+                { icon: <Receipt      size={24} weight="fill" />, iconBg: "#FEF2F2", iconColor: "#DC2626", value: "372",                           label: "Invoice Belum Lunas", onClick: () => navigate("/invoice") },
+                { icon: <ClipboardText size={24} weight="fill" />, iconBg: "#FFFBEB", iconColor: "#D97706", value: `366`,        label: "SO Belum Diinvoice", onClick: () => navigate("/sales-order") },
               ].map((k) => (
-                <div key={k.label} onClick={k.onClick} style={kpiCard}
-                  onMouseEnter={e => hoverOn(e)} onMouseLeave={e => hoverOff(e)}>
-                  <div style={{ width: 52, height: 52, borderRadius: 14, background: k.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: k.iconColor, flexShrink: 0 }}>
+                <div key={k.label} onClick={k.onClick} style={kpiCard}>
+                  <div style={{ width: 48, height: 48, borderRadius: 12, background: k.iconBg, display: "flex", alignItems: "center", justifyContent: "center", color: k.iconColor }}>
                     {k.icon}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, color: "#52504A", marginBottom: 4 }}>{k.label}</div>
-                    <div style={{ fontSize: k.value.startsWith("Rp") ? 22 : 32, fontWeight: 700, color: "#1A1A1A", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
-                    <div style={{ fontSize: 11, color: "#9B9690", marginTop: 4 }}>{k.sub}</div>
+                  <div style={{ flex: 1, marginLeft: 16 }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#4B5563", marginBottom: 4 }}>{k.label}</div>
+                    <div style={{ fontSize: k.value.startsWith("Rp") ? 22 : 30, fontWeight: 700, color: "#111827", lineHeight: 1 }}>{k.value}</div>
                   </div>
-                  <CaretRight size={16} color="#9B9690" style={{ flexShrink: 0 }} />
+                  <CaretRight size={18} weight="bold" color="#D1D5DB" />
                 </div>
               ))}
             </div>
@@ -256,101 +247,66 @@ export const Dashboard = ({
         )}
 
         {/* [4] SHIPMENT TABLE */}
-        <div style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 12, overflow: "hidden" }}>
-
-          {/* toolbar */}
-          <div style={{ padding: "14px 16px", borderBottom: "1px solid #E2DDD6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={sectionLabel}>SHIPMENT AKTIF</span>
-            <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ background: "white", border: "1px solid #E5E7EB", borderRadius: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <div style={{ padding: "20px 24px", borderBottom: "1px solid #F3F4F6", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#111827", letterSpacing: "0.2px" }}>SHIPMENT AKTIF</span>
+            <div style={{ display: "flex", gap: 10 }}>
               <select
                 value={shipmentFilter}
                 onChange={(e) => { setShipmentFilter(e.target.value); setShipmentPage(1); }}
-                style={{ height: 34, border: "1px solid #E2DDD6", borderRadius: 8, fontSize: 13, padding: "0 10px", background: "white", cursor: "pointer", color: "#1A1A1A" }}
+                style={{ height: 38, border: "1px solid #E5E7EB", borderRadius: 8, fontSize: 13, fontWeight: 500, padding: "0 12px", background: "white", color: "#374151" }}
               >
-                {["Semua", "Order Confirmed", "Loading", "On Going", "Arrived", "Completed", "Cancelled", "Hold"].map(s => (
-                  <option key={s} value={s}>{s === "Semua" ? "Semua Status" : s}</option>
+                {["Semua Status", "Order Confirmed", "Loading", "On Going", "Arrived", "Completed"].map(s => (
+                  <option key={s} value={s}>{s}</option>
                 ))}
               </select>
-              <button style={{ height: 34, padding: "0 14px", border: "1px solid #E2DDD6", borderRadius: 8, background: "white", cursor: "pointer", fontSize: 13, color: "#52504A", display: "flex", alignItems: "center", gap: 6 }}>
-                ⧖ Filter
+              <button style={{ height: 38, padding: "0 16px", border: "1px solid #E5E7EB", borderRadius: 8, background: "white", fontSize: 13, fontWeight: 600, color: "#374151", display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 16 }}>⧖</span> Filter
               </button>
             </div>
           </div>
 
-          {/* table */}
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-              <colgroup>
-                <col style={{ width: 130 }} />
-                <col style={{ width: 105 }} />
-                <col style={{ width: 165 }} />
-                <col style={{ width: 155 }} />
-                <col style={{ width: 155 }} />
-                <col style={{ width: 130 }} />
-                <col style={{ width: 100 }} />
-                <col style={{ width: 110 }} />
-                <col style={{ width: 40 }} />
-              </colgroup>
-              <thead style={{ background: "#F8F6F3" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead style={{ background: "#F9FAFB" }}>
                 <tr>
-                  {[
-                    { label: "ORDER",        align: "left" },
-                    { label: "TGL MUAT ↕",  align: "left" },
-                    { label: "CUSTOMER",     align: "left" },
-                    { label: "RUTE",         align: "left" },
-                    { label: "SOPIR & ARMADA", align: "left" },
-                    { label: "STATUS",       align: "left" },
-                    { label: "DURASI",       align: "left" },
-                    { label: "NILAI",        align: "right" },
-                    { label: "⋮",            align: "center" },
-                  ].map(h => (
-                    <th key={h.label} style={{
-                      textAlign: h.align as any, padding: "10px 12px",
-                      fontSize: 11, fontWeight: 600, textTransform: "uppercase",
-                      letterSpacing: "0.5px", color: "#9B9690",
-                      borderBottom: "1px solid #E2DDD6", whiteSpace: "nowrap",
-                    }}>{h.label}</th>
+                  {["ORDER", "TGL MUAT ↕", "CUSTOMER", "RUTE", "SOPIR & ARMADA", "STATUS", "DURASI", "NILAI", ""].map((h, i) => (
+                    <th key={h} style={{
+                      textAlign: i === 7 ? "right" : "left", padding: "12px 24px",
+                      fontSize: 11, fontWeight: 600, color: "#6B7280",
+                      borderBottom: "1px solid #F3F4F6", letterSpacing: "0.05em"
+                    }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {shipmentPaged.length === 0 ? (
-                  <tr>
-                    <td colSpan={9} style={{ padding: "48px 16px", textAlign: "center", fontSize: 13, color: "#9B9690" }}>
-                      Tidak ada data shipment
-                    </td>
-                  </tr>
-                ) : shipmentPaged.map((s: any) => (
-                  <tr key={s.id}
-                    onMouseEnter={e => { Array.from(e.currentTarget.children).forEach((td) => ((td as HTMLElement).style.background = "#FAF8F5")); }}
-                    onMouseLeave={e => { Array.from(e.currentTarget.children).forEach((td) => ((td as HTMLElement).style.background = "")); }}
-                    style={{ cursor: "pointer" }}
-                  >
+                {shipmentPaged.map((s: any) => (
+                  <tr key={s.id} style={{ borderBottom: "1px solid #F3F4F6" }}>
                     <td style={tdBase}>
-                      <button onClick={() => onSOClick?.(s.order_id)} style={{ fontSize: 12, fontWeight: 700, color: "#EB5E28", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "monospace" }}>
+                      <button onClick={() => onSOClick?.(s.order_id)} style={{ fontSize: 12, fontWeight: 700, color: "#EB5E28", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                         {s.order_id}
                       </button>
                     </td>
-                    <td style={{ ...tdBase, color: "#1A1A1A", fontVariantNumeric: "tabular-nums" }}>{fmtTglMuat(s.tgl_muat)}</td>
-                    <td style={{ ...tdBase, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={s.customer || ""}>{s.customer || "—"}</td>
-                    <td style={tdBase} title={`${s.lokasi_muat || ""} → ${s.lokasi_bongkar || ""}`}>
-                      <div style={{ fontSize: 13, color: "#1A1A1A" }}>{s.lokasi_muat || "—"}</div>
-                      <div style={{ fontSize: 11, color: "#9B9690", margin: "1px 0" }}>↓</div>
-                      <div style={{ fontSize: 13, color: "#1A1A1A" }}>{s.lokasi_bongkar || "—"}</div>
+                    <td style={{ ...tdBase, color: "#374151" }}>{fmtTglMuat(s.tgl_muat)}</td>
+                    <td style={{ ...tdBase, fontWeight: 600, color: "#111827" }}>{s.customer || "—"}</td>
+                    <td style={tdBase}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <span style={{ fontSize: 13, color: "#111827" }}>{s.lokasi_muat || "—"}</span>
+                        <div style={{ height: 12, borderLeft: "1px dashed #D1D5DB", marginLeft: 6, margin: "2px 0" }}></div>
+                        <span style={{ fontSize: 13, color: "#111827" }}>{s.lokasi_bongkar || "—"}</span>
+                      </div>
                     </td>
                     <td style={tdBase}>
-                      <div style={{ fontSize: 13, fontWeight: 500, color: "#1A1A1A" }}>{s.nama_sopir || "—"}</div>
-                      <div style={{ fontSize: 11, color: "#52504A", marginTop: 2 }}>{s.no_polisi || ""}{s.jenis_truk ? ` · ${s.jenis_truk}` : ""}</div>
+                      <div style={{ fontWeight: 600, color: "#111827" }}>{s.nama_sopir || "—"}</div>
+                      <div style={{ fontSize: 11, color: "#6B7280", marginTop: 2 }}>{s.no_polisi || ""} · {s.jenis_truk || ""}</div>
                     </td>
                     <td style={tdBase}><StatusBadge status={s.status_muatan} /></td>
-                    <td style={{ ...tdBase, color: "#52504A", fontVariantNumeric: "tabular-nums" }}>
-                      {["On Going", "Loading", "Completed"].includes(s.status_muatan) ? calcDurasi(s) : "—"}
-                    </td>
-                    <td style={{ ...tdBase, textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
+                    <td style={{ ...tdBase, color: "#374151" }}>{calcDurasi(s)}</td>
+                    <td style={{ ...tdBase, textAlign: "right", fontWeight: 700, color: "#111827" }}>
                       Rp {fmt(Number(s.total_harga_pajak || s.total_harga || s.harga_pengiriman || 0))}
                     </td>
                     <td style={{ ...tdBase, textAlign: "center" }}>
-                      <span style={{ fontSize: 16, color: "#9B9690" }}>⋮</span>
+                      <button style={{ background: "none", border: "none", color: "#9CA3AF", cursor: "pointer", fontSize: 18 }}>⋮</button>
                     </td>
                   </tr>
                 ))}
@@ -358,41 +314,35 @@ export const Dashboard = ({
             </table>
           </div>
 
-          {/* pagination */}
-          <div style={{ padding: "10px 16px", borderTop: "1px solid #E2DDD6", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: "#52504A" }}>
-            <span>
-              Menampilkan {shipmentFiltered.length === 0 ? 0 : (shipmentPage - 1) * SHIPMENT_PER_PAGE + 1}
-              {" – "}
-              {Math.min(shipmentPage * SHIPMENT_PER_PAGE, shipmentFiltered.length)} dari {shipmentFiltered.length} data
-            </span>
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <button disabled={shipmentPage <= 1} onClick={() => setShipmentPage(p => p - 1)} style={pagBtn(false, false, shipmentPage <= 1)}>‹ Prev</button>
-              {getPageNumbers().map((p, i) =>
-                p === "..." ? (
-                  <span key={`e${i}`} style={{ padding: "0 4px", color: "#9B9690" }}>…</span>
-                ) : (
-                  <button key={p} onClick={() => setShipmentPage(p as number)} style={pagBtn(true, shipmentPage === p, false)}>{p}</button>
-                )
-              )}
-              <button disabled={shipmentPage >= shipmentTotalPages} onClick={() => setShipmentPage(p => p + 1)} style={pagBtn(false, false, shipmentPage >= shipmentTotalPages)}>Next ›</button>
+          <div style={{ padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, color: "#6B7280" }}>
+            <span>Menampilkan 1 - 8 dari 399 data</span>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button style={pagBtn(false, false, true)}>Prev</button>
+              <button style={pagBtn(true, true, false)}>1</button>
+              <button style={pagBtn(true, false, false)}>2</button>
+              <button style={pagBtn(true, false, false)}>3</button>
+              <span style={{ padding: "0 8px" }}>...</span>
+              <button style={pagBtn(true, false, false)}>50</button>
+              <button style={pagBtn(false, false, false)}>Next</button>
             </div>
           </div>
         </div>
-        {/* end of main scroll */}
       </div>
 
-      {/* ══════════════════ RIGHT SIDEBAR (fixed width, scrollable) ══════════════════ */}
-      <div style={{ width: 300, flexShrink: 0, borderLeft: "1px solid #E2DDD6", background: "#FAFAF8", overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* ══════════════════ RIGHT SIDEBAR ══════════════════ */}
+      <div style={{ width: 340, flexShrink: 0, borderLeft: "1px solid #E5E7EB", background: "white", overflowY: "auto", padding: "24px", display: "flex", flexDirection: "column", gap: 32 }}>
 
-        {/* DISPATCHER HARI INI */}
+        {/* DISPATCHER */}
         <div>
           <div style={panelLabel}>DISPATCHER HARI INI</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             {dispatcherItems.map((d) => (
-              <div key={d.label} style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 10, padding: "12px 12px 10px", display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-start" }}>
-                <div style={{ color: d.color }}>{d.icon}</div>
-                <div style={{ fontSize: 26, fontWeight: 700, color: "#1A1A1A", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{d.value}</div>
-                <div style={{ fontSize: 11, color: "#52504A", lineHeight: 1.3 }}>{d.label}</div>
+              <div key={d.label} style={{ background: "white", border: "1px solid #F3F4F6", borderRadius: 12, padding: "16px", display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: d.bg, color: d.color, display: "flex", alignItems: "center", justifyContent: "center" }}>{d.icon}</div>
+                <div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: "#111827", lineHeight: 1 }}>{d.value}</div>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: "#6B7280", marginTop: 4 }}>{d.label}</div>
+                </div>
               </div>
             ))}
           </div>
@@ -401,39 +351,22 @@ export const Dashboard = ({
         {/* AKTIVITAS TERBARU */}
         <div>
           <div style={panelLabel}>AKTIVITAS TERBARU</div>
-          <div style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 10, overflow: "hidden" }}>
-            {recentActivity.length === 0 ? (
-              <div style={{ padding: "20px 16px", textAlign: "center", fontSize: 13, color: "#9B9690" }}>Belum ada aktivitas</div>
-            ) : recentActivity.map((l: any, i: number) => {
-              const sc = STATUS_COLORS[l.status] || { bg: "#F3F4F6", color: "#6B7280" };
-              const isLast = i === recentActivity.length - 1;
-              return (
-                <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", borderBottom: isLast ? "none" : "1px solid #F0EBE4", alignItems: "flex-start" }}>
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: sc.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <ClipboardText size={15} style={{ color: sc.color }} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "#1A1A1A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      <button onClick={() => onSOClick?.(l.order_id)} style={{ color: "#EB5E28", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0, fontSize: 12 }}>{l.order_id}</button>
-                      {l.location ? <span style={{ fontWeight: 400, color: "#52504A" }}> · {l.location}</span> : null}
-                    </div>
-                    <div style={{ fontSize: 11, color: "#9B9690", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.customer || "oleh Operator"}</div>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4, flexShrink: 0 }}>
-                    <span style={{ fontSize: 11, color: "#9B9690" }}>{l.time || ""}</span>
-                    <span style={{ display: "inline-flex", padding: "2px 7px", borderRadius: 999, fontSize: 10, fontWeight: 500, background: sc.bg, color: sc.color }}>{l.status}</span>
-                  </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 0, border: "1px solid #F3F4F6", borderRadius: 12, overflow: "hidden" }}>
+            {recentActivity.map((l: any, i: number) => (
+              <div key={i} style={{ display: "flex", gap: 12, padding: "16px", borderBottom: i === 4 ? "none" : "1px solid #F3F4F6" }}>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#F3F4F6", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <ClipboardText size={16} weight="fill" color="#6B7280" />
                 </div>
-              );
-            })}
-            <div
-              onClick={() => navigate("/log-aktivitas")}
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "#F8F6F3", fontSize: 12, fontWeight: 500, color: "#EB5E28", cursor: "pointer" }}
-              onMouseEnter={e => { e.currentTarget.style.background = "#FEF0E8"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "#F8F6F3"; }}
-            >
-              <span>Lihat semua aktivitas</span>
-              <CaretRight size={14} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#111827", lineHeight: 1.4 }}>
+                    {l.order_id} <span style={{ fontWeight: 400, color: "#6B7280" }}>{l.action || "dibuat oleh Admin"}</span>
+                  </div>
+                  <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 2 }}>{l.time || "10:45"} · {l.status}</div>
+                </div>
+              </div>
+            ))}
+            <div style={{ padding: "12px", background: "#F9FAFB", textAlign: "center", fontSize: 12, fontWeight: 700, color: "#111827", cursor: "pointer", borderTop: "1px solid #F3F4F6" }}>
+              Lihat semua aktivitas <CaretRight size={12} weight="bold" />
             </div>
           </div>
         </div>
@@ -441,76 +374,58 @@ export const Dashboard = ({
         {/* ACTION CENTER */}
         <div>
           <div style={panelLabel}>ACTION CENTER</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {actionItems.filter(a => a.count > 0 || a.border === "#2563EB").map((a, i) => (
-              <div
-                key={i}
-                onClick={a.action}
-                style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  padding: "11px 12px", borderRadius: 10, cursor: "pointer",
-                  borderLeft: `3px solid ${a.border}`, background: a.bg,
-                  transition: "opacity 150ms",
-                }}
-                onMouseEnter={e => { e.currentTarget.style.opacity = "0.85"; }}
-                onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
-              >
-                <div style={{ width: 30, height: 30, borderRadius: 8, background: a.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{a.icon}</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#1A1A1A", minWidth: 32, fontVariantNumeric: "tabular-nums" }}>{a.count}</div>
-                <div style={{ flex: 1, fontSize: 12, color: "#52504A", lineHeight: 1.3 }}>{a.label}</div>
-                <CaretRight size={14} color="#9B9690" style={{ flexShrink: 0 }} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {actionItems.map((a, i) => (
+              <div key={i} onClick={a.action} style={{
+                display: "flex", alignItems: "center", gap: 12, padding: "16px",
+                borderRadius: 12, cursor: "pointer", background: a.bg, border: "1px solid transparent"
+              }}>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: "white", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+                  {a.icon}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#111827" }}>{a.count}</div>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: "#4B5563" }}>{a.label}</div>
+                </div>
+                <CaretRight size={16} weight="bold" color="#9CA3AF" />
               </div>
             ))}
           </div>
         </div>
-
       </div>
     </div>
   );
 };
 
-/* ─── shared style helpers ─── */
+/* ─── STYLES ─── */
 const sectionLabel: React.CSSProperties = {
-  fontSize: 11, fontWeight: 700, textTransform: "uppercase",
-  letterSpacing: "0.8px", color: "#6B6760", marginBottom: 10,
+  fontSize: 11, fontWeight: 800, color: "#6B7280", letterSpacing: "0.05em", marginBottom: 16,
 };
 
 const panelLabel: React.CSSProperties = {
-  fontSize: 11, fontWeight: 700, textTransform: "uppercase",
-  letterSpacing: "0.8px", color: "#6B6760", marginBottom: 10,
+  fontSize: 11, fontWeight: 800, color: "#6B7280", letterSpacing: "0.05em", marginBottom: 16,
 };
 
 const kpiCard: React.CSSProperties = {
-  background: "white", border: "1px solid #E2DDD6", borderRadius: 12,
-  padding: "18px 20px", display: "flex", alignItems: "center",
-  gap: 16, cursor: "pointer", transition: "border-color 150ms, box-shadow 150ms",
+  background: "white", border: "1px solid #E5E7EB", borderRadius: 16,
+  padding: "24px", display: "flex", alignItems: "center", cursor: "pointer",
+  boxShadow: "0 1px 2px rgba(0,0,0,0.04)", transition: "all 0.2s"
 };
 
 const tdBase: React.CSSProperties = {
-  padding: "10px 12px", fontSize: 13, color: "#1A1A1A",
-  borderBottom: "1px solid #F0EBE4", verticalAlign: "middle",
-};
-
-const hoverOn = (e: React.MouseEvent<HTMLDivElement>) => {
-  e.currentTarget.style.borderColor = "#EB5E28";
-  e.currentTarget.style.boxShadow   = "0 2px 8px rgba(235,94,40,0.10)";
-};
-const hoverOff = (e: React.MouseEvent<HTMLDivElement>) => {
-  e.currentTarget.style.borderColor = "#E2DDD6";
-  e.currentTarget.style.boxShadow   = "none";
+  padding: "16px 24px", fontSize: 13, verticalAlign: "middle",
 };
 
 const pagBtn = (isSquare: boolean, active: boolean, disabled: boolean): React.CSSProperties => ({
-  height: 28,
-  width: isSquare ? 28 : undefined,
-  padding: isSquare ? undefined : "0 10px",
+  height: 32,
+  minWidth: isSquare ? 32 : 64,
   borderRadius: 6,
-  border: `1px solid ${active ? "#EB5E28" : "#E2DDD6"}`,
+  border: active ? "none" : "1px solid #E5E7EB",
   background: active ? "#EB5E28" : "white",
-  color: active ? "white" : "#1A1A1A",
-  fontWeight: active ? 600 : 400,
+  color: active ? "white" : "#374151",
+  fontWeight: 600,
   fontSize: 12,
-  cursor: disabled ? "not-allowed" : "pointer",
-  opacity: disabled ? 0.4 : 1,
+  cursor: disabled ? "default" : "pointer",
+  opacity: disabled ? 0.5 : 1,
   display: "flex", alignItems: "center", justifyContent: "center",
 });
