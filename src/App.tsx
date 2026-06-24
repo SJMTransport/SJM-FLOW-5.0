@@ -28,7 +28,7 @@ import { QuotationPage } from "@/src/pages/QuotationPage";
 import { MasterPage } from "@/src/pages/Master";
 import { LogAktivitasPage } from "@/src/pages/LogAktivitas";
 import { Loader2 } from "lucide-react";
-import { List, CaretLeft, CaretRight, CaretUp, MagnifyingGlass, CalendarBlank, Bell, CaretDown, SquaresFour, ClipboardText, Truck, FileText, Receipt, BookOpen, Scales, ChartBar, Van, Gear, Users as UsersIcon, SignOut, Check, Package, PencilSimpleLine, Quotes, Money, Stamp, HandCoins, BellRinging, ChartLineUp, ChartPieSlice, Table, IdentificationBadge, Wrench, AddressBook, Storefront, User, ListBullets, ClockClockwise, GearSix } from "@phosphor-icons/react";
+import { List, CaretLeft, CaretRight, CaretUp, MagnifyingGlass, CalendarBlank, Bell, CaretDown, SquaresFour, ClipboardText, Truck, FileText, Receipt, BookOpen, Scales, ChartBar, Van, Gear, Users as UsersIcon, SignOut, Check, Package, PencilSimpleLine, Quotes, Money, Stamp, HandCoins, BellRinging, ChartLineUp, ChartPieSlice, Table, IdentificationBadge, Wrench, AddressBook, Storefront, User, ListBullets, ClockClockwise, GearSix, Plus } from "@phosphor-icons/react";
 import { canView, getAccess, type ModuleKey } from "@/src/permissions";
 
 // ─── LOGIN PAGE ───────────────────────────────────────────────────────────────
@@ -1530,21 +1530,12 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
       <ToastUI />
       {/* Sidebar */}
       <aside style={{ width: sidebarCollapsed ? 64 : 220, background: 'white', borderRight: '1px solid #E2DDD6', height: '100vh', display: 'flex', flexDirection: 'column', flexShrink: 0, transition: 'width 200ms ease', overflow: 'hidden', zIndex: 100 }}>
-        {/* Logo area */}
-        <div style={{ height: 56, borderBottom: '1px solid #E2DDD6', display: 'flex', alignItems: 'center', padding: sidebarCollapsed ? '0 12px' : '0 16px', justifyContent: 'space-between', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: '#EB5E28', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ color: 'white', fontWeight: 900, fontSize: 14, fontStyle: 'italic' }}>S</span>
-            </div>
-            {!sidebarCollapsed && <span style={{ fontSize: 15, fontWeight: 900, color: '#1A1A1A', whiteSpace: 'nowrap' }}>SJM Flow</span>}
-          </div>
-          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ width: 28, height: 28, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#9B9690' }}>
-            {sidebarCollapsed ? <CaretRight size={16} /> : <CaretLeft size={16} />}
-          </button>
-        </div>
-
-        <nav style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
+        <nav style={{ flex: 1, overflowY: 'auto', padding: '12px 0' }}>
           {(() => {
+            const soAktifCount = (so || []).filter((s: any) => ["On Going", "Loading", "Arrived", "Order Confirmed"].includes(s.status_muatan)).length;
+            const keuanganCount = (jurnal || []).filter((j: any) => j.status === "Draft").length;
+            const armadaCount = (armada || []).length;
+
             const NavItem = ({ icon, label, path, indent = 0, title }: { icon: React.ReactNode; label: string; path: string; indent?: number; title?: string }) => {
               const active = isPathActive(path);
               const pl = sidebarCollapsed ? 8 : 16 + indent * 16;
@@ -1554,10 +1545,10 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
                   title={sidebarCollapsed ? (title || label) : undefined}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10,
-                    padding: sidebarCollapsed ? '8px' : `8px 16px 8px ${pl}px`,
+                    padding: sidebarCollapsed ? '10px 8px' : `10px 16px 10px ${pl}px`,
                     justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
-                    margin: '1px 8px', width: 'calc(100% - 16px)',
-                    borderRadius: 8, fontSize: 13, fontWeight: active ? 600 : 400,
+                    margin: '2px 8px', width: 'calc(100% - 16px)',
+                    borderRadius: 8, fontSize: 14, fontWeight: active ? 600 : 400,
                     color: active ? '#EB5E28' : '#1A1A1A',
                     background: active ? '#FEF0E8' : 'transparent',
                     borderLeft: active && !sidebarCollapsed ? '3px solid #EB5E28' : '3px solid transparent',
@@ -1572,13 +1563,13 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
               );
             };
 
-            const GroupHeader = ({ label, groupKey, icon }: { label: string; groupKey: string; icon: React.ReactNode }) => {
+            const GroupHeader = ({ label, groupKey, icon, badge }: { label: string; groupKey: string; icon: React.ReactNode; badge?: number }) => {
               const expanded = expandedGroups[groupKey];
               if (sidebarCollapsed) return (
                 <button
                   onClick={() => toggleGroup(groupKey)}
                   title={label}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 8, margin: '1px 8px', width: 'calc(100% - 16px)', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#52504A', transition: 'all 150ms ease' }}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 8px', margin: '2px 8px', width: 'calc(100% - 16px)', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#52504A', transition: 'all 150ms ease' }}
                   onMouseEnter={e => { e.currentTarget.style.background = '#FAF8F5'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
@@ -1588,13 +1579,16 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
               return (
                 <button
                   onClick={() => toggleGroup(groupKey)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', margin: '1px 8px', width: 'calc(100% - 16px)', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#1A1A1A', transition: 'all 150ms ease', whiteSpace: 'nowrap' as any }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', margin: '2px 8px', width: 'calc(100% - 16px)', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#1A1A1A', transition: 'all 150ms ease', whiteSpace: 'nowrap' as any }}
                   onMouseEnter={e => { e.currentTarget.style.background = '#FAF8F5'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
                   {icon}
                   <span style={{ flex: 1, textAlign: 'left' }}>{label}</span>
-                  {expanded ? <CaretUp size={14} style={{ color: '#9B9690' }} /> : <CaretDown size={14} style={{ color: '#9B9690' }} />}
+                  {badge !== undefined && badge > 0 && (
+                    <span style={{ background: '#FEF0E8', color: '#EB5E28', fontSize: 11, fontWeight: 700, borderRadius: 10, padding: '2px 8px', lineHeight: '16px' }}>{badge}</span>
+                  )}
+                  <CaretRight size={14} style={{ color: '#9B9690', flexShrink: 0 }} />
                 </button>
               );
             };
@@ -1605,7 +1599,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
               return (
                 <button
                   onClick={() => toggleGroup(groupKey)}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 16px 6px 32px', margin: '1px 8px', width: 'calc(100% - 16px)', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12, fontWeight: 500, color: '#52504A', transition: 'all 150ms ease', whiteSpace: 'nowrap' as any }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px 8px 32px', margin: '2px 8px', width: 'calc(100% - 16px)', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#52504A', transition: 'all 150ms ease', whiteSpace: 'nowrap' as any }}
                   onMouseEnter={e => { e.currentTarget.style.background = '#FAF8F5'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                 >
@@ -1620,59 +1614,59 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
               <>
                 <NavItem icon={<SquaresFour size={20} />} label="Dashboard" path="/" />
 
-                {canView(currentUser.role, "so") && (<>
-                  <GroupHeader icon={<Package size={20} />} label="Operasional" groupKey="operasional" />
-                  {expandedGroups.operasional && (<>
-                    <NavItem icon={<ClipboardText size={18} />} label="Sales Order" path="/sales-order" indent={1} />
-                    <NavItem icon={<Truck size={18} />} label="Update Muatan" path="/update-muatan" indent={1} />
-                    <NavItem icon={<Quotes size={18} />} label="Quotation" path="/quotation" indent={1} />
-                    <NavItem icon={<Receipt size={18} />} label="Invoice" path="/invoice" indent={1} />
+                {canView(currentUser.role, "so") && (
+                  <GroupHeader icon={<Package size={20} />} label="Operasional" groupKey="operasional" badge={soAktifCount} />
+                )}
+                {expandedGroups.operasional && canView(currentUser.role, "so") && (<>
+                  <NavItem icon={<ClipboardText size={18} />} label="Sales Order" path="/sales-order" indent={1} />
+                  <NavItem icon={<Truck size={18} />} label="Update Muatan" path="/update-muatan" indent={1} />
+                  <NavItem icon={<Quotes size={18} />} label="Quotation" path="/quotation" indent={1} />
+                  <NavItem icon={<Receipt size={18} />} label="Invoice" path="/invoice" indent={1} />
+                </>)}
+
+                {canView(currentUser.role, "jurnal") && (
+                  <GroupHeader icon={<Money size={20} />} label="Keuangan" groupKey="keuangan" badge={keuanganCount} />
+                )}
+                {expandedGroups.keuangan && canView(currentUser.role, "jurnal") && (<>
+                  <NavItem icon={<BookOpen size={18} />} label="Jurnal Umum" path="/jurnal" indent={1} />
+                  <NavItem icon={<Stamp size={18} />} label="Persetujuan Jurnal" path="/approval" indent={1} />
+
+                  <SubGroupHeader icon={<HandCoins size={16} />} label="Hutang" groupKey="hutang" />
+                  {expandedGroups.hutang && (<>
+                    <NavItem icon={<ListBullets size={16} />} label="Hutang Usaha" path="/hutang-piutang" indent={2} />
+                    <NavItem icon={<Table size={16} />} label="Rekapitulasi Hutang" path="/hutang-piutang" indent={2} />
+                    <NavItem icon={<BellRinging size={16} />} label="Notif Hutang" path="/hutang-piutang" indent={2} />
+                  </>)}
+
+                  <SubGroupHeader icon={<Scales size={16} />} label="Piutang" groupKey="piutang" />
+                  {expandedGroups.piutang && (<>
+                    <NavItem icon={<ListBullets size={16} />} label="Piutang Usaha" path="/hutang-piutang" indent={2} />
+                    <NavItem icon={<Table size={16} />} label="Rekapitulasi Piutang" path="/hutang-piutang" indent={2} />
+                    <NavItem icon={<BellRinging size={16} />} label="Notif Piutang" path="/hutang-piutang" indent={2} />
+                  </>)}
+
+                  <SubGroupHeader icon={<ChartBar size={16} />} label="Laporan Keuangan" groupKey="laporanKeuangan" />
+                  {expandedGroups.laporanKeuangan && (<>
+                    <NavItem icon={<Scales size={16} />} label="Neraca Saldo" path="/laporan" indent={2} />
+                    <NavItem icon={<ChartLineUp size={16} />} label="Laba Rugi" path="/laporan" indent={2} />
+                    <NavItem icon={<BookOpen size={16} />} label="Buku Besar" path="/laporan" indent={2} />
+                    <NavItem icon={<ChartPieSlice size={16} />} label="Profitabilitas" path="/laporan" indent={2} />
+                    <NavItem icon={<Van size={16} />} label="Performa Unit" path="/laporan" indent={2} />
                   </>)}
                 </>)}
 
-                {canView(currentUser.role, "jurnal") && (<>
-                  <GroupHeader icon={<Money size={20} />} label="Keuangan" groupKey="keuangan" />
-                  {expandedGroups.keuangan && (<>
-                    <NavItem icon={<BookOpen size={18} />} label="Jurnal Umum" path="/jurnal" indent={1} />
-                    <NavItem icon={<Stamp size={18} />} label="Persetujuan Jurnal" path="/approval" indent={1} />
-
-                    <SubGroupHeader icon={<HandCoins size={16} />} label="Hutang" groupKey="hutang" />
-                    {expandedGroups.hutang && (<>
-                      <NavItem icon={<ListBullets size={16} />} label="Hutang Usaha" path="/hutang-piutang" indent={2} />
-                      <NavItem icon={<Table size={16} />} label="Rekapitulasi Hutang" path="/hutang-piutang" indent={2} />
-                      <NavItem icon={<BellRinging size={16} />} label="Notif Hutang" path="/hutang-piutang" indent={2} />
-                    </>)}
-
-                    <SubGroupHeader icon={<Scales size={16} />} label="Piutang" groupKey="piutang" />
-                    {expandedGroups.piutang && (<>
-                      <NavItem icon={<ListBullets size={16} />} label="Piutang Usaha" path="/hutang-piutang" indent={2} />
-                      <NavItem icon={<Table size={16} />} label="Rekapitulasi Piutang" path="/hutang-piutang" indent={2} />
-                      <NavItem icon={<BellRinging size={16} />} label="Notif Piutang" path="/hutang-piutang" indent={2} />
-                    </>)}
-
-                    <SubGroupHeader icon={<ChartBar size={16} />} label="Laporan Keuangan" groupKey="laporanKeuangan" />
-                    {expandedGroups.laporanKeuangan && (<>
-                      <NavItem icon={<Scales size={16} />} label="Neraca Saldo" path="/laporan" indent={2} />
-                      <NavItem icon={<ChartLineUp size={16} />} label="Laba Rugi" path="/laporan" indent={2} />
-                      <NavItem icon={<BookOpen size={16} />} label="Buku Besar" path="/laporan" indent={2} />
-                      <NavItem icon={<ChartPieSlice size={16} />} label="Profitabilitas" path="/laporan" indent={2} />
-                      <NavItem icon={<Van size={16} />} label="Performa Unit" path="/laporan" indent={2} />
-                    </>)}
-                  </>)}
+                {canView(currentUser.role, "armada") && (
+                  <GroupHeader icon={<Van size={20} />} label="Armada" groupKey="armada" badge={armadaCount} />
+                )}
+                {expandedGroups.armada && canView(currentUser.role, "armada") && (<>
+                  <NavItem icon={<ListBullets size={18} />} label="Unit List" path="/armada" indent={1} />
+                  <NavItem icon={<FileText size={18} />} label="Dokumen" path="/armada" indent={1} />
+                  <NavItem icon={<Wrench size={18} />} label="Service" path="/armada" indent={1} />
+                  <NavItem icon={<IdentificationBadge size={18} />} label="Sopir" path="/armada" indent={1} />
                 </>)}
 
-                {canView(currentUser.role, "armada") && (<>
-                  <GroupHeader icon={<Van size={20} />} label="Armada" groupKey="armada" />
-                  {expandedGroups.armada && (<>
-                    <NavItem icon={<ListBullets size={18} />} label="Unit List" path="/armada" indent={1} />
-                    <NavItem icon={<FileText size={18} />} label="Dokumen" path="/armada" indent={1} />
-                    <NavItem icon={<Wrench size={18} />} label="Service" path="/armada" indent={1} />
-                    <NavItem icon={<IdentificationBadge size={18} />} label="Sopir" path="/armada" indent={1} />
-                  </>)}
-                </>)}
-
-                <GroupHeader icon={<Gear size={20} />} label="Master" groupKey="master" />
-                {expandedGroups.master && (<>
+                <GroupHeader icon={<GearSix size={20} />} label="Sistem" groupKey="sistem" />
+                {expandedGroups.sistem && (<>
                   {canView(currentUser.role, "master") && (<>
                     <SubGroupHeader icon={<AddressBook size={16} />} label="Kontak" groupKey="kontak" />
                     {expandedGroups.kontak && (<>
@@ -1681,10 +1675,6 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
                     </>)}
                     <NavItem icon={<ListBullets size={18} />} label="COA" path="/master" indent={1} />
                   </>)}
-                </>)}
-
-                <GroupHeader icon={<GearSix size={20} />} label="Sistem" groupKey="sistem" />
-                {expandedGroups.sistem && (<>
                   {canView(currentUser.role, "users") && (
                     <NavItem icon={<UsersIcon size={18} />} label="Users" path="/users" indent={1} />
                   )}
@@ -1695,8 +1685,16 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
           })()}
         </nav>
 
-        {/* Footer — Keluar */}
-        <div style={{ padding: 8, borderTop: '1px solid #E2DDD6', flexShrink: 0 }}>
+        {/* Footer — Collapse + Keluar */}
+        <div style={{ padding: 8, borderTop: '1px solid #E2DDD6', flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: sidebarCollapsed ? '8px' : '8px 16px', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', borderRadius: 8, fontSize: 14, color: '#9B9690', background: 'transparent', border: 'none', cursor: 'pointer', transition: 'all 150ms ease' }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#F5F4F1'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            {sidebarCollapsed ? <CaretRight size={18} /> : <><CaretLeft size={18} /><CaretLeft size={18} style={{ marginLeft: -12 }} /></>}
+          </button>
           <button
             onClick={handleLogout}
             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: sidebarCollapsed ? '8px' : '8px 16px', justifyContent: sidebarCollapsed ? 'center' : 'flex-start', borderRadius: 8, fontSize: 14, color: '#9B9690', background: 'transparent', border: 'none', cursor: 'pointer', transition: 'all 150ms ease' }}
@@ -1713,23 +1711,13 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
 
         {/* TOPBAR */}
         <header style={{ height: 56, background: 'white', borderBottom: '1px solid #E2DDD6', display: 'flex', alignItems: 'center', padding: '0 20px', gap: 16, position: 'sticky', top: 0, zIndex: 90, flexShrink: 0 }}>
-          {/* Toggle sidebar */}
-          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ width: 36, height: 36, borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#52504A', flexShrink: 0 }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#F5F4F1'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-          >
-            <List size={20} />
-          </button>
-
-          {/* Logo — only when sidebar collapsed */}
-          {sidebarCollapsed && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: '#EB5E28', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ color: 'white', fontWeight: 900, fontSize: 14 }}>S</span>
-              </div>
-              <span style={{ fontSize: 15, fontWeight: 900, color: '#1A1A1A', fontStyle: 'italic' }}>SJM Flow</span>
+          {/* Logo — always visible */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#EB5E28', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ color: 'white', fontWeight: 900, fontSize: 16 }}>S</span>
             </div>
-          )}
+            <span style={{ fontSize: 16, fontWeight: 900, color: '#1A1A1A' }}>SJM <span style={{ fontWeight: 400 }}>Flow</span></span>
+          </div>
 
           {/* Search */}
           <div style={{ position: 'relative', maxWidth: 400, flex: 1 }}>
@@ -1791,6 +1779,17 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
           </div>
 
           <div style={{ flex: 1 }} />
+
+          {/* Quick add */}
+          <button
+            style={{ height: 36, padding: '0 14px', border: '1px solid #E2DDD6', borderRadius: 8, background: 'white', fontSize: 13, fontWeight: 500, color: '#1A1A1A', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', flexShrink: 0, transition: 'all 150ms ease' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#EB5E28'; e.currentTarget.style.color = '#EB5E28'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2DDD6'; e.currentTarget.style.color = '#1A1A1A'; }}
+          >
+            <Plus size={14} />
+            <span>Quick add</span>
+            <CaretDown size={12} style={{ color: '#9B9690' }} />
+          </button>
 
           {/* Bell */}
           <div
