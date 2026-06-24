@@ -28,7 +28,7 @@ import { QuotationPage } from "@/src/pages/QuotationPage";
 import { MasterPage } from "@/src/pages/Master";
 import { LogAktivitasPage } from "@/src/pages/LogAktivitas";
 import { Loader2 } from "lucide-react";
-import { List, CaretLeft, CaretRight, MagnifyingGlass, CalendarBlank, Bell, CaretDown, SquaresFour, ClipboardText, Truck, FileText, Receipt, BookOpen, Scales, ChartBar, Van, Gear, Users as UsersIcon, SignOut, Check } from "@phosphor-icons/react";
+import { List, CaretLeft, CaretRight, CaretUp, MagnifyingGlass, CalendarBlank, Bell, CaretDown, SquaresFour, ClipboardText, Truck, FileText, Receipt, BookOpen, Scales, ChartBar, Van, Gear, Users as UsersIcon, SignOut, Check, Package, PencilSimpleLine, Quotes, Money, Stamp, HandCoins, BellRinging, ChartLineUp, ChartPieSlice, Table, IdentificationBadge, Wrench, AddressBook, Storefront, User, ListBullets, ClockClockwise, GearSix } from "@phosphor-icons/react";
 import { canView, getAccess, type ModuleKey } from "@/src/permissions";
 
 // ─── LOGIN PAGE ───────────────────────────────────────────────────────────────
@@ -1246,6 +1246,8 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
     await api.addLog(log, currentUser?.company_id || "");
   }, [currentUser]);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({ operasional: true, keuangan: true, armada: false, master: false, hutang: false, piutang: false, laporanKeuangan: false, kontak: false, sistem: false });
+  const toggleGroup = (key: string) => setExpandedGroups(prev => ({ ...prev, [key]: !prev[key] }));
   const [collapsed, setCollapsed] = useState(false);
 
   const handleLogin = ({ session, profile }: any) => {
@@ -1543,36 +1545,19 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
 
         <nav style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
           {(() => {
-            const soAktifCount = (so || []).filter((s: any) => ["On Going", "Loading", "Arrived", "Order Confirmed"].includes(s.status_muatan)).length;
-            const armadaCount = (armada || []).length;
-
-            const SectionLabel = ({ label, badge }: { label: string; badge?: number }) => {
-              if (sidebarCollapsed) return null;
-              return (
-                <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px 4px', fontSize: 10, fontWeight: 600, textTransform: 'uppercase' as any, letterSpacing: '0.8px', color: '#9B9690' }}>
-                  <span>{label}</span>
-                  <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    {badge !== undefined && badge > 0 && (
-                      <span style={{ background: '#FEF0E8', color: '#EB5E28', fontSize: 10, fontWeight: 700, borderRadius: 10, padding: '2px 6px' }}>{badge}</span>
-                    )}
-                    <CaretRight size={10} style={{ color: '#9B9690' }} />
-                  </div>
-                </div>
-              );
-            };
-
-            const NavItem = ({ icon, label, path, title }: { icon: React.ReactNode; label: string; path: string; title?: string }) => {
+            const NavItem = ({ icon, label, path, indent = 0, title }: { icon: React.ReactNode; label: string; path: string; indent?: number; title?: string }) => {
               const active = isPathActive(path);
+              const pl = sidebarCollapsed ? 8 : 16 + indent * 16;
               return (
                 <button
                   onClick={() => navigate(path)}
                   title={sidebarCollapsed ? (title || label) : undefined}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10,
-                    padding: sidebarCollapsed ? '8px' : '8px 16px',
+                    padding: sidebarCollapsed ? '8px' : `8px 16px 8px ${pl}px`,
                     justifyContent: sidebarCollapsed ? 'center' : 'flex-start',
                     margin: '1px 8px', width: 'calc(100% - 16px)',
-                    borderRadius: 8, fontSize: 14, fontWeight: active ? 600 : 400,
+                    borderRadius: 8, fontSize: 13, fontWeight: active ? 600 : 400,
                     color: active ? '#EB5E28' : '#1A1A1A',
                     background: active ? '#FEF0E8' : 'transparent',
                     borderLeft: active && !sidebarCollapsed ? '3px solid #EB5E28' : '3px solid transparent',
@@ -1587,38 +1572,124 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
               );
             };
 
+            const GroupHeader = ({ label, groupKey, icon }: { label: string; groupKey: string; icon: React.ReactNode }) => {
+              const expanded = expandedGroups[groupKey];
+              if (sidebarCollapsed) return (
+                <button
+                  onClick={() => toggleGroup(groupKey)}
+                  title={label}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 8, margin: '1px 8px', width: 'calc(100% - 16px)', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', color: '#52504A', transition: 'all 150ms ease' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#FAF8F5'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  {icon}
+                </button>
+              );
+              return (
+                <button
+                  onClick={() => toggleGroup(groupKey)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 16px', margin: '1px 8px', width: 'calc(100% - 16px)', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#1A1A1A', transition: 'all 150ms ease', whiteSpace: 'nowrap' as any }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#FAF8F5'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  {icon}
+                  <span style={{ flex: 1, textAlign: 'left' }}>{label}</span>
+                  {expanded ? <CaretUp size={14} style={{ color: '#9B9690' }} /> : <CaretDown size={14} style={{ color: '#9B9690' }} />}
+                </button>
+              );
+            };
+
+            const SubGroupHeader = ({ label, groupKey, icon }: { label: string; groupKey: string; icon: React.ReactNode }) => {
+              const expanded = expandedGroups[groupKey];
+              if (sidebarCollapsed) return null;
+              return (
+                <button
+                  onClick={() => toggleGroup(groupKey)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 16px 6px 32px', margin: '1px 8px', width: 'calc(100% - 16px)', borderRadius: 8, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12, fontWeight: 500, color: '#52504A', transition: 'all 150ms ease', whiteSpace: 'nowrap' as any }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#FAF8F5'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                >
+                  {icon}
+                  <span style={{ flex: 1, textAlign: 'left' }}>{label}</span>
+                  {expanded ? <CaretUp size={12} style={{ color: '#9B9690' }} /> : <CaretDown size={12} style={{ color: '#9B9690' }} />}
+                </button>
+              );
+            };
+
             return (
               <>
-                <SectionLabel label="Dashboard" />
                 <NavItem icon={<SquaresFour size={20} />} label="Dashboard" path="/" />
 
                 {canView(currentUser.role, "so") && (<>
-                  <SectionLabel label="Operasional" badge={soAktifCount} />
-                  <NavItem icon={<ClipboardText size={20} />} label="Sales Order" path="/sales-order" />
-                  <NavItem icon={<Truck size={20} />} label="Update Muatan" path="/update-muatan" />
-                  <NavItem icon={<FileText size={20} />} label="Quotation" path="/quotation" />
+                  <GroupHeader icon={<Package size={20} />} label="Operasional" groupKey="operasional" />
+                  {expandedGroups.operasional && (<>
+                    <NavItem icon={<ClipboardText size={18} />} label="Sales Order" path="/sales-order" indent={1} />
+                    <NavItem icon={<Truck size={18} />} label="Update Muatan" path="/update-muatan" indent={1} />
+                    <NavItem icon={<Quotes size={18} />} label="Quotation" path="/quotation" indent={1} />
+                    <NavItem icon={<Receipt size={18} />} label="Invoice" path="/invoice" indent={1} />
+                  </>)}
                 </>)}
 
                 {canView(currentUser.role, "jurnal") && (<>
-                  <SectionLabel label="Keuangan" badge={0} />
-                  <NavItem icon={<Receipt size={20} />} label="Invoice" path="/invoice" />
-                  <NavItem icon={<BookOpen size={20} />} label="Jurnal Umum" path="/jurnal" />
-                  <NavItem icon={<Scales size={20} />} label="Hutang & Piutang" path="/hutang-piutang" />
-                  <NavItem icon={<ChartBar size={20} />} label="Laporan" path="/laporan" />
+                  <GroupHeader icon={<Money size={20} />} label="Keuangan" groupKey="keuangan" />
+                  {expandedGroups.keuangan && (<>
+                    <NavItem icon={<BookOpen size={18} />} label="Jurnal Umum" path="/jurnal" indent={1} />
+                    <NavItem icon={<Stamp size={18} />} label="Persetujuan Jurnal" path="/approval" indent={1} />
+
+                    <SubGroupHeader icon={<HandCoins size={16} />} label="Hutang" groupKey="hutang" />
+                    {expandedGroups.hutang && (<>
+                      <NavItem icon={<ListBullets size={16} />} label="Hutang Usaha" path="/hutang-piutang" indent={2} />
+                      <NavItem icon={<Table size={16} />} label="Rekapitulasi Hutang" path="/hutang-piutang" indent={2} />
+                      <NavItem icon={<BellRinging size={16} />} label="Notif Hutang" path="/hutang-piutang" indent={2} />
+                    </>)}
+
+                    <SubGroupHeader icon={<Scales size={16} />} label="Piutang" groupKey="piutang" />
+                    {expandedGroups.piutang && (<>
+                      <NavItem icon={<ListBullets size={16} />} label="Piutang Usaha" path="/hutang-piutang" indent={2} />
+                      <NavItem icon={<Table size={16} />} label="Rekapitulasi Piutang" path="/hutang-piutang" indent={2} />
+                      <NavItem icon={<BellRinging size={16} />} label="Notif Piutang" path="/hutang-piutang" indent={2} />
+                    </>)}
+
+                    <SubGroupHeader icon={<ChartBar size={16} />} label="Laporan Keuangan" groupKey="laporanKeuangan" />
+                    {expandedGroups.laporanKeuangan && (<>
+                      <NavItem icon={<Scales size={16} />} label="Neraca Saldo" path="/laporan" indent={2} />
+                      <NavItem icon={<ChartLineUp size={16} />} label="Laba Rugi" path="/laporan" indent={2} />
+                      <NavItem icon={<BookOpen size={16} />} label="Buku Besar" path="/laporan" indent={2} />
+                      <NavItem icon={<ChartPieSlice size={16} />} label="Profitabilitas" path="/laporan" indent={2} />
+                      <NavItem icon={<Van size={16} />} label="Performa Unit" path="/laporan" indent={2} />
+                    </>)}
+                  </>)}
                 </>)}
 
                 {canView(currentUser.role, "armada") && (<>
-                  <SectionLabel label="Armada" badge={armadaCount} />
-                  <NavItem icon={<Van size={20} />} label="Armada" path="/armada" />
+                  <GroupHeader icon={<Van size={20} />} label="Armada" groupKey="armada" />
+                  {expandedGroups.armada && (<>
+                    <NavItem icon={<ListBullets size={18} />} label="Unit List" path="/armada" indent={1} />
+                    <NavItem icon={<FileText size={18} />} label="Dokumen" path="/armada" indent={1} />
+                    <NavItem icon={<Wrench size={18} />} label="Service" path="/armada" indent={1} />
+                    <NavItem icon={<IdentificationBadge size={18} />} label="Sopir" path="/armada" indent={1} />
+                  </>)}
                 </>)}
 
-                <SectionLabel label="Sistem" />
-                {canView(currentUser.role, "master") && (
-                  <NavItem icon={<Gear size={20} />} label="Master" path="/master" />
-                )}
-                {canView(currentUser.role, "users") && (
-                  <NavItem icon={<UsersIcon size={20} />} label="Users" path="/users" />
-                )}
+                <GroupHeader icon={<Gear size={20} />} label="Master" groupKey="master" />
+                {expandedGroups.master && (<>
+                  {canView(currentUser.role, "master") && (<>
+                    <SubGroupHeader icon={<AddressBook size={16} />} label="Kontak" groupKey="kontak" />
+                    {expandedGroups.kontak && (<>
+                      <NavItem icon={<Storefront size={16} />} label="Customer" path="/master" indent={2} />
+                      <NavItem icon={<User size={16} />} label="Vendor" path="/master" indent={2} />
+                    </>)}
+                    <NavItem icon={<ListBullets size={18} />} label="COA" path="/master" indent={1} />
+                  </>)}
+                </>)}
+
+                <GroupHeader icon={<GearSix size={20} />} label="Sistem" groupKey="sistem" />
+                {expandedGroups.sistem && (<>
+                  {canView(currentUser.role, "users") && (
+                    <NavItem icon={<UsersIcon size={18} />} label="Users" path="/users" indent={1} />
+                  )}
+                  <NavItem icon={<ClockClockwise size={18} />} label="Log Aktivitas" path="/activity" indent={1} />
+                </>)}
               </>
             );
           })()}
@@ -1738,9 +1809,15 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
             onMouseLeave={e => { e.currentTarget.style.background = ''; }}
           >
             <Bell size={20} style={{ color: '#52504A' }} />
-            {(expiredDocsCount > 0 || (jurnal || []).filter((j: any) => j.status === "Draft").length > 0) && (
-              <div style={{ position: 'absolute', top: 6, right: 6, width: 8, height: 8, background: '#EB5E28', borderRadius: '50%', border: '2px solid white' }} />
-            )}
+            {(() => {
+              const notifCount = expiredDocsCount + (jurnal || []).filter((j: any) => j.status === "Draft").length;
+              if (notifCount <= 0) return null;
+              return (
+                <div style={{ position: 'absolute', top: 2, right: 2, minWidth: 18, height: 18, background: '#EB5E28', borderRadius: 9, border: '2px solid white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: 'white', lineHeight: 1 }}>{notifCount}</span>
+                </div>
+              );
+            })()}
           </div>
 
           {/* User info + dropdown */}
@@ -1757,7 +1834,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
               <div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: '#1A1A1A', lineHeight: 1, whiteSpace: 'nowrap' }}>{currentUser.nama || currentUser.email}</div>
                 <div style={{ fontSize: 11, color: '#52504A', marginTop: 2, whiteSpace: 'nowrap' }}>
-                  {currentUser.role}{activeCompany?.nama ? ` · ${activeCompany.nama}` : ""}
+                  {currentUser.role}{activeCompany?.nama ? ` - ${activeCompany.nama}` : ""}
                 </div>
               </div>
               <CaretDown size={14} style={{ color: '#9B9690', transform: showUserMenu ? 'rotate(180deg)' : 'none', transition: 'transform 150ms ease' }} />
