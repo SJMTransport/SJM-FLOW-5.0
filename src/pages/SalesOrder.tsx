@@ -9,8 +9,11 @@ import { Loader2, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { buildMeta } from "@/src/lib/activityLogger";
 import {
   Package, Truck, ClipboardText, CaretRight, CaretDown, MagnifyingGlass,
-  Funnel, Export, DotsThree,
+  Funnel, Export, DotsThree, CalendarBlank, ArrowRight,
 } from "@phosphor-icons/react";
+import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 // ── Bulk Import (preserved) ──
 const SO_IMPORT_FIELDS = [
@@ -246,6 +249,52 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
   const [page, setPage] = useState(1);
   const PER_PAGE = 8;
   const [customerFilter, setCustomerFilter] = useState("Semua");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [showExport, setShowExport] = useState(false);
+
+  const exportExcel = () => {
+    const wsData = [
+      ["Sales Order — SJM Flow 5.0"],
+      [`Dicetak: ${new Date().toLocaleDateString("id-ID")}`],
+      [],
+      ["Order ID", "Tgl Muat", "Customer", "Rute", "Sopir", "No Polisi", "Jenis Truk", "Status", "Durasi", "Nilai"],
+      ...filtered.map((s: any) => [
+        s.order_id, s.tgl_muat, s.customer,
+        `${s.lokasi_muat || ""} → ${s.lokasi_bongkar || ""}`,
+        s.nama_sopir, s.no_polisi, s.jenis_truk, s.status_muatan,
+        ["On Going", "Loading", "Completed"].includes(s.status_muatan) ? calcDurasi(s) : "—",
+        Number(s.total_harga_pajak || s.total_harga || s.harga_pengiriman || 0),
+      ]),
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sales Order");
+    XLSX.writeFile(wb, `SalesOrder_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    setShowExport(false);
+  };
+
+  const exportPDF = () => {
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    doc.setFontSize(14);
+    doc.text("Sales Order — SJM Flow 5.0", 14, 15);
+    doc.setFontSize(9);
+    doc.text(`Dicetak: ${new Date().toLocaleDateString("id-ID")}`, 14, 21);
+    autoTable(doc, {
+      head: [["Order ID", "Tgl Muat", "Customer", "Rute", "Sopir", "Status", "Nilai"]],
+      body: filtered.map((s: any) => [
+        s.order_id, s.tgl_muat, s.customer,
+        `${s.lokasi_muat || ""} → ${s.lokasi_bongkar || ""}`,
+        s.nama_sopir, s.status_muatan,
+        `Rp${fmtNum(Number(s.total_harga_pajak || s.total_harga || s.harga_pengiriman || 0))}`,
+      ]),
+      startY: 26,
+      styles: { fontSize: 7 },
+      headStyles: { fillColor: [235, 94, 40], textColor: 255 },
+    });
+    doc.save(`SalesOrder_${new Date().toISOString().slice(0, 10)}.pdf`);
+    setShowExport(false);
+  };
 
   const emptyForm = {
     order_id: "", no_invoice: "", kode_invoice: "", laporan_keuangan: "",
@@ -446,6 +495,13 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
     return periodBase
       .filter((s: any) => statusFilter === 'all' ? true : s.status_muatan === statusFilter)
       .filter((s: any) => customerFilter === 'Semua' ? true : s.customer === customerFilter)
+      .filter((s: any) => {
+        if (!dateFrom && !dateTo) return true;
+        const d = s.tgl_muat || "";
+        if (dateFrom && d < dateFrom) return false;
+        if (dateTo && d > dateTo) return false;
+        return true;
+      })
       .filter((s: any) =>
         !search ||
         s.order_id?.toLowerCase().includes(search.toLowerCase()) ||
@@ -460,7 +516,7 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
         const bVal = sortKey === 'tgl_muat' ? (b.tgl_muat || '') : (b.order_id || '');
         return sortDir === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
       });
-  }, [periodBase, statusFilter, customerFilter, search, sortKey, sortDir]);
+  }, [periodBase, statusFilter, customerFilter, search, sortKey, sortDir, dateFrom, dateTo]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const paged = useMemo(() => filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE), [filtered, page]);
@@ -564,12 +620,40 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
               {uniqueCustomers.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
-          <button style={{ height: 36, padding: "0 14px", border: "1px solid #E2DDD6", borderRadius: 8, background: "white", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#52504A", fontWeight: 500 }}>
-            <Funnel size={14} /> Filter Lainnya
-          </button>
-          <button style={{ height: 36, padding: "0 14px", border: "1px solid #E2DDD6", borderRadius: 8, background: "white", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#52504A", fontWeight: 500 }}>
-            <Export size={14} /> Export <CaretDown size={12} />
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <CalendarBlank size={14} style={{ color: "#9B9690" }} />
+            <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1); }}
+              style={{ height: 36, border: "1px solid #E2DDD6", borderRadius: 8, fontSize: 12, padding: "0 8px", background: "white", cursor: "pointer", color: "#1A1A1A" }}
+            />
+            <span style={{ fontSize: 11, color: "#9B9690" }}>—</span>
+            <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1); }}
+              style={{ height: 36, border: "1px solid #E2DDD6", borderRadius: 8, fontSize: 12, padding: "0 8px", background: "white", cursor: "pointer", color: "#1A1A1A" }}
+            />
+            {(dateFrom || dateTo) && (
+              <button onClick={() => { setDateFrom(""); setDateTo(""); setPage(1); }}
+                style={{ height: 36, padding: "0 10px", border: "1px solid #E2DDD6", borderRadius: 8, background: "white", cursor: "pointer", fontSize: 11, color: "#EB5E28", fontWeight: 600 }}
+              >Reset</button>
+            )}
+          </div>
+          <div style={{ position: "relative" }}>
+            <button onClick={() => setShowExport(!showExport)} style={{ height: 36, padding: "0 14px", border: "1px solid #E2DDD6", borderRadius: 8, background: "white", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#52504A", fontWeight: 500 }}>
+              <Export size={14} /> Export <CaretDown size={12} />
+            </button>
+            {showExport && (
+              <div style={{ position: "absolute", top: 40, right: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 8, boxShadow: "0 4px 12px rgba(0,0,0,0.1)", zIndex: 20, minWidth: 140, overflow: "hidden" }}>
+                <button onClick={() => { exportExcel(); setShowExport(false); }}
+                  style={{ display: "block", width: "100%", padding: "10px 16px", border: "none", background: "white", cursor: "pointer", fontSize: 13, color: "#1A1A1A", textAlign: "left" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "#F8F6F3"}
+                  onMouseLeave={e => e.currentTarget.style.background = "white"}
+                >Export Excel</button>
+                <button onClick={() => { exportPDF(); setShowExport(false); }}
+                  style={{ display: "block", width: "100%", padding: "10px 16px", border: "none", background: "white", cursor: "pointer", fontSize: 13, color: "#1A1A1A", textAlign: "left", borderTop: "1px solid #E2DDD6" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "#F8F6F3"}
+                  onMouseLeave={e => e.currentTarget.style.background = "white"}
+                >Export PDF</button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* TABLE */}
@@ -618,9 +702,9 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
                       <td style={{ ...tdS, fontVariantNumeric: "tabular-nums" }}>{fmtTglMuat(s.tgl_muat)}</td>
                       <td style={{ ...tdS, fontWeight: 600 }}>{s.customer || "—"}</td>
                       <td style={tdS}>
-                        <div style={{ fontSize: 13, color: "#1A1A1A", fontWeight: 600, lineHeight: 1.3 }}>{s.lokasi_muat || "—"}</div>
-                        <div style={{ fontSize: 11, color: "#9B9690", margin: "1px 0" }}>↓</div>
-                        <div style={{ fontSize: 13, color: "#1A1A1A", lineHeight: 1.3 }}>{s.lokasi_bongkar || "—"}</div>
+                        <span style={{ fontSize: 13, color: "#1A1A1A", fontWeight: 600 }}>{s.lokasi_muat || "—"}</span>
+                        <span style={{ fontSize: 12, color: "#9B9690", margin: "0 6px" }}>→</span>
+                        <span style={{ fontSize: 13, color: "#1A1A1A" }}>{s.lokasi_bongkar || "—"}</span>
                       </td>
                       <td style={tdS}>
                         <div style={{ fontSize: 13, fontWeight: 500 }}>{s.nama_sopir || "—"}</div>
