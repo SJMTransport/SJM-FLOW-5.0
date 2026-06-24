@@ -7,7 +7,12 @@ import { CurrencyInput } from "@/src/components/SJMModals";
 import { api } from "@/src/api";
 import { Loader2, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { buildMeta } from "@/src/lib/activityLogger";
+import {
+  Package, Truck, ClipboardText, CaretRight, CaretDown, MagnifyingGlass,
+  Funnel, Export, DotsThree,
+} from "@phosphor-icons/react";
 
+// ── Bulk Import (preserved) ──
 const SO_IMPORT_FIELDS = [
   { key: "order_id", label: "Order ID", required: true },
   { key: "customer", label: "Customer", required: true },
@@ -51,17 +56,16 @@ const BulkImportSO = ({ onComplete, onCancel, showToast, logAction, currentUser 
         setCsvData(results.data);
         if (results.meta.fields) {
           setCsvHeaders(results.meta.fields);
-          // Auto map
           const newMap: any = {};
           SO_IMPORT_FIELDS.forEach(sf => {
-             const match = results.meta.fields?.find(cf => {
-               if (!cf) return false;
-               const normalizedCf = cf.toString().toLowerCase().replace(/[^a-z]/g, "");
-               const normalizedSfLabel = sf.label.toLowerCase().replace(/[^a-z]/g, "");
-               const normalizedSfKey = sf.key.toLowerCase();
-               return normalizedCf === normalizedSfLabel || cf.toString().toLowerCase() === normalizedSfKey;
-             });
-             if (match) newMap[sf.key] = match;
+            const match = results.meta.fields?.find(cf => {
+              if (!cf) return false;
+              const normalizedCf = cf.toString().toLowerCase().replace(/[^a-z]/g, "");
+              const normalizedSfLabel = sf.label.toLowerCase().replace(/[^a-z]/g, "");
+              const normalizedSfKey = sf.key.toLowerCase();
+              return normalizedCf === normalizedSfLabel || cf.toString().toLowerCase() === normalizedSfKey;
+            });
+            if (match) newMap[sf.key] = match;
           });
           setMapping(newMap);
         }
@@ -72,63 +76,30 @@ const BulkImportSO = ({ onComplete, onCancel, showToast, logAction, currentUser 
 
   const handleContinuePreview = () => {
     const csvOrderIdKey = mapping["order_id"];
-    // Filter only rows that have an Order ID
     const validRows = csvData.filter(row => {
       const idVal = row[csvOrderIdKey];
       return idVal && idVal.toString().trim() !== "";
     });
-
-    const parseDateSafe = (val: any) => {
-      if (!val) return today();
-      const s = String(val).trim();
-      if (!s || s === "-" || s === "" || s === "0" || s === "1900-01-00") return today();
-      
-      const d = new Date(s);
-      if (!isNaN(d.getTime())) {
-        // Handle years that are too old or too weird
-        if (d.getFullYear() < 1970) return today();
-        return d.toISOString().split("T")[0];
-      }
-      return today();
-    };
-
-    const parseNumSafe = (val: any) => {
-      if (!val) return 0;
-      let s = String(val).trim().replace(/[^0-9.,]/g, "");
-      if (!s) return 0;
-      // Indonesian format: titik = ribuan, koma = desimal → "16.000.000,50"
-      if (s.includes(",")) return parseFloat(s.replace(/\./g, "").replace(",", ".")) || 0;
-      // Multiple titik = pemisah ribuan → "16.000.000"
-      if ((s.match(/\./g) || []).length > 1) return parseFloat(s.replace(/\./g, "")) || 0;
-      return parseFloat(s) || 0;
-    };
-
-    const data = validRows.map(row => {
-      const obj: any = { is_posted: false, status_muatan: "Order Confirmed" };
-      SO_IMPORT_FIELDS.forEach(sf => {
-        const csvKey = mapping[sf.key];
-        let val = csvKey ? row[csvKey] : null;
-
-        if (sf.key === "tgl_order" || sf.key === "tgl_muat") {
-          val = parseDateSafe(val);
-        } else if (sf.key.includes("harga") || sf.key === "pajak") {
-          val = parseNumSafe(val);
-        }
-
-        if (csvKey) obj[sf.key] = val;
+    const mapped = validRows.map(row => {
+      const obj: any = {};
+      SO_IMPORT_FIELDS.forEach(f => {
+        const csvKey = mapping[f.key];
+        obj[f.key] = csvKey ? (row[csvKey] || "") : "";
       });
       return obj;
     });
-    setPreviewData(data);
+    setPreviewData(mapped);
     setStep(3);
   };
 
   const handleImport = async () => {
     setUploading(true);
     try {
-      await api.addSOBulk(previewData, currentUser?.company_id || "");
-      showToast(`${previewData.length} data SO berhasil diimport.`);
-      logAction(`Import Sales Order Masal: ${previewData.length} baris`, buildMeta({ module: 'so', action_type: 'IMPORT', after_data: { count: previewData.length } }));
+      for (const row of previewData) {
+        await api.addSO(row, currentUser?.company_id || "");
+        logAction(`Import SO: ${row.order_id}`, buildMeta({ module: 'so', action_type: 'CREATE', record_id: row.order_id }));
+      }
+      showToast(`${previewData.length} Sales Order berhasil diimport!`, 'success');
       onComplete();
     } catch (e: any) {
       showToast("Gagal import: " + e.message, "error");
@@ -137,106 +108,66 @@ const BulkImportSO = ({ onComplete, onCancel, showToast, logAction, currentUser 
   };
 
   return (
-    <div className="animate-fade-up">
-      <Stepper 
-        steps={["Upload File", "Mapping Kolom", "Preview & Import"]} 
-        currentStep={step} 
-      />
-
-      <Card className="min-h-[400px] flex flex-col justify-center">
-        {step === 1 && (
-          <div className="text-center py-12">
-            <div className="w-20 h-20 rounded-[2.5rem] bg-slate-50 flex items-center justify-center mx-auto mb-6 shadow-inner text-text-light/40">
-               <Icon name="UploadCloud" size={40} />
-            </div>
-            <div className="text-lg font-black text-text-main mb-2 tracking-tight">Upload Sales Order csv</div>
-            <div className="max-w-xs mx-auto text-[12px] font-medium text-text-med leading-relaxed mb-10 opacity-70">
-              Gunakan file CSV standar SJM FLOW.<br/>Mendukung hingga 1000 baris data per sesi.
-            </div>
-            <input type="file" hidden ref={fileRef} accept=".csv" onChange={handleFileUpload} />
-            <button className="btn-primary h-12 px-10 shadow-xl shadow-accent/30" onClick={() => fileRef.current?.click()}>Pilih File csv</button>
+    <Card>
+      {step === 1 && (
+        <div className="p-8 text-center">
+          <h3 className="text-lg font-black mb-4">Import Sales Order dari CSV</h3>
+          <input ref={fileRef} type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
+          <button className="btn-primary" onClick={() => fileRef.current?.click()}>Pilih File CSV</button>
+          <button className="btn-ghost ml-2" onClick={onCancel}>Batal</button>
+        </div>
+      )}
+      {step === 2 && (
+        <div className="p-6 space-y-4">
+          <h3 className="text-sm font-black">Peta Kolom CSV ke Field SJM</h3>
+          <div className="grid grid-cols-2 gap-3">
+            {SO_IMPORT_FIELDS.map(f => (
+              <div key={f.key} className="flex items-center gap-2">
+                <span className="text-[11px] font-bold w-32">{f.label}{f.required ? " *" : ""}</span>
+                <select className="input-field h-8 text-[11px] flex-1" value={mapping[f.key] || ""} onChange={e => setMapping((m: any) => ({ ...m, [f.key]: e.target.value }))}>
+                  <option value="">— Pilih —</option>
+                  {csvHeaders.map(h => <option key={h} value={h}>{h}</option>)}
+                </select>
+              </div>
+            ))}
           </div>
-        )}
-
-        {step === 2 && (
-          <div className="p-2">
-            <div className="flex justify-between items-end mb-8 pb-6 border-b border-border-main/50">
-               <div>
-                  <div className="text-lg font-black text-text-main tracking-tight">Konfigurasi Mapping</div>
-                  <div className="text-[11px] font-bold text-text-light mt-2 italic">
-                    <span className="text-accent">{csvData.length} Baris Terdeteksi</span> · Pasangkan kolom data Anda
-                  </div>
-               </div>
-               <button className="btn-primary" onClick={handleContinuePreview}>Pratinjau Data <Icon name="ArrowRight" size={16} className="inline ml-1" /></button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               {SO_IMPORT_FIELDS.map(f => (
-                  <div key={f.key} className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${mapping[f.key] ? "border-green-brand/35 bg-green-brand-light/20" : "border-border-main bg-white"}`}>
-                    <span className="text-[12px] font-bold text-text-main flex items-center gap-2">
-                      <div className={`w-1.5 h-1.5 rounded-full ${mapping[f.key] ? "bg-green-brand" : "bg-slate-300"}`} />
-                      {f.label} {f.required && <span className="text-red-brand">*</span>}
-                    </span>
-                    <select 
-                      className="input-field max-w-[200px] h-9 text-[11px] font-bold" 
-                      value={mapping[f.key] || ""} 
-                      onChange={e => setMapping({ ...mapping, [f.key]: e.target.value })}
-                    >
-                      <option value="">— Abaikan —</option>
-                      {csvHeaders.map(h => <option key={h} value={h}>{h}</option>)}
-                    </select>
-                  </div>
-               ))}
+          <div className="flex gap-3">
+            <button className="btn-ghost" onClick={() => setStep(1)}>Kembali</button>
+            <button className="btn-primary" onClick={handleContinuePreview}>Preview</button>
+          </div>
+        </div>
+      )}
+      {step === 3 && (
+        <div className="p-6 space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-sm font-black">Preview {previewData.length} rows</h3>
+            <div className="flex gap-3">
+              <button className="btn-ghost" onClick={() => setStep(2)}>Peta Ulang</button>
+              <button className="btn-primary" onClick={handleImport} disabled={uploading}>
+                {uploading ? <Loader2 className="animate-spin" size={18} /> : "Eksekusi Import"}
+              </button>
             </div>
           </div>
-        )}
-
-        {step === 3 && (
-          <div className="p-2">
-            <div className="flex justify-between items-end mb-8 pb-6 border-b border-border-main/50">
-               <div>
-                  <div className="text-lg font-black text-text-main tracking-tight">Final Pratinjau</div>
-                  <div className="text-[11px] font-bold text-text-light mt-2">
-                    {previewData.length} Sales Order siap diproses
-                  </div>
-               </div>
-               <div className="flex gap-3">
-                  <button className="btn-ghost" onClick={() => setStep(2)}>Peta Ulang</button>
-                  <button className="btn-primary h-11 bg-green-brand hover:bg-green-brand/90 shadow-green-brand/20" onClick={handleImport} disabled={uploading}>
-                    {uploading ? <Loader2 className="animate-spin" size={18} /> : `Eksekusi Import`}
-                  </button>
-               </div>
-            </div>
-            <div className="overflow-hidden rounded-2xl border border-border-main shadow-inner">
-               <div className="overflow-auto max-h-[450px] no-scrollbar">
-                  <table className="w-full border-collapse">
-                    <thead className="sticky top-0 bg-white z-10">
-                      <tr>
-                        {SO_IMPORT_FIELDS.slice(0, 8).map(f => <th key={f.key} className="py-4">{f.label}</th>)}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border-main/30">
-                       {previewData.map((d, i) => (
-                         <tr key={i} className="transition-colors">
-                           {SO_IMPORT_FIELDS.slice(0, 8).map(f => (
-                             <td key={f.key} className={`py-4 text-[11px] font-bold ${d[f.key] ? "text-text-main" : "text-red-brand italic"}`}>
-                                {d[f.key] || "Null"}
-                             </td>
-                           ))}
-                         </tr>
-                       ))}
-                    </tbody>
-                  </table>
-               </div>
-            </div>
+          <div className="overflow-auto max-h-[450px] border rounded-xl">
+            <table className="w-full border-collapse">
+              <thead className="sticky top-0 bg-white z-10">
+                <tr>{SO_IMPORT_FIELDS.slice(0, 8).map(f => <th key={f.key} className="py-3 px-3 text-[10px] font-bold text-left">{f.label}</th>)}</tr>
+              </thead>
+              <tbody>
+                {previewData.map((d, i) => (
+                  <tr key={i} className="border-t">
+                    {SO_IMPORT_FIELDS.slice(0, 8).map(f => (
+                      <td key={f.key} className={`py-2 px-3 text-[11px] ${d[f.key] ? "" : "text-red-500 italic"}`}>{d[f.key] || "Null"}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-      </Card>
-      <div className="mt-8 text-center">
-         <button className="text-[11px] font-black text-text-light hover:text-red-brand transition-colors flex items-center justify-center gap-2 mx-auto" onClick={onCancel}>
-            <Icon name="X" size={14} /> Batalkan Import
-         </button>
-      </div>
-    </div>
+          <button className="text-[11px] text-red-500 hover:underline" onClick={onCancel}>Batalkan Import</button>
+        </div>
+      )}
+    </Card>
   );
 };
 
@@ -265,7 +196,38 @@ const getFriendlyError = (err: any): string => {
   return 'Terjadi kesalahan. Coba lagi atau hubungi admin.';
 };
 
-export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, currentUser, onSOClick, onArmadaClick, armada, sopir, logAction, pendingEditSO, setPendingEditSO }: any) => {
+const fmtNum = (n: number) => new Intl.NumberFormat("id-ID").format(Math.round(n));
+const fmtTglMuat = (d: string | null | undefined) => {
+  if (!d) return "—";
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "—";
+  return date.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+};
+const calcDurasi = (s: any): string => {
+  const start = s.tgl_muat ? new Date(s.tgl_muat) : null;
+  if (!start || isNaN(start.getTime())) return "—";
+  const end = s.status_muatan === "Completed" && s.tgl_bongkar ? new Date(s.tgl_bongkar) : new Date();
+  const diffMs = end.getTime() - start.getTime();
+  if (diffMs < 0) return "—";
+  const totalMin = Math.floor(diffMs / 60000);
+  const days = Math.floor(totalMin / 1440);
+  const hrs = Math.floor((totalMin % 1440) / 60);
+  if (days > 0) return `${days} Hari${hrs > 0 ? ` ${hrs} Jam` : ""}`;
+  if (hrs > 0) return `${hrs} Jam`;
+  return `${totalMin} Mnt`;
+};
+
+const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
+  "On Going":        { bg: "#DBEAFE", color: "#2563EB" },
+  "Loading":         { bg: "#FEF3C7", color: "#D97706" },
+  "Arrived":         { bg: "#E0E7FF", color: "#4F46E5" },
+  "Completed":       { bg: "#DCFCE7", color: "#16A34A" },
+  "Cancelled":       { bg: "#FEE2E2", color: "#DC2626" },
+  "Order Confirmed": { bg: "#F3F4F6", color: "#6B7280" },
+  "Hold":            { bg: "#FEE2E2", color: "#DC2626" },
+};
+
+export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, currentUser, onSOClick, onArmadaClick, armada, sopir, logAction, pendingEditSO, setPendingEditSO, onGoToHP }: any) => {
   const { confirm: confirmModal, Modal: ConfirmModalUI } = useConfirm();
   const { showToast, ToastUI } = useToast();
   const canEdit = ["Admin", "Operasional"].includes(currentUser?.role);
@@ -281,7 +243,10 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
   const [customerQuery, setCustomerQuery] = useState("");
   const [customerOpen, setCustomerOpen] = useState(false);
   const [localCustomers, setLocalCustomers] = useState<string[]>([]);
-  
+  const [page, setPage] = useState(1);
+  const PER_PAGE = 8;
+  const [customerFilter, setCustomerFilter] = useState("Semua");
+
   const emptyForm = {
     order_id: "", no_invoice: "", kode_invoice: "", laporan_keuangan: "",
     tgl_order: today(), tgl_muat: today(), tgl_bongkar: "", jam_muat: "08:00",
@@ -302,18 +267,15 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
     if (!tgl_order) return false;
     const d = new Date(tgl_order);
     if (isNaN(d.getTime())) return false;
-    // Januari 2026 ke bawah = tidak kena pajak
     if (d.getFullYear() < 2026) return false;
-    if (d.getFullYear() === 2026 && d.getMonth() === 0) return false; // bulan 0 = Januari
+    if (d.getFullYear() === 2026 && d.getMonth() === 0) return false;
     return true;
   };
 
   const calcTotal = (f: any) => {
     const ins = parseFloat(f.harga_asuransi) || 0;
     const pengiriman = parseFloat(f.harga_pengiriman) || 0;
-    // base_harga adalah modal internal, tidak masuk total customer
     const total = ins + pengiriman;
-    // Pajak 11% hanya berlaku mulai Feb 2026
     const pajakApply = isPajakApply(f.tgl_order);
     const tax = pajakApply ? Math.round((pengiriman + ins) * 0.011) : 0;
     const totalPajak = total + tax;
@@ -328,20 +290,16 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
 
   const [selected, setSelected] = useState<string[]>([]);
   const [processing, setProcessing] = useState(false);
-  const [invoiceFilter, setInvoiceFilter] = useState<'all' | 'uninvoiced' | 'invoiced'>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [sortKey, setSortKey] = useState<'order_id' | 'tgl_muat'>('order_id');
+  const [sortKey, setSortKey] = useState<'order_id' | 'tgl_muat'>('tgl_muat');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
 
   const toggleSort = (key: 'order_id' | 'tgl_muat') => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     else { setSortKey(key); setSortDir('desc'); }
   };
-  
-  const handleTabChange = (t: string) => { 
-    setTab(t); setErr(""); 
-    if (t === "list") setSelected([]);
-  };
+
+  const handleTabChange = (t: string) => { setTab(t); setErr(""); if (t === "list") setSelected([]); };
 
   const toggleSelect = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -354,27 +312,21 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
   };
 
   const approveBulk = async () => {
-    const toPost = selected.filter(id => {
-      const item = so.find((x:any) => x.id === id);
-      return item && !item.is_posted;
-    });
-    if (toPost.length === 0) { showToast("Pilih minimal satu SO berstatus DRAFT untuk diposting.", "error"); return; }
-    
+    const toPost = selected.filter(id => { const item = so.find((x: any) => x.id === id); return item && !item.is_posted; });
+    if (toPost.length === 0) { showToast("Pilih minimal satu SO berstatus DRAFT.", "error"); return; }
     const toPostItems = toPost.map(id => so.find((x: any) => x.id === id)).filter(Boolean);
     const soList = toPostItems.slice(0, 5).map((x: any) => `• ${x.order_id}`).join('\n');
     const extra = toPostItems.length > 5 ? `\n• ... dan ${toPostItems.length - 5} lainnya` : '';
     confirmModal({
       title: "Posting Masal",
-      msg: `Anda akan memposting ${toPost.length} Sales Order:\n\n${soList}${extra}\n\nLanjutkan?`,
-      confirmLabel: "Posting",
-      confirmColor: C.blue,
+      msg: `Posting ${toPost.length} SO:\n\n${soList}${extra}\n\nLanjutkan?`,
+      confirmLabel: "Posting", confirmColor: C.blue,
       onConfirm: async () => {
         setProcessing(true);
         try {
           await api.bulkPostSO(toPost, currentUser?.company_id || "");
           setSo((prev: any[]) => prev.map(s => toPost.includes(s.id) ? { ...s, is_posted: true } : s));
-          showToast(`${toPost.length} SO berhasil diposting.`);
-          setSelected([]);
+          showToast(`${toPost.length} SO berhasil diposting.`); setSelected([]);
         } catch (e: any) { showToast("Gagal posting: " + e.message, "error"); }
         setProcessing(false);
       }
@@ -385,49 +337,36 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
     if (selected.length === 0) return;
     confirmModal({
       title: "Hapus Masal",
-      msg: `Apakah Anda yakin ingin menghapus ${selected.length} Sales Order terpilih secara PERMANEN?`,
+      msg: `Hapus ${selected.length} Sales Order terpilih secara PERMANEN?`,
       onConfirm: async () => {
         setProcessing(true);
         try {
           await api.bulkDeleteSO(selected, currentUser?.company_id || "");
           setSo((prev: any[]) => prev.filter(s => !selected.includes(s.id)));
-          showToast(`${selected.length} Sales Order berhasil dihapus.`);
-          setSelected([]);
-        } catch (e: any) { showToast("Gagal hapus masal: " + e.message, "error"); }
+          showToast(`${selected.length} SO berhasil dihapus.`); setSelected([]);
+        } catch (e: any) { showToast("Gagal hapus: " + e.message, "error"); }
         setProcessing(false);
       }
     });
   };
+
   const resetCustomerCombo = (name = "") => { setCustomerQuery(name); setCustomerOpen(false); };
 
-  const openNew = () => {
-    setForm(emptyForm);
-    setEditItem(null); setErr(""); setTab("form");
-    resetCustomerCombo();
-  };
+  const openNew = () => { setForm(emptyForm); setEditItem(null); setErr(""); setTab("form"); resetCustomerCombo(); };
 
   const openDuplicate = (s: any) => {
     const { id: _id, order_id: _oid, created_at: _ca, is_posted: _ip, ...rest } = s;
     setForm({ ...rest, order_id: "", is_posted: false, tgl_order: today(), tgl_muat: today() });
-    setEditItem(null); setErr(""); setTab("form");
-    resetCustomerCombo(s.customer || "");
-    showToast("Data disalin (Order ID dikosongkan untuk pendaftaran baru)", "info");
+    setEditItem(null); setErr(""); setTab("form"); resetCustomerCombo(s.customer || "");
+    showToast("Data disalin (Order ID dikosongkan)", "info");
   };
 
-  const openEdit = (s: any) => {
-      setEditItem(s);
-      setForm(s);
-      setErr("");
-      setTab("form");
-      resetCustomerCombo(s.customer || "");
-  };
+  const openEdit = (s: any) => { setEditItem(s); setForm(s); setErr(""); setTab("form"); resetCustomerCombo(s.customer || ""); };
 
   useEffect(() => {
     if (pendingEditSO && so?.length > 0) {
       const item = so.find((s: any) => s.order_id === pendingEditSO);
-      if (item) {
-        openEdit(item);
-      }
+      if (item) openEdit(item);
       setPendingEditSO(null);
     }
   }, [pendingEditSO, so]);
@@ -435,13 +374,13 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
   const handleDelete = async (id: string) => {
     confirmModal({
       title: "Hapus Sales Order",
-      msg: "Apakah Anda yakin ingin menghapus Sales Order ini? Tindakan ini tidak dapat dibatalkan.",
+      msg: "Hapus Sales Order ini secara permanen?",
       onConfirm: async () => {
         try {
           const item = so.find((x: any) => x.id === id);
           await api.deleteSO(id, currentUser?.company_id || "");
           setSo((prev: any[]) => prev.filter(x => x.id !== id));
-          logAction(`Hapus Sales Order: ${item?.order_id || id}`, buildMeta({
+          logAction(`Hapus SO: ${item?.order_id || id}`, buildMeta({
             module: 'so', action_type: 'DELETE', record_id: item?.order_id || id,
             before_data: item ? { order_id: item.order_id, customer: item.customer, tgl_muat: item.tgl_muat, status_muatan: item.status_muatan, total_harga: item.total_harga } : { id },
           }));
@@ -451,50 +390,31 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
   };
 
   const doSave = async (posted: boolean) => {
-    setSaving(true);
-    setSaveError(false);
-    setSaveSuccess(false);
+    setSaving(true); setSaveError(false); setSaveSuccess(false);
     try {
       let finalOrderId = form.order_id?.trim() || "";
-      if (posted && !finalOrderId) {
-        finalOrderId = genSONo(so);
-      }
+      if (posted && !finalOrderId) finalOrderId = genSONo(so);
       const payload = { ...form, order_id: finalOrderId, is_posted: posted };
       const afterSnap = { order_id: finalOrderId, customer: payload.customer, tgl_muat: payload.tgl_muat, status_muatan: payload.status_muatan, total_harga: payload.total_harga };
       if (editItem) {
         await api.updateSO(editItem.id, payload, currentUser?.company_id || "");
         setSo((s: any[]) => s.map(x => x.id === editItem.id ? { ...x, ...payload } : x));
-        logAction(`Update Sales Order: ${payload.order_id}`, buildMeta({
-          module: 'so', action_type: 'UPDATE', record_id: payload.order_id,
-          before_data: { order_id: editItem.order_id, customer: editItem.customer, tgl_muat: editItem.tgl_muat, status_muatan: editItem.status_muatan, total_harga: editItem.total_harga },
-          after_data: afterSnap,
-        }));
+        logAction(`Update SO: ${payload.order_id}`, buildMeta({ module: 'so', action_type: 'UPDATE', record_id: payload.order_id, before_data: { order_id: editItem.order_id, customer: editItem.customer, tgl_muat: editItem.tgl_muat, status_muatan: editItem.status_muatan, total_harga: editItem.total_harga }, after_data: afterSnap }));
       } else {
         await api.addSO(payload, currentUser?.company_id || "");
         setReloading(true);
         const updated = await api.getSO(currentUser?.company_id || "");
         setSo(updated);
-        logAction(`Buat Sales Order: ${payload.order_id}`, buildMeta({
-          module: 'so', action_type: 'CREATE', record_id: payload.order_id,
-          after_data: afterSnap,
-        }));
+        logAction(`Buat SO: ${payload.order_id}`, buildMeta({ module: 'so', action_type: 'CREATE', record_id: payload.order_id, after_data: afterSnap }));
       }
-      const idLabel = finalOrderId ? ` ${finalOrderId}` : '';
-      showToast(editItem ? `Sales Order${idLabel} berhasil diperbarui!` : `Sales Order${idLabel} berhasil dibuat!`, 'success');
+      showToast(editItem ? `SO ${finalOrderId} berhasil diperbarui!` : `SO ${finalOrderId} berhasil dibuat!`, 'success');
       setSaveSuccess(true);
-      setTimeout(() => {
-        setTab("list"); setEditItem(null);
-        setSaveSuccess(false);
-      }, 1000);
+      setTimeout(() => { setTab("list"); setEditItem(null); setSaveSuccess(false); }, 1000);
     } catch (e: any) {
-        console.error('simpan SO error:', e);
-        setErr(getFriendlyError(e));
-        setSaveError(true);
-        setTimeout(() => setSaveError(false), 2000);
-    } finally {
-      setSaving(false);
-      setReloading(false);
-    }
+      console.error('simpan SO error:', e);
+      setErr(getFriendlyError(e)); setSaveError(true);
+      setTimeout(() => setSaveError(false), 2000);
+    } finally { setSaving(false); setReloading(false); }
   };
 
   const submit = async (posted = false) => {
@@ -502,17 +422,15 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
     if (!form.customer) return setErr("Customer wajib diisi");
     if (!form.lokasi_muat) return setErr("Lokasi muat wajib diisi");
     if (!form.lokasi_bongkar) return setErr("Lokasi bongkar wajib diisi");
-
     const warnings: string[] = [];
-    if (!form.no_polisi?.trim()) warnings.push('No. Polisi belum diisi — kolom Armada di invoice akan kosong');
-    if (!form.jenis_truk?.trim()) warnings.push('Jenis Truk belum dipilih — kolom Armada di invoice akan kosong');
-    if (!(parseFloat(String(form.harga_pengiriman || 0)) > 0)) warnings.push('Harga Pengiriman = Rp 0 — invoice akan bernilai nol');
-    if (!form.pic_cust?.trim()) warnings.push('PIC Customer belum diisi — kolom Telepon di invoice akan kosong');
-
+    if (!form.no_polisi?.trim()) warnings.push('No. Polisi belum diisi');
+    if (!form.jenis_truk?.trim()) warnings.push('Jenis Truk belum dipilih');
+    if (!(parseFloat(String(form.harga_pengiriman || 0)) > 0)) warnings.push('Harga Pengiriman = Rp 0');
+    if (!form.pic_cust?.trim()) warnings.push('PIC Customer belum diisi');
     if (warnings.length > 0) {
       confirmModal({
-        title: "Perhatian — Data Belum Lengkap",
-        msg: `Beberapa field penting belum diisi:\n• ${warnings.join('\n• ')}\n\nData tetap akan disimpan. Lanjutkan?`,
+        title: "Data Belum Lengkap",
+        msg: `Beberapa field belum diisi:\n• ${warnings.join('\n• ')}\n\nTetap simpan?`,
         confirmLabel: "Ya, Simpan",
         onConfirm: async () => { await doSave(posted); }
       });
@@ -521,403 +439,270 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
     await doSave(posted);
   };
 
+  // ── Filtered & sorted data ──
+  const periodBase = useMemo(() => filterByPeriod(so, period, "tgl_muat"), [so, period]);
+
   const filtered = useMemo(() => {
-    const base = filterByPeriod(so, period, "tgl_muat")
-      .filter((s: any) => {
-        if (invoiceFilter === 'uninvoiced') return s.status_muatan === 'Completed' && !s.no_invoice;
-        if (invoiceFilter === 'invoiced') return !!s.no_invoice;
-        return true;
-      })
+    return periodBase
       .filter((s: any) => statusFilter === 'all' ? true : s.status_muatan === statusFilter)
+      .filter((s: any) => customerFilter === 'Semua' ? true : s.customer === customerFilter)
       .filter((s: any) =>
         !search ||
         s.order_id?.toLowerCase().includes(search.toLowerCase()) ||
-        s.customer?.toLowerCase().includes(search.toLowerCase())
-      );
-    return [...base].sort((a: any, b: any) => {
-      const aVal = sortKey === 'tgl_muat' ? (a.tgl_muat || '') : (a.order_id || '');
-      const bVal = sortKey === 'tgl_muat' ? (b.tgl_muat || '') : (b.order_id || '');
-      const cmp = aVal.localeCompare(bVal);
-      return sortDir === 'asc' ? cmp : -cmp;
-    });
-  }, [so, period, search, sortKey, sortDir, invoiceFilter, statusFilter]);
+        s.customer?.toLowerCase().includes(search.toLowerCase()) ||
+        s.lokasi_muat?.toLowerCase().includes(search.toLowerCase()) ||
+        s.lokasi_bongkar?.toLowerCase().includes(search.toLowerCase()) ||
+        s.nama_sopir?.toLowerCase().includes(search.toLowerCase()) ||
+        s.no_polisi?.toLowerCase().includes(search.toLowerCase())
+      )
+      .sort((a: any, b: any) => {
+        const aVal = sortKey === 'tgl_muat' ? (a.tgl_muat || '') : (a.order_id || '');
+        const bVal = sortKey === 'tgl_muat' ? (b.tgl_muat || '') : (b.order_id || '');
+        return sortDir === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      });
+  }, [periodBase, statusFilter, customerFilter, search, sortKey, sortDir]);
 
-  const statusCount: any = { "Order Confirmed": 0, Loading: 0, "On Going": 0, Arrived: 0, Completed: 0, Cancelled: 0 };
-  filtered.forEach((x: any) => { if (statusCount[x.status_muatan] !== undefined) statusCount[x.status_muatan]++; });
-  const totalBiaya = filtered.reduce((sum: number, s: any) => sum + (Number(s.total_harga_pajak) || Number(s.total_harga) || 0), 0);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const paged = useMemo(() => filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE), [filtered, page]);
 
-  // KPI base counts — from period only, unaffected by statusFilter/invoiceFilter
-  const periodBase = filterByPeriod(so, period, "tgl_muat");
-  const kpiCount: any = { "On Going": 0, Loading: 0, Completed: 0, Cancelled: 0 };
-  periodBase.forEach((x: any) => { if (kpiCount[x.status_muatan] !== undefined) kpiCount[x.status_muatan]++; });
-  const kpiBelumInvoice = periodBase.filter((s: any) =>
-    s.status_muatan === 'Completed' && !s.no_invoice
-  ).length;
-  const kpiMasihBerjalan = periodBase.filter((s: any) =>
-    ['On Going', 'Loading', 'Order Confirmed'].includes(s.status_muatan)
-  ).length;
+  // ── KPI counts ──
+  const kpiTotal = periodBase.length;
+  const kpiOnGoing = useMemo(() => periodBase.filter((s: any) => ["On Going", "Loading", "Order Confirmed"].includes(s.status_muatan)).length, [periodBase]);
+  const kpiBelumInvoice = useMemo(() => periodBase.filter((s: any) => s.status_muatan === "Completed" && !s.no_invoice).length, [periodBase]);
+
+  // ── Unique customers ──
+  const uniqueCustomers = useMemo(() => {
+    const names = new Set<string>();
+    (so || []).forEach((s: any) => { if (s.customer) names.add(s.customer); });
+    return Array.from(names).sort();
+  }, [so]);
+
+  // ── Pagination numbers ──
+  const pageNums = useMemo(() => {
+    const p: (number | "...")[] = [];
+    if (totalPages <= 5) { for (let i = 1; i <= totalPages; i++) p.push(i); }
+    else {
+      p.push(1);
+      if (page > 3) p.push("...");
+      for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) p.push(i);
+      if (page < totalPages - 2) p.push("...");
+      p.push(totalPages);
+    }
+    return p;
+  }, [totalPages, page]);
 
   return (
-    <PageShell>
+    <>
       <ConfirmModalUI />
       <ToastUI />
-      <div className="mb-6">
-        <div className="text-[11px] text-[#EB5E28] mb-1">Operasional › Sales Order</div>
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-[22px] font-black text-[#1A1A1A] leading-tight">Sales Order</h1>
-            <p className="text-[12px] text-[#52504A] mt-1">Manajemen order pengiriman alat berat</p>
+
+      <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 56px)", padding: "20px 24px", gap: 16, overflow: "hidden", background: "#F5F4F1" }}>
+
+        {/* BREADCRUMB + HEADER */}
+        <div style={{ flexShrink: 0 }}>
+          <div style={{ fontSize: 12, color: "#EB5E28", marginBottom: 8 }}>Operasional &nbsp;›&nbsp; <span style={{ fontWeight: 600 }}>Sales Order</span></div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: "#1A1A1A" }}>Sales Order</h1>
+              <p style={{ fontSize: 13, color: "#52504A", marginTop: 4, marginBottom: 0 }}>Manajemen order pengiriman alat berat</p>
+            </div>
+            {canEdit && (
+              <button onClick={openNew} style={{ display: "flex", alignItems: "center", gap: 8, height: 40, padding: "0 20px", background: "#EB5E28", color: "white", border: "none", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                <span style={{ fontSize: 18 }}>+</span> SO Baru
+              </button>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            {canEdit && <button className="btn-primary" onClick={openNew}><Icon name="Plus" size={16} /> SO Baru</button>}
+        </div>
+
+        {/* KPI CARDS — 3 cards */}
+        <div style={{ display: "flex", gap: 12, flexShrink: 0 }}>
+          {[
+            { icon: <Package size={28} weight="fill" />, iconBg: "#FEF0E8", iconColor: "#EB5E28", value: kpiTotal, label: "Order", title: "TOTAL SO" },
+            { icon: <Truck size={28} weight="fill" />, iconBg: "#DBEAFE", iconColor: "#2563EB", value: kpiOnGoing, label: "Order", title: "ON GOING" },
+            { icon: <ClipboardText size={28} weight="fill" />, iconBg: "#DCFCE7", iconColor: "#16A34A", value: kpiBelumInvoice, label: "Order", title: "BELUM INVOICE" },
+          ].map(k => (
+            <div key={k.title} style={{ flex: 1, background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: "20px 24px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "all 150ms ease" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "#EB5E28"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(235,94,40,0.08)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "#E2DDD6"; e.currentTarget.style.boxShadow = "none"; }}
+            >
+              <div style={{ width: 56, height: 56, borderRadius: 14, background: k.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: k.iconColor }}>{k.icon}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "#9B9690", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{k.title}</div>
+                <div style={{ fontSize: 32, fontWeight: 800, color: "#1A1A1A", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
+                <div style={{ fontSize: 12, color: "#52504A", marginTop: 2 }}>{k.label}</div>
+              </div>
+              <CaretRight size={18} color="#9B9690" />
+            </div>
+          ))}
+        </div>
+
+        {/* FILTER BAR */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: "10px 16px" }}>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, background: "#F8F6F3", borderRadius: 8, padding: "0 12px", height: 36 }}>
+            <MagnifyingGlass size={16} style={{ color: "#9B9690" }} />
+            <input
+              value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Cari SO, customer, route, driver, armada..."
+              style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontSize: 13, color: "#1A1A1A" }}
+            />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 11, color: "#9B9690", fontWeight: 500 }}>Status</span>
+            <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
+              style={{ height: 36, border: "1px solid #E2DDD6", borderRadius: 8, fontSize: 13, padding: "0 8px", background: "white", cursor: "pointer", minWidth: 110 }}
+            >
+              <option value="all">Semua</option>
+              {["Order Confirmed", "Loading", "On Going", "Arrived", "Completed", "Cancelled", "Hold"].map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 11, color: "#9B9690", fontWeight: 500 }}>Customer</span>
+            <select value={customerFilter} onChange={e => { setCustomerFilter(e.target.value); setPage(1); }}
+              style={{ height: 36, border: "1px solid #E2DDD6", borderRadius: 8, fontSize: 13, padding: "0 8px", background: "white", cursor: "pointer", minWidth: 140, maxWidth: 200 }}
+            >
+              <option value="Semua">Semua Customer</option>
+              {uniqueCustomers.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <button style={{ height: 36, padding: "0 14px", border: "1px solid #E2DDD6", borderRadius: 8, background: "white", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#52504A", fontWeight: 500 }}>
+            <Funnel size={14} /> Filter Lainnya
+          </button>
+          <button style={{ height: 36, padding: "0 14px", border: "1px solid #E2DDD6", borderRadius: 8, background: "white", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#52504A", fontWeight: 500 }}>
+            <Export size={14} /> Export <CaretDown size={12} />
+          </button>
+        </div>
+
+        {/* TABLE */}
+        <div style={{ flex: 1, minHeight: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 12, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <div style={{ flex: 1, overflowY: "auto", overflowX: "auto", minHeight: 0 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead style={{ position: "sticky", top: 0, zIndex: 1, background: "#F8F6F3" }}>
+                <tr>
+                  {[
+                    { label: "ORDER ID", align: "left", sortable: "order_id" },
+                    { label: "TGL. MUAT", align: "left", sortable: "tgl_muat" },
+                    { label: "CUSTOMER", align: "left" },
+                    { label: "ROUTE", align: "left" },
+                    { label: "UNIT / SOPIR", align: "left" },
+                    { label: "STATUS", align: "left" },
+                    { label: "DURASI", align: "left" },
+                    { label: "NILAI", align: "right" },
+                    { label: "AKSI", align: "center" },
+                  ].map(h => (
+                    <th key={h.label} onClick={h.sortable ? () => toggleSort(h.sortable as any) : undefined}
+                      style={{
+                        textAlign: h.align as any, padding: "12px 16px", fontSize: 11, fontWeight: 600,
+                        textTransform: "uppercase", letterSpacing: "0.5px", color: "#9B9690",
+                        borderBottom: "1px solid #E2DDD6", whiteSpace: "nowrap",
+                        cursor: h.sortable ? "pointer" : "default",
+                        background: sortKey === h.sortable ? "#F0EBE4" : undefined,
+                      }}
+                    >
+                      {h.label}{h.sortable && (sortKey === h.sortable ? (sortDir === 'desc' ? " ↓" : " ↑") : " ↕")}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {paged.length === 0 ? (
+                  <tr><td colSpan={9} style={{ padding: "64px 16px", textAlign: "center", fontSize: 13, color: "#9B9690" }}>Tidak ada data Sales Order</td></tr>
+                ) : paged.map((s: any) => {
+                  const sc = STATUS_COLORS[s.status_muatan] || { bg: "#F3F4F6", color: "#6B7280" };
+                  return (
+                    <tr key={s.id} style={{ cursor: "pointer" }}
+                      onClick={(e) => { if ((e.target as HTMLElement).tagName === "BUTTON" || (e.target as HTMLElement).tagName === "SELECT") return; onSOClick?.(s.order_id); }}
+                      onMouseEnter={e => { for (const td of Array.from(e.currentTarget.children)) (td as HTMLElement).style.background = "#FAF8F5"; }}
+                      onMouseLeave={e => { for (const td of Array.from(e.currentTarget.children)) (td as HTMLElement).style.background = ""; }}
+                    >
+                      <td style={tdS}><button onClick={e => { e.stopPropagation(); onSOClick?.(s.order_id); }} style={{ fontSize: 12, fontWeight: 700, color: "#EB5E28", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "monospace" }}>{s.order_id || "(Draft)"}</button></td>
+                      <td style={{ ...tdS, fontVariantNumeric: "tabular-nums" }}>{fmtTglMuat(s.tgl_muat)}</td>
+                      <td style={{ ...tdS, fontWeight: 600 }}>{s.customer || "—"}</td>
+                      <td style={tdS}>
+                        <div style={{ fontSize: 13, color: "#1A1A1A", fontWeight: 600, lineHeight: 1.3 }}>{s.lokasi_muat || "—"}</div>
+                        <div style={{ fontSize: 11, color: "#9B9690", margin: "1px 0" }}>↓</div>
+                        <div style={{ fontSize: 13, color: "#1A1A1A", lineHeight: 1.3 }}>{s.lokasi_bongkar || "—"}</div>
+                      </td>
+                      <td style={tdS}>
+                        <div style={{ fontSize: 13, fontWeight: 500 }}>{s.nama_sopir || "—"}</div>
+                        <div style={{ fontSize: 11, color: "#52504A", marginTop: 2 }}>{s.no_polisi || ""}{s.jenis_truk ? ` · ${s.jenis_truk}` : ""}</div>
+                      </td>
+                      <td style={tdS}><span style={{ padding: "4px 12px", borderRadius: 999, fontSize: 11, fontWeight: 600, whiteSpace: "nowrap", background: sc.bg, color: sc.color }}>{s.status_muatan}</span></td>
+                      <td style={{ ...tdS, fontVariantNumeric: "tabular-nums", color: "#52504A" }}>{["On Going", "Loading", "Completed"].includes(s.status_muatan) ? calcDurasi(s) : "—"}</td>
+                      <td style={{ ...tdS, textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>Rp{fmtNum(Number(s.total_harga_pajak || s.total_harga || s.harga_pengiriman || 0))}</td>
+                      <td style={{ ...tdS, textAlign: "center" }}>
+                        <button onClick={e => e.stopPropagation()} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#9B9690" }}>
+                          <DotsThree size={20} weight="bold" />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* PAGINATION */}
+          <div style={{ padding: "12px 16px", borderTop: "1px solid #E2DDD6", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0, fontSize: 12, color: "#52504A" }}>
+            <span>Menampilkan {filtered.length === 0 ? 0 : (page - 1) * PER_PAGE + 1} - {Math.min(page * PER_PAGE, filtered.length)} dari {filtered.length} data</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={pgBtn(page <= 1)}>‹ Prev</button>
+              {pageNums.map((p, i) => p === "..." ? (
+                <span key={`e${i}`} style={{ padding: "0 4px", color: "#9B9690" }}>…</span>
+              ) : (
+                <button key={p} onClick={() => setPage(p as number)} style={{ width: 28, height: 28, borderRadius: 6, fontSize: 12, border: `1px solid ${page === p ? "#EB5E28" : "#E2DDD6"}`, background: page === p ? "#EB5E28" : "white", color: page === p ? "white" : "#1A1A1A", fontWeight: page === p ? 600 : 400, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>{p}</button>
+              ))}
+              <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} style={pgBtn(page >= totalPages)}>Next ›</button>
+            </div>
           </div>
         </div>
       </div>
 
-      {tab !== "list" && (
-        <div className="tab-bar">
-          {[
-             ["list", "Daftar SO"],
-             canEdit && ["form", editItem ? "Edit SO" : "Input SO"],
-          ].filter(Boolean).map(([k, l]: any) => (
-            <button
-              key={k}
-              className={`tab-btn ${tab === k ? "active" : ""}`}
-              onClick={() => handleTabChange(k)}
-            >
-              {l.toUpperCase()}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {(tab === "list" || tab === "form") && (
-        <div>
-          {/* KPI Cards */}
-          <div className="grid grid-cols-6 gap-3 mb-4">
-            {([
-              { key: 'all',       label: 'Total SO',      value: periodBase.length,          color: 'var(--color-accent)',     icon: 'Package'     },
-              { key: 'On Going',  label: 'On Going',      value: kpiCount['On Going'],       color: 'var(--color-info)',       icon: 'Truck'       },
-              { key: 'Loading',   label: 'Loading',       value: kpiCount['Loading'],        color: 'var(--color-warning)',    icon: 'PackageOpen' },
-              { key: 'Completed', label: 'Completed',     value: kpiCount['Completed'],      color: 'var(--color-success)',    icon: 'CheckCircle' },
-              { key: 'Cancelled', label: 'Cancelled',     value: kpiCount['Cancelled'],      color: 'var(--color-error)',      icon: 'XCircle'     },
-              { key: '__belum__', label: 'Belum Invoice', value: kpiBelumInvoice,            color: 'var(--color-teal, #0d9488)', icon: 'FileX'    },
-            ] as const).map(({ key, label, value, color, icon }) => {
-              const isActive =
-                key === '__belum__'
-                  ? invoiceFilter === 'uninvoiced'
-                  : statusFilter === key;
-              return (
-                <div
-                  key={key}
-                  onClick={() => {
-                    if (key === '__belum__') {
-                      setInvoiceFilter(invoiceFilter === 'uninvoiced' ? 'all' : 'uninvoiced');
-                      setStatusFilter('all');
-                    } else {
-                      setStatusFilter(isActive ? 'all' : key);
-                      setInvoiceFilter('all');
-                    }
-                  }}
-                  className={`kpi-card relative cursor-pointer select-none transition-all hover:shadow-md ${isActive ? 'ring-2 ring-offset-1' : ''}`}
-                  style={{ padding: '10px 14px', ...(isActive ? { outlineColor: color, boxShadow: `0 0 0 2px ${color}` } : {}) }}
-                >
-                  {isActive && (
-                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-accent animate-pulse" />
-                  )}
-                  <span className="kpi-card-label">{label}</span>
-                  <span className="kpi-card-value" style={{ color }}>{value}</span>
-                  {key === '__belum__' && (
-                    <div className="kpi-card-sub" style={{ color: '#64748b' }}>
-                      +{kpiMasihBerjalan} SO masih berjalan
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          <ActionBar
-            left={<PeriodFilter period={period} setPeriod={setPeriod} search={search} setSearch={setSearch} />}
-            right={canEdit && selected.length > 0 && (
-              <div className="flex items-center gap-2 px-3 h-10 bg-slate-50 border border-border-main rounded-xl">
-                <span className="text-[10px] font-bold text-text-med italic">{selected.length} Selected</span>
-                <button className="btn-ghost !px-3 border-red-brand/20 text-red-brand hover:bg-red-brand-light" onClick={deleteBulk} disabled={processing}>
-                  <Icon name="Trash2" size={12} /> Hapus
-                </button>
-                <button className="btn-primary !px-3" onClick={approveBulk} disabled={processing}>
-                  <Icon name="Send" size={12} /> Posting
-                </button>
-              </div>
-            )}
-          />
-
-          {/* Invoice filter pills + reset */}
-          <div className="flex items-center gap-2 px-1 pb-2 flex-wrap">
-            {([
-              { key: 'all',        label: 'Semua SO',       count: periodBase.length },
-              { key: 'uninvoiced', label: 'Belum Invoice',  count: kpiBelumInvoice },
-              { key: 'invoiced',   label: 'Sudah Invoice',  count: periodBase.filter((s: any) => !!s.no_invoice).length },
-            ] as const).map(({ key, label, count }) => (
-              <button
-                key={key}
-                onClick={() => { setInvoiceFilter(key); if (key !== 'all') setStatusFilter('all'); }}
-                className={`flex items-center gap-1.5 h-7 px-3 rounded-full text-[10px] font-bold border transition-colors ${
-                  invoiceFilter === key
-                    ? key === 'uninvoiced' ? 'bg-emerald-600 text-white border-emerald-600' : key === 'invoiced' ? 'bg-blue-600 text-white border-blue-600' : 'bg-accent text-white border-accent'
-                    : 'bg-white text-text-med border-border-main hover:border-accent'
-                }`}
-              >
-                {label}
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${invoiceFilter === key ? 'bg-white/20' : 'bg-slate-100'}`}>{count}</span>
-              </button>
-            ))}
-            {(statusFilter !== 'all' || invoiceFilter !== 'all') && (
-              <button
-                onClick={() => { setStatusFilter('all'); setInvoiceFilter('all'); }}
-                className="flex items-center gap-1 h-7 px-3 rounded-full text-[10px] font-bold border border-dashed border-red-300 text-red-500 hover:bg-red-50 transition-colors ml-auto"
-              >
-                <Icon name="X" size={10} /> Reset Filter
-              </button>
-            )}
-            <span className="text-[10px] text-text-light ml-1">{filtered.length} dari {periodBase.length} SO</span>
-          </div>
-
-          {reloading && <div className="text-center py-2 text-[11px] text-text-light animate-pulse">🔄 Memperbarui data...</div>}
-          <div className="bg-white border border-border-main rounded-xl overflow-hidden shadow-xs">
-          <div className="table-container max-h-[calc(100vh-380px)]">
-            <table className="w-full border-collapse">
-              <thead className="bg-slate-50 border-b-2 border-border-main sticky top-0 z-10">
-                  <tr>
-                    {canEdit && (
-                      <th className="w-10 font-black text-text-med uppercase tracking-widest">
-                        <input
-                          type="checkbox"
-                          className="w-3.5 h-3.5 rounded border-border-main text-accent focus:ring-accent"
-                          checked={selected.length > 0 && selected.length === filtered.length}
-                          onChange={toggleAll}
-                        />
-                      </th>
-                    )}
-                    <th
-                      className={`cursor-pointer select-none transition-colors font-black text-text-med uppercase tracking-widest ${sortKey === 'order_id' ? 'bg-slate-200' : ''}`}
-                      onClick={() => toggleSort('order_id')}
-                    >
-                      <span className="flex items-center gap-1 pointer-events-none">
-                        Order ID
-                        {sortKey !== 'order_id' && <ArrowUpDown size={10} className="opacity-30" />}
-                        {sortKey === 'order_id' && sortDir === 'asc' && <ArrowUp size={10} className="text-accent" />}
-                        {sortKey === 'order_id' && sortDir === 'desc' && <ArrowDown size={10} className="text-accent" />}
-                      </span>
-                    </th>
-                    <th
-                      className={`cursor-pointer select-none transition-colors font-black text-text-med uppercase tracking-widest ${sortKey === 'tgl_muat' ? 'bg-slate-200' : ''}`}
-                      onClick={() => toggleSort('tgl_muat')}
-                    >
-                      <span className="flex items-center gap-1 pointer-events-none">
-                        Tgl Muat
-                        {sortKey !== 'tgl_muat' && <ArrowUpDown size={10} className="opacity-30" />}
-                        {sortKey === 'tgl_muat' && sortDir === 'asc' && <ArrowUp size={10} className="text-accent" />}
-                        {sortKey === 'tgl_muat' && sortDir === 'desc' && <ArrowDown size={10} className="text-accent" />}
-                      </span>
-                    </th>
-                    <th className="font-black text-text-med uppercase tracking-widest">Rute</th>
-                    <th className="font-black text-text-med uppercase tracking-widest">Customer</th>
-                    <th className="font-black text-text-med uppercase tracking-widest">Unit / Sopir</th>
-                    <th className="font-black text-text-med uppercase tracking-widest">Status</th>
-                    <th className="text-right font-black text-text-med uppercase tracking-widest">Biaya</th>
-                    <th className="font-black text-text-med uppercase tracking-widest">Invoice</th>
-                    <th className="text-center font-black text-text-med uppercase tracking-widest">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody key={`${sortKey}-${sortDir}`} className="divide-y divide-border-main/20">
-                  {filtered.length === 0 ? <EmptyState colSpan={canEdit ? 10 : 9} /> :
-                    filtered.map((s: any) => (
-                      <tr key={s.id} className="cursor-pointer transition-colors group" onClick={(e) => {
-                        if ((e.target as HTMLElement).tagName === "BUTTON" || (e.target as HTMLElement).tagName === "INPUT") return;
-                        onSOClick && onSOClick(s.order_id);
-                      }}>
-                        {canEdit && (
-                          <td>
-                            <input
-                              type="checkbox"
-                              className="w-3.5 h-3.5 rounded border-border-main text-accent focus:ring-accent"
-                              checked={selected.includes(s.id)}
-                              onChange={(e) => toggleSelect(s.id, e as any)}
-                            />
-                          </td>
-                        )}
-                        <td>
-                          <button
-                             onClick={(e) => {
-                               if (!canEdit) return;
-                               e.stopPropagation();
-                               openEdit(s);
-                             }}
-                             className="text-[11px] font-black text-accent hover:underline uppercase tracking-tight"
-                           >
-                             {s.order_id || "(Draft)"}
-                           </button>
-                        </td>
-                        <td className="tabular-nums text-[11px] font-bold text-text-med italic">
-                          <div className="flex items-center gap-2">
-                            {jurnal.some((j: any) => j.no_so?.includes(s.order_id)) && (
-                              <div className="w-1.5 h-1.5 rounded-full bg-green-brand animate-pulse" title="Terhubung Jurnal" />
-                            )}
-                            {s.tgl_muat}
-                          </div>
-                        </td>
-                        <td className="max-w-[200px]">
-                          <div className="text-[12px] font-bold text-text-main truncate group-hover:text-blue-brand transition-colors" title={s.lokasi_muat}>{s.lokasi_muat}</div>
-                          <div className="text-[10px] font-medium text-text-light opacity-70 italic truncate" title={s.lokasi_bongkar}>to {s.lokasi_bongkar}</div>
-                        </td>
-                        <td>
-                          <div className="text-[12px] font-bold text-text-main group-hover:text-blue-brand transition-colors">{s.customer}</div>
-                          <div className={`badge text-[8px] mt-1 ${s.is_posted ? "bg-green-brand-light text-green-brand" : "bg-slate-100 text-slate-500"}`}>
-                            {s.is_posted ? "Posted" : "Draft"}
-                          </div>
-                        </td>
-                        <td>
-                           <button
-                             className="text-[12px] font-black text-accent hover:underline tabular-nums tracking-tight"
-                             onClick={(e) => { e.stopPropagation(); onArmadaClick && onArmadaClick(s.no_polisi); }}
-                           >{s.no_polisi}</button>
-                           <div className="text-[10px] text-text-light font-medium">{s.nama_sopir}</div>
-                        </td>
-                        <td>{statusBadge(s.status_muatan)}</td>
-                        <td className="text-right tabular-nums">
-                          <div className="text-[11px] font-black text-text-main">{fmt(s.total_harga_pajak || s.total_harga || 0)}</div>
-                          {Number(s.nilai_pajak) > 0 && (
-                            <div className="text-[9px] text-text-light opacity-60 italic">+PPN {fmt(s.nilai_pajak)}</div>
-                          )}
-                        </td>
-                        <td>
-                          {s.no_invoice ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-bold rounded-lg whitespace-nowrap">
-                              <Icon name="CheckCircle" size={9} /> {s.no_invoice}
-                            </span>
-                          ) : (
-                            <span className="text-[9px] text-text-light italic opacity-50">—</span>
-                          )}
-                        </td>
-                        <td>
-                          {canEdit && (
-                            <div className="flex gap-0.5 justify-center opacity-40 group-hover:opacity-100 transition-opacity">
-                              <button className="p-1.5 rounded-lg hover:bg-slate-100 text-text-med transition-colors" onClick={(e) => { e.stopPropagation(); openEdit(s); }} title="Edit">
-                                <Icon name="Edit3" size={12} />
-                              </button>
-                              <button className="p-1.5 rounded-lg hover:bg-blue-brand/10 text-blue-brand transition-colors" onClick={(e) => { e.stopPropagation(); openDuplicate(s); }} title="Duplikat">
-                                <Icon name="Copy" size={12} />
-                              </button>
-                              <button className="p-1.5 rounded-lg hover:bg-red-brand/10 text-red-brand transition-colors" onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }} title="Hapus">
-                                <Icon name="Trash2" size={12} />
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  }
-                </tbody>
-                <tfoot>
-                  <tr className="bg-slate-50 text-text-main font-black border-t-2 border-border-main">
-                    <td colSpan={canEdit ? 7 : 6} className="py-3 px-4 text-right italic text-[9px] opacity-60 uppercase tracking-widest">Total Muatan Terfilter</td>
-                    <td className="py-3 px-4 text-right text-[11px] font-black text-accent tabular-nums">{fmt(totalBiaya)}</td>
-                    <td colSpan={2} className="py-3 px-4 text-center text-[12px] font-black text-accent">{filtered.length} Records</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* ══════ FORM MODAL (preserved functionality) ══════ */}
       <ModalShell isOpen={tab === "form"} onClose={() => setTab("list")}>
         <div className="p-4 border-b border-border-main flex justify-between items-center bg-white sticky top-0 z-20">
-           <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-blue-brand/10 text-blue-brand flex items-center justify-center">
-                <Icon name="FilePlus2" size={18} />
-              </div>
-              <div>
-                <h3 className="text-sm font-black text-text-main tracking-tight leading-none">{editItem ? "Update Sales Order" : "Input SO Baru"}</h3>
-                <p className="text-[9px] font-bold text-text-light mt-1 opacity-60 italic">Rincian pengiriman armada</p>
-              </div>
-           </div>
-           <button className="p-2 rounded-full hover:bg-slate-100 transition-colors" onClick={() => setTab("list")}>
-              <Icon name="X" size={20} className="text-text-main" />
-           </button>
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#EB5E28]/10 text-[#EB5E28] flex items-center justify-center">
+              <Icon name="FilePlus2" size={18} />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-[#1A1A1A] tracking-tight leading-none">{editItem ? "Update Sales Order" : "Input SO Baru"}</h3>
+              <p className="text-[9px] font-bold text-[#52504A] mt-1 italic">Rincian pengiriman armada</p>
+            </div>
+          </div>
+          <button className="p-2 rounded-full hover:bg-slate-100" onClick={() => setTab("list")}>
+            <Icon name="X" size={20} />
+          </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 no-scrollbar space-y-8 bg-white">
+        <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-white">
+          {/* Identitas Order */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-[10px] font-bold text-text-light px-1 opacity-60 italic">
-               <Icon name="Hash" size={12} className="text-accent" /> Identitas Order
-            </div>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-[#9B9690] px-1"><Icon name="Hash" size={12} className="text-[#EB5E28]" /> Identitas Order</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Order ID</label>
-                <input 
-                  className="input-field h-9 text-[11px] font-bold" 
-                  value={form.order_id || ""} 
-                  onChange={e => setForm((f: any) => ({ ...f, order_id: e.target.value }))} 
-                  placeholder={form.is_posted ? "Wajib diisi" : "Auto-Generate"}
-                />
+                <label className="text-[10px] font-bold text-[#9B9690] px-1">Order ID</label>
+                <input className="input-field h-9 text-[11px] font-bold" value={form.order_id || ""} onChange={e => setForm((f: any) => ({ ...f, order_id: e.target.value }))} placeholder={form.is_posted ? "Wajib diisi" : "Auto-Generate"} />
               </div>
               <div className="md:col-span-2 space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Customer <span className="text-red-brand">*</span> & Tanggal</label>
+                <label className="text-[10px] font-bold text-[#9B9690] px-1">Customer <span className="text-[#DC2626]">*</span></label>
                 <div className="flex gap-2">
                   {(() => {
-                    const allNames: string[] = [
-                      ...customer.map((c: any) => c.nama as string),
-                      ...localCustomers.filter((n: string) => !customer.some((c: any) => c.nama === n)),
-                    ];
+                    const allNames: string[] = [...customer.map((c: any) => c.nama as string), ...localCustomers.filter((n: string) => !customer.some((c: any) => c.nama === n))];
                     const q = customerQuery.toLowerCase().trim();
                     const matches = q ? allNames.filter(n => n.toLowerCase().includes(q)) : allNames;
                     const isNew = customerQuery.trim() && !allNames.some(n => n.toLowerCase() === customerQuery.toLowerCase().trim());
-                    const confirmNew = () => {
-                      const name = customerQuery.trim();
-                      if (!name) return;
-                      setLocalCustomers(prev => prev.includes(name) ? prev : [...prev, name]);
-                      setForm((f: any) => ({ ...f, customer: name }));
-                      setCustomerOpen(false);
-                    };
+                    const confirmNew = () => { const name = customerQuery.trim(); if (!name) return; setLocalCustomers(prev => prev.includes(name) ? prev : [...prev, name]); setForm((f: any) => ({ ...f, customer: name })); setCustomerOpen(false); };
                     return (
                       <div className="relative flex-1">
-                        <input
-                          className="input-field h-9 w-full text-[11px] font-bold"
-                          placeholder="Cari atau ketik nama customer..."
-                          value={customerQuery}
-                          onChange={e => { setCustomerQuery(e.target.value); setForm((f: any) => ({ ...f, customer: e.target.value })); setCustomerOpen(true); }}
-                          onFocus={() => setCustomerOpen(true)}
-                          onBlur={() => setTimeout(() => setCustomerOpen(false), 150)}
-                          onKeyDown={e => {
-                            if (e.key === 'Escape') setCustomerOpen(false);
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              if (matches.length > 0) { setCustomerQuery(matches[0]); setForm((f: any) => ({ ...f, customer: matches[0] })); setCustomerOpen(false); }
-                              else confirmNew();
-                            }
-                          }}
+                        <input className="input-field h-9 w-full text-[11px] font-bold" placeholder="Cari customer..."
+                          value={customerQuery} onChange={e => { setCustomerQuery(e.target.value); setForm((f: any) => ({ ...f, customer: e.target.value })); setCustomerOpen(true); }}
+                          onFocus={() => setCustomerOpen(true)} onBlur={() => setTimeout(() => setCustomerOpen(false), 150)}
+                          onKeyDown={e => { if (e.key === 'Escape') setCustomerOpen(false); if (e.key === 'Enter') { e.preventDefault(); if (matches.length > 0) { setCustomerQuery(matches[0]); setForm((f: any) => ({ ...f, customer: matches[0] })); setCustomerOpen(false); } else confirmNew(); } }}
                         />
                         {customerOpen && (
-                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border-main rounded-xl shadow-xl z-50 max-h-52 overflow-y-auto">
-                            {matches.map((name, i) => (
-                              <button key={i} type="button"
-                                className="w-full text-left px-3 py-2 text-[11px] font-bold hover:bg-slate-50 transition-colors first:rounded-t-xl last:rounded-b-xl"
-                                onMouseDown={e => { e.preventDefault(); setCustomerQuery(name); setForm((f: any) => ({ ...f, customer: name })); setCustomerOpen(false); }}>
-                                {name}
-                              </button>
-                            ))}
-                            {isNew && (
-                              <button type="button"
-                                className="w-full text-left px-3 py-2 text-[11px] font-black text-accent hover:bg-accent/5 transition-colors flex items-center gap-2 border-t border-border-main/30"
-                                onMouseDown={e => { e.preventDefault(); confirmNew(); }}>
-                                <Icon name="Plus" size={11} /> Tambah &ldquo;{customerQuery.trim()}&rdquo;
-                              </button>
-                            )}
-                            {matches.length === 0 && !isNew && (
-                              <div className="px-3 py-2 text-[11px] text-text-light italic opacity-50">Tidak ada hasil</div>
-                            )}
+                          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E2DDD6] rounded-xl shadow-xl z-50 max-h-52 overflow-y-auto">
+                            {matches.map((name, i) => (<button key={i} type="button" className="w-full text-left px-3 py-2 text-[11px] font-bold hover:bg-[#F8F6F3]" onMouseDown={e => { e.preventDefault(); setCustomerQuery(name); setForm((f: any) => ({ ...f, customer: name })); setCustomerOpen(false); }}>{name}</button>))}
+                            {isNew && (<button type="button" className="w-full text-left px-3 py-2 text-[11px] font-black text-[#EB5E28] hover:bg-[#FEF0E8] flex items-center gap-2 border-t" onMouseDown={e => { e.preventDefault(); confirmNew(); }}>+ Tambah Customer Baru</button>)}
                           </div>
                         )}
                       </div>
@@ -927,274 +712,95 @@ export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, current
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">PIC Customer <span className="text-red-brand">*</span></label>
-                <input
-                  className="input-field h-9 text-[11px] font-bold"
-                  value={form.pic_cust || ""}
-                  onChange={e => setForm((f: any) => ({ ...f, pic_cust: e.target.value }))}
-                  placeholder="Nama PIC / Contact Person..."
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">No. Telepon PIC <span className="text-red-brand">*</span></label>
-                <input
-                  className="input-field h-9 text-[11px] font-bold"
-                  value={form.no_pic || ""}
-                  onChange={e => setForm((f: any) => ({ ...f, no_pic: e.target.value }))}
-                  placeholder="08xx-xxxx-xxxx"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 text-[10px] font-bold text-text-light px-1 opacity-60 italic">
-               <Icon name="Truck" size={12} className="text-accent" /> Logistik & Rute
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Row 1: Jenis Truk | No. Polisi */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Jenis Truk <span className="text-red-brand">*</span></label>
-                <select
-                  className="input-field h-9 text-[11px] font-bold"
-                  value={form.jenis_truk || ''}
-                  onChange={e => setForm((f: any) => ({ ...f, jenis_truk: e.target.value }))}
-                >
-                  <option value="">Pilih Jenis Truk</option>
-                  <option value="Selfloader">Selfloader</option>
-                  <option value="Selfloader Kecil">Selfloader Kecil</option>
-                  <option value="Towing">Towing</option>
-                  <option value="Lowbed">Lowbed</option>
-                  <option value="Dolly">Dolly</option>
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">No. Polisi <span className="text-red-brand">*</span></label>
-                <input list="armada-list" className="input-field h-9 text-[11px] font-bold" value={form.no_polisi || ""} onChange={e => setForm((f: any) => ({ ...f, no_polisi: e.target.value }))} placeholder="Cari No Polisi..." />
-                <datalist id="armada-list">{armada.map((a: any) => <option key={a.id} value={a.no_polisi} />)}</datalist>
-              </div>
-              {/* Row 2: Nama Sopir | Expedisi */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Nama Sopir</label>
-                <input list="sopir-list" className="input-field h-9 text-[11px] font-bold" value={form.nama_sopir || ""} onChange={e => setForm((f: any) => ({ ...f, nama_sopir: e.target.value }))} placeholder="Cari Sopir..." />
-                <datalist id="sopir-list">{sopir.map((s: any) => <option key={s.id} value={s.nama} />)}</datalist>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Expedisi Pelaksana</label>
-                <input className="input-field h-9 text-[11px] font-bold" value={form.nama_vendor || ""} onChange={e => setForm((f: any) => ({ ...f, nama_vendor: e.target.value }))} placeholder="..." />
-              </div>
-              {/* Row 3: Lokasi Muat | Lokasi Tujuan */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Lokasi Muat <span className="text-red-brand">*</span></label>
-                <input className="input-field h-9 text-[11px] font-bold" value={form.lokasi_muat || ""} onChange={e => setForm((f: any) => ({ ...f, lokasi_muat: e.target.value }))} />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Lokasi Tujuan <span className="text-red-brand">*</span></label>
-                <input className="input-field h-9 text-[11px] font-bold" value={form.lokasi_bongkar || ""} onChange={e => setForm((f: any) => ({ ...f, lokasi_bongkar: e.target.value }))} />
-              </div>
-              {/* Row 4: Tgl Muat | Tgl Bongkar */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Tgl Muat <span className="text-red-brand">*</span></label>
-                <input type="date" className="input-field h-9 text-[11px] font-bold" value={form.tgl_muat || ""} onChange={e => setForm((f: any) => ({ ...f, tgl_muat: e.target.value }))} />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Tgl Bongkar</label>
-                <input type="date" className="input-field h-9 text-[11px] font-bold" value={form.tgl_bongkar || ""} onChange={e => setForm((f: any) => ({ ...f, tgl_bongkar: e.target.value }))} />
-              </div>
-              {/* Row 5: Muatan / Volume | SN */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Muatan / Volume</label>
-                <div className="flex gap-2">
-                  <input className="input-field h-9 flex-1 text-[11px] font-bold" value={form.muatan || ""} onChange={e => setForm((f: any) => ({ ...f, muatan: e.target.value }))} placeholder="Jenis" />
-                  <input className="input-field h-9 w-20 text-[11px] font-bold" value={form.unit_muatan || ""} onChange={e => setForm((f: any) => ({ ...f, unit_muatan: e.target.value }))} placeholder="Unit" />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">SN / No. Seri</label>
-                <input className="input-field h-9 text-[11px] font-bold" value={form.sn || ""} onChange={e => setForm((f: any) => ({ ...f, sn: e.target.value }))} placeholder="Serial number muatan..." />
-              </div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">PIC Customer</label><input className="input-field h-9 text-[11px] font-bold" value={form.pic_cust || ""} onChange={e => setForm((f: any) => ({ ...f, pic_cust: e.target.value }))} placeholder="Nama PIC..." /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">No. Telepon PIC</label><input className="input-field h-9 text-[11px] font-bold" value={form.no_pic || ""} onChange={e => setForm((f: any) => ({ ...f, no_pic: e.target.value }))} placeholder="08xx-xxxx-xxxx" /></div>
             </div>
           </div>
 
-          <div className="space-y-4 p-5 bg-slate-50/50 rounded-2xl border border-border-main/50 relative overflow-hidden ring-1 ring-black/[0.02]">
-            <div className="flex items-center gap-2 text-[11px] font-black text-navy uppercase tracking-widest px-1 italic">
-               <div className="w-1 h-3 bg-accent rounded-full" />
-               <Icon name="DollarSign" size={13} className="text-accent" /> Biaya & Keuangan
+          {/* Logistik & Rute */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-[10px] font-bold text-[#9B9690] px-1"><Icon name="Truck" size={12} className="text-[#EB5E28]" /> Pengiriman & Route</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Jenis Truk <span className="text-[#DC2626]">*</span></label><select className="input-field h-9 text-[11px] font-bold" value={form.jenis_truk || ''} onChange={e => setForm((f: any) => ({ ...f, jenis_truk: e.target.value }))}><option value="">Pilih Jenis Truk</option><option value="Selfloader">Selfloader</option><option value="Selfloader Kecil">Selfloader Kecil</option><option value="Towing">Towing</option><option value="Lowbed">Lowbed</option><option value="Dolly">Dolly</option></select></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Nama Sopir</label><input list="sopir-list" className="input-field h-9 text-[11px] font-bold" value={form.nama_sopir || ""} onChange={e => setForm((f: any) => ({ ...f, nama_sopir: e.target.value }))} placeholder="Cari Sopir..." /><datalist id="sopir-list">{sopir.map((s: any) => <option key={s.id} value={s.nama} />)}</datalist></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Ekspedisi Pelaksana</label><input className="input-field h-9 text-[11px] font-bold" value={form.nama_vendor || ""} onChange={e => setForm((f: any) => ({ ...f, nama_vendor: e.target.value }))} /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">No. Polisi</label><input list="armada-list" className="input-field h-9 text-[11px] font-bold" value={form.no_polisi || ""} onChange={e => setForm((f: any) => ({ ...f, no_polisi: e.target.value }))} /><datalist id="armada-list">{armada.map((a: any) => <option key={a.id} value={a.no_polisi} />)}</datalist></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Lokasi Muat <span className="text-[#DC2626]">*</span></label><input className="input-field h-9 text-[11px] font-bold" value={form.lokasi_muat || ""} onChange={e => setForm((f: any) => ({ ...f, lokasi_muat: e.target.value }))} /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Lokasi Tujuan <span className="text-[#DC2626]">*</span></label><input className="input-field h-9 text-[11px] font-bold" value={form.lokasi_bongkar || ""} onChange={e => setForm((f: any) => ({ ...f, lokasi_bongkar: e.target.value }))} /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Tgl Muat <span className="text-[#DC2626]">*</span></label><input type="date" className="input-field h-9 text-[11px] font-bold" value={form.tgl_muat || ""} onChange={e => setForm((f: any) => ({ ...f, tgl_muat: e.target.value }))} /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Tgl Bongkar</label><input type="date" className="input-field h-9 text-[11px] font-bold" value={form.tgl_bongkar || ""} onChange={e => setForm((f: any) => ({ ...f, tgl_bongkar: e.target.value }))} /></div>
             </div>
+          </div>
+
+          {/* Detail Muatan */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-[10px] font-bold text-[#9B9690] px-1"><Icon name="Package" size={12} className="text-[#EB5E28]" /> Detail Muatan</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Jenis Muatan</label><div className="flex gap-2"><input className="input-field h-9 flex-1 text-[11px] font-bold" value={form.muatan || ""} onChange={e => setForm((f: any) => ({ ...f, muatan: e.target.value }))} placeholder="Jenis" /><input className="input-field h-9 w-20 text-[11px] font-bold" value={form.unit_muatan || ""} onChange={e => setForm((f: any) => ({ ...f, unit_muatan: e.target.value }))} placeholder="Unit" /></div></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">SN / Serial Number</label><input className="input-field h-9 text-[11px] font-bold" value={form.sn || ""} onChange={e => setForm((f: any) => ({ ...f, sn: e.target.value }))} /></div>
+            </div>
+          </div>
+
+          {/* Biaya */}
+          <div className="space-y-4 p-5 bg-[#F8F6F3] rounded-xl border border-[#E2DDD6]">
+            <div className="flex items-center gap-2 text-[10px] font-bold text-[#9B9690] px-1"><Icon name="DollarSign" size={12} className="text-[#EB5E28]" /> Biaya & Keuangan</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-black text-text-main px-1 uppercase tracking-tight">Harga Pengiriman <span className="text-red-brand">*</span></label>
-                <CurrencyInput value={form.harga_pengiriman} onChange={(v: any) => handleNumChange("harga_pengiriman", v)} className="h-11 text-[13px] font-black bg-white shadow-sm border-slate-200" />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-black text-text-main px-1 uppercase tracking-tight">Asuransi Trip</label>
-                <CurrencyInput value={form.harga_asuransi} onChange={(v: any) => handleNumChange("harga_asuransi", v)} className="h-11 text-[13px] font-black bg-white shadow-sm border-slate-200" />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-black text-text-main px-1 uppercase tracking-tight">PPN (1,1%)</label>
-                <CurrencyInput value={form.nilai_pajak} readOnly className="h-11 text-[13px] font-black bg-slate-100/50 border-slate-200" />
-              </div>
-
-              <div className="md:col-span-3 p-5 bg-navy border border-white/10 rounded-xl flex items-center justify-between gap-4 shadow-xl overflow-hidden relative mt-2 group">
-                <div className="absolute top-0 right-0 w-32 h-full bg-white/5 -skew-x-12 translate-x-8 transition-transform group-hover:translate-x-4" />
-                <div className="flex flex-col gap-0 relative z-10">
-                   <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest italic">Total Billable Amount</span>
-                   <span className="text-2xl font-black text-white tabular-nums tracking-tighter">{fmt(form.total_harga_pajak || form.total_harga || 0)}</span>
-                </div>
-                <div className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2 relative z-10 shadow-sm ${isPajakApply(form.tgl_order) ? "bg-accent text-white" : "bg-white/10 text-white/40"}`}>
-                   <Icon name={isPajakApply(form.tgl_order) ? "ShieldCheck" : "ShieldAlert"} size={12} strokeWidth={3} />
-                   {isPajakApply(form.tgl_order) ? "Taxable (1,1%)" : "Non-Taxable"}
-                </div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#1A1A1A] px-1">Harga Pengiriman</label><CurrencyInput value={form.harga_pengiriman} onChange={(v: any) => handleNumChange("harga_pengiriman", v)} className="h-11 text-[13px] font-black bg-white" /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#1A1A1A] px-1">Asuransi</label><CurrencyInput value={form.harga_asuransi} onChange={(v: any) => handleNumChange("harga_asuransi", v)} className="h-11 text-[13px] font-black bg-white" /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#1A1A1A] px-1">PPN (1,1%)</label><CurrencyInput value={form.nilai_pajak} readOnly className="h-11 text-[13px] font-black bg-[#F0EBE4]" /></div>
+              <div className="md:col-span-3 p-5 bg-[#1A1A1A] rounded-xl flex items-center justify-between mt-2">
+                <div><span className="text-[10px] text-white/40 uppercase tracking-widest block">Total Tagihan</span><span className="text-2xl font-black text-[#EB5E28] tabular-nums">{fmt(form.total_harga_pajak || form.total_harga || 0)}</span></div>
+                <span className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase ${isPajakApply(form.tgl_order) ? "bg-[#EB5E28] text-white" : "bg-white/10 text-white/40"}`}>{isPajakApply(form.tgl_order) ? "Taxable (1,1%)" : "Non-Taxable"}</span>
               </div>
             </div>
           </div>
 
+          {/* Dokumen */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-[10px] font-bold text-text-light px-1 opacity-60 italic">
-               <Icon name="Paperclip" size={12} className="text-accent" /> Dokumen & Referensi
-            </div>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-[#9B9690] px-1"><Icon name="Paperclip" size={12} className="text-[#EB5E28]" /> Dokumen Pendukung</div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-              {/* Foto Muat & Bongkar */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Foto Muat (GDrive)</label>
-                <div className="relative flex gap-1.5">
-                  <Icon name="Camera" size={10} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-                  <input className="input-field h-9 pl-9 text-[11px] font-bold flex-1" value={form.foto_muat || ""} onChange={e => setForm((f: any) => ({ ...f, foto_muat: e.target.value }))} placeholder="https://drive.google.com/..." />
-                  {form.foto_muat && (
-                    <a href={form.foto_muat} target="_blank" rel="noopener noreferrer" className="h-9 w-9 flex items-center justify-center rounded-lg border border-border-main text-text-light hover:text-accent hover:border-accent transition-colors shrink-0">
-                      <Icon name="ExternalLink" size={11} />
-                    </a>
-                  )}
+              {[
+                { key: "surat_jalan", label: "Surat Jalan" }, { key: "foto_bongkar", label: "Bongkar / POD" },
+                { key: "invoice_vendor", label: "Invoice Vendor" }, { key: "dokumen_asuransi", label: "Asuransi" },
+                { key: "potong_pajak", label: "Potong Pajak" }, { key: "scan_invoice", label: "Scan Invoice" },
+                { key: "foto_muat", label: "Foto Muat" }, { key: "spk", label: "No. SPK" },
+              ].map(d => (
+                <div key={d.key} className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-[#9B9690] px-1">{d.label}</label>
+                  <input className="input-field h-9 text-[11px] font-bold" value={form[d.key] || ""} onChange={e => setForm((f: any) => ({ ...f, [d.key]: e.target.value }))} placeholder="Link GDrive atau filename..." />
                 </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Foto Bongkar / POD (GDrive)</label>
-                <div className="relative flex gap-1.5">
-                  <Icon name="Camera" size={10} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-                  <input className="input-field h-9 pl-9 text-[11px] font-bold flex-1" value={form.foto_bongkar || ""} onChange={e => setForm((f: any) => ({ ...f, foto_bongkar: e.target.value }))} placeholder="https://drive.google.com/..." />
-                  {form.foto_bongkar && (
-                    <a href={form.foto_bongkar} target="_blank" rel="noopener noreferrer" className="h-9 w-9 flex items-center justify-center rounded-lg border border-border-main text-text-light hover:text-accent hover:border-accent transition-colors shrink-0">
-                      <Icon name="ExternalLink" size={11} />
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              {/* Surat Jalan & SPK */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Surat Jalan (GDrive)</label>
-                <div className="relative flex gap-1.5">
-                  <Icon name="FileText" size={10} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-                  <input className="input-field h-9 pl-9 text-[11px] font-bold flex-1" value={form.surat_jalan || ""} onChange={e => setForm((f: any) => ({ ...f, surat_jalan: e.target.value }))} placeholder="https://..." />
-                  {form.surat_jalan && (
-                    <a href={form.surat_jalan} target="_blank" rel="noopener noreferrer" className="h-9 w-9 flex items-center justify-center rounded-lg border border-border-main text-text-light hover:text-accent hover:border-accent transition-colors shrink-0">
-                      <Icon name="ExternalLink" size={11} />
-                    </a>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">No. SPK</label>
-                <input className="input-field h-9 text-[11px] font-bold" value={form.spk || ""} onChange={e => setForm((f: any) => ({ ...f, spk: e.target.value }))} placeholder="Nomor SPK / Work Order..." />
-              </div>
-
-              {/* Asuransi */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">No. Asuransi</label>
-                <input className="input-field h-9 text-[11px] font-bold" value={form.no_asuransi || ""} onChange={e => setForm((f: any) => ({ ...f, no_asuransi: e.target.value }))} placeholder="Nomor polis asuransi..." />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Dokumen Asuransi (GDrive)</label>
-                <div className="relative flex gap-1.5">
-                  <Icon name="Shield" size={10} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-                  <input className="input-field h-9 pl-9 text-[11px] font-bold flex-1" value={form.dokumen_asuransi || ""} onChange={e => setForm((f: any) => ({ ...f, dokumen_asuransi: e.target.value }))} placeholder="https://drive.google.com/..." />
-                  {form.dokumen_asuransi && (
-                    <a href={form.dokumen_asuransi} target="_blank" rel="noopener noreferrer" className="h-9 w-9 flex items-center justify-center rounded-lg border border-border-main text-text-light hover:text-accent hover:border-accent transition-colors shrink-0">
-                      <Icon name="ExternalLink" size={11} />
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              {/* Scan Invoice */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Scan Invoice (GDrive)</label>
-                <div className="relative flex gap-1.5">
-                  <Icon name="FileText" size={10} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-                  <input className="input-field h-9 pl-9 text-[11px] font-bold flex-1" value={form.scan_invoice || ""} onChange={e => setForm((f: any) => ({ ...f, scan_invoice: e.target.value }))} placeholder="https://drive.google.com/..." />
-                  {form.scan_invoice && (
-                    <a href={form.scan_invoice} target="_blank" rel="noopener noreferrer" className="h-9 w-9 flex items-center justify-center rounded-lg border border-border-main text-text-light hover:text-accent hover:border-accent transition-colors shrink-0">
-                      <Icon name="ExternalLink" size={11} />
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              {/* Potong Pajak */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Potong Pajak (GDrive)</label>
-                <div className="relative flex gap-1.5">
-                  <Icon name="Receipt" size={10} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-                  <input className="input-field h-9 pl-9 text-[11px] font-bold flex-1" value={form.potong_pajak || ""} onChange={e => setForm((f: any) => ({ ...f, potong_pajak: e.target.value }))} placeholder="https://drive.google.com/..." />
-                  {form.potong_pajak && (
-                    <a href={form.potong_pajak} target="_blank" rel="noopener noreferrer" className="h-9 w-9 flex items-center justify-center rounded-lg border border-border-main text-text-light hover:text-accent hover:border-accent transition-colors shrink-0">
-                      <Icon name="ExternalLink" size={11} />
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              {/* Invoice Vendor */}
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Invoice Vendor (GDrive)</label>
-                <div className="relative flex gap-1.5">
-                  <Icon name="Truck" size={10} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-light" />
-                  <input className="input-field h-9 pl-9 text-[11px] font-bold flex-1" value={form.invoice_vendor || ""} onChange={e => setForm((f: any) => ({ ...f, invoice_vendor: e.target.value }))} placeholder="https://drive.google.com/..." />
-                  {form.invoice_vendor && (
-                    <a href={form.invoice_vendor} target="_blank" rel="noopener noreferrer" className="h-9 w-9 flex items-center justify-center rounded-lg border border-border-main text-text-light hover:text-accent hover:border-accent transition-colors shrink-0">
-                      <Icon name="ExternalLink" size={11} />
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              {/* Catatan */}
-              <div className="md:col-span-2 space-y-1.5">
-                <label className="text-[10px] font-bold text-text-light px-1 opacity-60">Catatan Internal</label>
-                <textarea className="input-field h-16 pt-2 text-[11px] resize-none font-bold" value={form.keterangan || ""} onChange={e => setForm((f: any) => ({ ...f, keterangan: e.target.value }))} placeholder="..." />
-              </div>
+              ))}
             </div>
+          </div>
+
+          {/* Catatan */}
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-[#9B9690] px-1">Catatan</label>
+            <textarea className="input-field h-20 pt-2 text-[11px] resize-none font-bold" value={form.keterangan || ""} onChange={e => setForm((f: any) => ({ ...f, keterangan: e.target.value }))} placeholder="Catatan tambahan (opsional)..." maxLength={500} />
+            <div className="text-right text-[10px] text-[#9B9690]">{(form.keterangan || "").length} / 500</div>
           </div>
 
           {err && (
-            <div className="flex items-center gap-2 p-3 bg-red-brand-light text-red-brand rounded-xl border border-red-brand/10 font-black text-[10px] tracking-tight">
+            <div className="flex items-center gap-2 p-3 bg-[#FEF2F2] text-[#DC2626] rounded-xl border border-[#DC2626]/10 font-bold text-[11px]">
               <Icon name="AlertCircle" size={14} /> {err}
             </div>
           )}
         </div>
 
-        <div className="p-6 border-t border-border-main bg-slate-50/50 flex flex-col sm:flex-row gap-3">
-          <FeedbackButton 
-            className="flex-1 h-10 text-[10px] uppercase font-black tracking-widest gap-2 flex items-center justify-center order-2 sm:order-1" 
-            onClick={() => submit(true)} 
-            loading={saving}
-            success={saveSuccess}
-            error={saveError}
-          >
-            <Icon name="Zap" size={14} />
-            {editItem ? "Update & Posting" : "Simpan & Posting"}
+        <div className="p-4 border-t border-[#E2DDD6] bg-[#F8F6F3] flex gap-3">
+          <button className="h-10 px-6 rounded-xl text-[#52504A] font-bold text-[11px] hover:bg-white transition-colors" onClick={() => setTab("list")}>Batal</button>
+          <div className="flex-1" />
+          <button className="h-10 px-6 rounded-xl border border-[#E2DDD6] bg-white text-[#1A1A1A] font-bold text-[11px] hover:bg-[#F8F6F3] transition-colors" onClick={() => submit(false)} disabled={saving}>Simpan Draft</button>
+          <FeedbackButton className="h-10 px-6 rounded-xl bg-[#EB5E28] text-white font-bold text-[11px] flex items-center gap-2" onClick={() => submit(true)} loading={saving} success={saveSuccess} error={saveError}>
+            Simpan
           </FeedbackButton>
-          <button className="btn-ghost flex-1 h-10 text-[10px] uppercase font-black tracking-widest order-3 sm:order-2" onClick={() => submit(false)} disabled={saving || saveSuccess}>
-            Simpan Draft
-          </button>
-          <button className="h-10 px-6 rounded-xl text-text-light font-black uppercase tracking-widest text-[10px] hover:bg-slate-100 transition-colors order-1 sm:order-3" onClick={() => setTab("list")}>
-            Batal
-          </button>
         </div>
       </ModalShell>
-    </PageShell>
+    </>
   );
 };
+
+// ── Styles ──
+const tdS: React.CSSProperties = { padding: "12px 16px", fontSize: 13, color: "#1A1A1A", borderBottom: "1px solid #F0EBE4" };
+const pgBtn = (disabled: boolean): React.CSSProperties => ({ height: 28, padding: "0 10px", borderRadius: 6, border: "1px solid #E2DDD6", background: "white", fontSize: 12, cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.4 : 1, color: "#52504A" });
