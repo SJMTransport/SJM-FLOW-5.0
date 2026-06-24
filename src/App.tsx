@@ -1792,15 +1792,6 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
 
           <div style={{ flex: 1 }} />
 
-          {/* Period filter */}
-          <div style={{ height: 36, border: '1px solid #E2DDD6', borderRadius: 8, background: 'white', display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', cursor: 'pointer', flexShrink: 0 }}>
-            <CalendarBlank size={16} style={{ color: '#52504A' }} />
-            <span style={{ fontSize: 13, color: '#1A1A1A', whiteSpace: 'nowrap' }}>
-              Bulan Ini | {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} - {new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-            </span>
-            <CaretDown size={14} style={{ color: '#9B9690' }} />
-          </div>
-
           {/* Bell */}
           <div
             onClick={() => navigate("/armada")}
