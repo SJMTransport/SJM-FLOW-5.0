@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { fmtShort, filterByPeriod } from "@/src/utils";
 import { useCompany } from "@/src/context/CompanyContext";
 import { useNavigate } from "react-router-dom";
-import { Truck, ClockCountdown, WarningCircle, ChartLineUp, Receipt, ClipboardText, CalendarBlank, Users, NavigationArrow, CaretRight, CaretLeft, Plus, DotsThree, Package, Van, UserCircle, Warning, Funnel } from "@phosphor-icons/react";
+import { Truck, ClockCountdown, WarningCircle, ChartLineUp, Receipt, ClipboardText, CalendarBlank, Users, NavigationArrow, CaretRight, CaretLeft, CaretDown, DotsThree, Package, Van, UserCircle, Warning, Funnel } from "@phosphor-icons/react";
 
 const fmt = (n: number) => new Intl.NumberFormat("id-ID").format(Math.round(n));
 
@@ -163,28 +163,21 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
     <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 56px)", padding: "20px 24px", gap: 12, overflow: "hidden", background: "#F5F4F1", boxSizing: "border-box" as any }}>
 
       {/* [1] HEADER ROW */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexShrink: 0 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: "#1A1A1A" }}>
             Selamat {getGreeting()}, {firstName} 👋
           </h1>
+          <p style={{ fontSize: 13, color: "#52504A", marginTop: 4, marginBottom: 0 }}>
+            Ringkasan operasional hari ini
+          </p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {[
-            { label: "SO Baru", path: "/sales-order" },
-            { label: "Update Muatan", path: "/update-muatan" },
-            { label: "Invoice Baru", path: "/invoice" },
-          ].map(q => (
-            <button
-              key={q.label}
-              onClick={() => navigate(q.path)}
-              style={{ height: 36, padding: "0 16px", borderRadius: 8, fontSize: 13, fontWeight: 500, border: "1px solid #E2DDD6", background: "white", color: "#1A1A1A", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, transition: "all 150ms ease" }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "#EB5E28"; e.currentTarget.style.color = "#EB5E28"; e.currentTarget.style.background = "#FEF0E8"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "#E2DDD6"; e.currentTarget.style.color = "#1A1A1A"; e.currentTarget.style.background = "white"; }}
-            >
-              <Plus size={14} /> {q.label}
-            </button>
-          ))}
+        <div style={{ height: 36, border: "1px solid #E2DDD6", borderRadius: 8, background: "white", display: "flex", alignItems: "center", gap: 8, padding: "0 12px", cursor: "pointer", flexShrink: 0 }}>
+          <CalendarBlank size={16} style={{ color: "#52504A" }} />
+          <span style={{ fontSize: 13, color: "#1A1A1A", whiteSpace: "nowrap" }}>
+            {new Date(period.year, period.month, 1).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} - {new Date(period.year, period.month + 1, 0).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+          </span>
+          <CaretDown size={14} style={{ color: "#9B9690" }} />
         </div>
       </div>
 
@@ -317,8 +310,10 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
                         </td>
                         <td style={{ padding: "10px 12px", fontSize: 13, color: "#1A1A1A", fontVariantNumeric: "tabular-nums", borderBottom: "1px solid #F0EBE4" }}>{fmtTglMuat(s.tgl_muat)}</td>
                         <td style={{ padding: "10px 12px", fontSize: 13, color: "#1A1A1A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", borderBottom: "1px solid #F0EBE4" }} title={s.customer || ""}>{s.customer || "—"}</td>
-                        <td style={{ padding: "10px 12px", fontSize: 13, color: "#1A1A1A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", borderBottom: "1px solid #F0EBE4" }} title={`${s.lokasi_muat || ""} → ${s.lokasi_bongkar || ""}`}>
-                          {s.lokasi_muat || "—"} → {s.lokasi_bongkar || "—"}
+                        <td style={{ padding: "10px 12px", borderBottom: "1px solid #F0EBE4" }} title={`${s.lokasi_muat || ""} → ${s.lokasi_bongkar || ""}`}>
+                          <div style={{ fontSize: 13, color: "#1A1A1A", lineHeight: 1.3 }}>{s.lokasi_muat || "—"}</div>
+                          <div style={{ fontSize: 11, color: "#9B9690", margin: "1px 0" }}>↓</div>
+                          <div style={{ fontSize: 13, color: "#1A1A1A", lineHeight: 1.3 }}>{s.lokasi_bongkar || "—"}</div>
                         </td>
                         <td style={{ padding: "10px 12px", borderBottom: "1px solid #F0EBE4" }}>
                           <div style={{ fontSize: 13, fontWeight: 500, color: "#1A1A1A", lineHeight: 1.3 }}>{s.nama_sopir || "—"}</div>
