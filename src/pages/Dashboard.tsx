@@ -160,89 +160,88 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
   const firstName = currentUser?.nama?.split(" ")[0] || currentUser?.email?.split("@")[0] || "User";
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 56px)", padding: "20px 24px", gap: 12, overflow: "hidden", background: "#F5F4F1", boxSizing: "border-box" as any }}>
+    <div style={{ display: "flex", height: "calc(100vh - 56px)", overflow: "hidden", background: "#F5F4F1", boxSizing: "border-box" as any }}>
 
-      {/* [1] HEADER ROW */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: "#1A1A1A" }}>
-            Selamat {getGreeting()}, {firstName} 👋
-          </h1>
-          <p style={{ fontSize: 13, color: "#52504A", marginTop: 4, marginBottom: 0 }}>
-            Ringkasan operasional hari ini
-          </p>
-        </div>
-        <div style={{ height: 36, border: "1px solid #E2DDD6", borderRadius: 8, background: "white", display: "flex", alignItems: "center", gap: 8, padding: "0 12px", cursor: "pointer", flexShrink: 0 }}>
-          <CalendarBlank size={16} style={{ color: "#52504A" }} />
-          <span style={{ fontSize: 13, color: "#1A1A1A", whiteSpace: "nowrap" }}>
-            {new Date(period.year, period.month, 1).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} - {new Date(period.year, period.month + 1, 0).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
-          </span>
-          <CaretDown size={14} style={{ color: "#9B9690" }} />
-        </div>
-      </div>
+      {/* ═══ LEFT COLUMN ═══ */}
+      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", padding: "20px 24px", gap: 12, overflow: "hidden" }}>
 
-      {/* [2] KPI ROW 1 — Operasional */}
-      <div style={{ flexShrink: 0 }}>
-        <div style={{ fontSize: 10, fontWeight: 600, color: "#9B9690", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8 }}>Ringkasan Operasional</div>
-        <div style={{ display: "flex", gap: 12, flexShrink: 0 }}>
-          {[
-            { icon: <Truck size={24} />, iconBg: "#DBEAFE", iconColor: "#2563EB", value: soAktif, label: "SO Aktif", onClick: () => navigate("/sales-order") },
-            { icon: <ClockCountdown size={24} />, iconBg: "#FEF3C7", iconColor: "#D97706", value: soMenungguKonfirmasi, label: "Menunggu Konfirmasi", onClick: () => navigate("/sales-order") },
-            { icon: <WarningCircle size={24} />, iconBg: "#FEE2E2", iconColor: "#DC2626", value: soTidakAdaUpdate, label: "Tidak Ada Update >12 Jam", onClick: () => navigate("/update-muatan") },
-          ].map((k) => (
-            <div
-              key={k.label}
-              onClick={k.onClick}
-              style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "all 150ms ease", flex: 1 }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "#EB5E28"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(235,94,40,0.08)"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "#E2DDD6"; e.currentTarget.style.boxShadow = "none"; }}
-            >
-              <div style={{ width: 48, height: 48, borderRadius: 12, background: k.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: k.iconColor }}>{k.icon}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: "#52504A", marginBottom: 4 }}>{k.label}</div>
-                <div style={{ fontSize: 28, fontWeight: 700, color: "#1A1A1A", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
-              </div>
-              <CaretRight size={16} color="#9B9690" style={{ flexShrink: 0 }} />
-            </div>
-          ))}
+        {/* [1] HEADER ROW */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: "#1A1A1A" }}>
+              Selamat {getGreeting()}, {firstName} 👋
+            </h1>
+            <p style={{ fontSize: 13, color: "#52504A", marginTop: 4, marginBottom: 0 }}>
+              Ringkasan operasional hari ini
+            </p>
+          </div>
+          <div style={{ height: 36, border: "1px solid #E2DDD6", borderRadius: 8, background: "white", display: "flex", alignItems: "center", gap: 8, padding: "0 12px", cursor: "pointer", flexShrink: 0 }}>
+            <CalendarBlank size={16} style={{ color: "#52504A" }} />
+            <span style={{ fontSize: 13, color: "#1A1A1A", whiteSpace: "nowrap" }}>
+              {new Date(period.year, period.month, 1).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} - {new Date(period.year, period.month + 1, 0).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+            </span>
+            <CaretDown size={14} style={{ color: "#9B9690" }} />
+          </div>
         </div>
-      </div>
 
-      {/* [3] KPI ROW 2 — Keuangan */}
-      {isFinanceRole && (
+        {/* [2] KPI ROW 1 — Operasional */}
         <div style={{ flexShrink: 0 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, color: "#9B9690", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8 }}>Ringkasan Keuangan</div>
-          <div style={{ display: "flex", gap: 12, flexShrink: 0 }}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: "#9B9690", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8 }}>Ringkasan Operasional</div>
+          <div style={{ display: "flex", gap: 12 }}>
             {[
-              { icon: <ChartLineUp size={24} />, iconBg: "#DCFCE7", iconColor: "#16A34A", value: `Rp ${fmt(revenueBulanIni)}`, label: "Revenue Bulan Ini", onClick: () => navigate("/laporan") },
-              { icon: <Receipt size={24} />, iconBg: "#FEE2E2", iconColor: "#DC2626", value: "0", label: "Invoice Belum Lunas", onClick: () => navigate("/invoice") },
-              { icon: <ClipboardText size={24} />, iconBg: "#FEF3C7", iconColor: "#D97706", value: `${soBelumDiinvoice}`, label: "SO Belum Diinvoice", onClick: () => navigate("/sales-order") },
+              { icon: <Truck size={24} />, iconBg: "#DBEAFE", iconColor: "#2563EB", value: soAktif, label: "SO Aktif", onClick: () => navigate("/operasional/so") },
+              { icon: <ClockCountdown size={24} />, iconBg: "#FEF3C7", iconColor: "#D97706", value: soMenungguKonfirmasi, label: "Menunggu Konfirmasi", onClick: () => navigate("/operasional/so") },
+              { icon: <WarningCircle size={24} />, iconBg: "#FEE2E2", iconColor: "#DC2626", value: soTidakAdaUpdate, label: "Tidak Update >12 Jam", onClick: () => navigate("/operasional/muatan") },
             ].map((k) => (
               <div
                 key={k.label}
                 onClick={k.onClick}
-                style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "all 150ms ease", flex: 1 }}
+                style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "all 150ms ease", flex: 1 }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "#EB5E28"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(235,94,40,0.08)"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "#E2DDD6"; e.currentTarget.style.boxShadow = "none"; }}
               >
                 <div style={{ width: 48, height: 48, borderRadius: 12, background: k.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: k.iconColor }}>{k.icon}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, color: "#52504A", marginBottom: 4 }}>{k.label}</div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: "#1A1A1A", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: "#1A1A1A", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
                 </div>
                 <CaretRight size={16} color="#9B9690" style={{ flexShrink: 0 }} />
               </div>
             ))}
           </div>
         </div>
-      )}
 
-      {/* [4] CONTENT ROW */}
-      <div style={{ display: "flex", gap: 16, flex: 1, minHeight: 0, overflow: "hidden" }}>
+        {/* [3] KPI ROW 2 — Keuangan */}
+        {isFinanceRole && (
+          <div style={{ flexShrink: 0 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: "#9B9690", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 8 }}>Ringkasan Keuangan</div>
+            <div style={{ display: "flex", gap: 12 }}>
+              {[
+                { icon: <ChartLineUp size={24} />, iconBg: "#DCFCE7", iconColor: "#16A34A", value: `Rp ${fmt(revenueBulanIni)}`, label: "Revenue Bulan Ini", onClick: () => navigate("/laporan/laba-rugi") },
+                { icon: <Receipt size={24} />, iconBg: "#FEE2E2", iconColor: "#DC2626", value: `${totalPiutang > 0 ? fmt(totalPiutang) : "0"}`, label: "Invoice Belum Lunas", onClick: () => navigate("/operasional/invoice") },
+                { icon: <ClipboardText size={24} />, iconBg: "#FEF3C7", iconColor: "#D97706", value: `${soBelumDiinvoice}`, label: "SO Belum Diinvoice", onClick: () => navigate("/operasional/so") },
+              ].map((k) => (
+                <div
+                  key={k.label}
+                  onClick={k.onClick}
+                  style={{ background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "all 150ms ease", flex: 1 }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = "#EB5E28"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(235,94,40,0.08)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = "#E2DDD6"; e.currentTarget.style.boxShadow = "none"; }}
+                >
+                  <div style={{ width: 48, height: 48, borderRadius: 12, background: k.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: k.iconColor }}>{k.icon}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, color: "#52504A", marginBottom: 4 }}>{k.label}</div>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: "#1A1A1A", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
+                  </div>
+                  <CaretRight size={16} color="#9B9690" style={{ flexShrink: 0 }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-        {/* LEFT — Shipment Table */}
-        <div style={{ flex: 1, minWidth: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 12, display: "flex", flexDirection: "column", overflow: "hidden", minHeight: 0 }}>
-          {/* Toolbar */}
+        {/* [4] SHIPMENT TABLE */}
+        <div style={{ flex: 1, minHeight: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 12, display: "flex", flexDirection: "column", overflow: "hidden" }}>
           <div style={{ padding: "12px 16px", borderBottom: "1px solid #E2DDD6", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
             <span style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "#9B9690" }}>Shipment Aktif</span>
             <div style={{ display: "flex", gap: 8 }}>
@@ -261,19 +260,18 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
             </div>
           </div>
 
-          {/* Table */}
           <div style={{ flex: 1, overflowY: "auto", overflowX: "auto", minHeight: 0 }}>
             <table style={{ width: "100%", tableLayout: "fixed", borderCollapse: "collapse" }}>
               <colgroup>
-                <col style={{ width: 130 }} />
-                <col style={{ width: 100 }} />
-                <col style={{ width: 150 }} />
-                <col style={{ width: 160 }} />
-                <col style={{ width: 160 }} />
                 <col style={{ width: 120 }} />
+                <col style={{ width: 95 }} />
+                <col style={{ width: 160 }} />
+                <col style={{ width: 140 }} />
+                <col style={{ width: 150 }} />
+                <col style={{ width: 115 }} />
                 <col style={{ width: 90 }} />
                 <col style={{ width: 100 }} />
-                <col style={{ width: 40 }} />
+                <col style={{ width: 32 }} />
               </colgroup>
               <thead style={{ position: "sticky", top: 0, zIndex: 1, background: "#F8F6F3" }}>
                 <tr>
@@ -288,7 +286,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
                     { label: "NILAI", align: "right" },
                     { label: "⋮", align: "center" },
                   ].map((h) => (
-                    <th key={h.label} style={{ textAlign: h.align as any, padding: "10px 12px", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "#9B9690", borderBottom: "1px solid #E2DDD6", whiteSpace: "nowrap", cursor: h.label.includes("↕") ? "pointer" : "default" }}>{h.label}</th>
+                    <th key={h.label} style={{ textAlign: h.align as any, padding: "10px 12px", fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", color: "#9B9690", borderBottom: "1px solid #E2DDD6", whiteSpace: "nowrap" }}>{h.label}</th>
                   ))}
                 </tr>
               </thead>
@@ -328,7 +326,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
                           {["On Going", "Loading", "Completed"].includes(s.status_muatan) ? calcDurasi(s) : "—"}
                         </td>
                         <td style={{ padding: "10px 12px", textAlign: "right", fontSize: 13, fontWeight: 600, color: "#1A1A1A", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", borderBottom: "1px solid #F0EBE4" }}>
-                          Rp {fmt(Number(s.total_harga_pajak || s.total_harga || s.harga_pengiriman || 0))}
+                          Rp{fmt(Number(s.total_harga_pajak || s.total_harga || s.harga_pengiriman || 0))}
                         </td>
                         <td style={{ padding: "10px 12px", textAlign: "center", borderBottom: "1px solid #F0EBE4" }}>
                           <span style={{ fontSize: 16, color: "#9B9690", cursor: "pointer" }}>⋮</span>
@@ -341,7 +339,6 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
             </table>
           </div>
 
-          {/* Pagination */}
           <div style={{ padding: "10px 16px", borderTop: "1px solid #E2DDD6", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0, fontSize: 12, color: "#52504A" }}>
             <span>
               Menampilkan {shipmentFiltered.length === 0 ? 0 : (shipmentPage - 1) * SHIPMENT_PER_PAGE + 1} - {Math.min(shipmentPage * SHIPMENT_PER_PAGE, shipmentFiltered.length)} dari {shipmentFiltered.length} data
@@ -384,91 +381,91 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
             </div>
           </div>
         </div>
+      </div>
 
-        {/* RIGHT — Panel 300px */}
-        <div style={{ width: 300, flexShrink: 0, display: "flex", flexDirection: "column", gap: 12, overflow: "hidden", minHeight: 0 }}>
+      {/* ═══ RIGHT COLUMN — full height ═══ */}
+      <div style={{ width: 300, flexShrink: 0, display: "flex", flexDirection: "column", gap: 12, padding: "20px 24px 20px 0", overflowY: "auto", minHeight: 0 }}>
 
-          {/* Dispatcher Hari Ini */}
-          <div style={{ flexShrink: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: 14 }}>
-            <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px", color: "#9B9690", marginBottom: 12 }}>Dispatcher Hari Ini</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-              {dispatcherItems.map((d) => (
-                <div key={d.label} style={{ background: "#F8F6F3", borderRadius: 8, padding: 10, display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{d.icon}</div>
-                  <div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A1A", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{d.value}</div>
-                    <div style={{ fontSize: 10, color: "#52504A", marginTop: 3 }}>{d.label}</div>
-                  </div>
+        {/* Dispatcher Hari Ini */}
+        <div style={{ flexShrink: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: 14 }}>
+          <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px", color: "#9B9690", marginBottom: 12 }}>Dispatcher Hari Ini</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {dispatcherItems.map((d) => (
+              <div key={d.label} style={{ background: "#F8F6F3", borderRadius: 8, padding: 10, display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{d.icon}</div>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A1A", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{d.value}</div>
+                  <div style={{ fontSize: 10, color: "#52504A", marginTop: 3 }}>{d.label}</div>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Aktivitas Terbaru */}
-          <div style={{ flexShrink: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: 14 }}>
-            <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px", color: "#9B9690", marginBottom: 8 }}>Aktivitas Terbaru</div>
-            {recentCargoActivity.length === 0 ? (
-              <div style={{ padding: "16px 0", textAlign: "center", fontSize: 13, color: "#9B9690" }}>Belum ada aktivitas</div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {recentCargoActivity.map((l: any, i: number) => {
-                  const ac = ACTIVITY_ICON_COLORS[l.status] || { bg: "#FEF0E8", color: "#EB5E28" };
-                  const sc = STATUS_COLORS[l.status] || { bg: "#F3F4F6", color: "#6B7280" };
-                  return (
-                    <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "8px 0", borderBottom: i < recentCargoActivity.length - 1 ? "1px solid #F0EBE4" : "none" }}>
-                      <div style={{ width: 28, height: 28, borderRadius: "50%", background: ac.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-                        <ClipboardText size={14} style={{ color: ac.color }} />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 12, fontWeight: 500, color: "#1A1A1A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          <button onClick={() => onSOClick?.(l.order_id)} style={{ color: "#EB5E28", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0, fontSize: 12 }}>{l.order_id}</button>
-                          {" "}<span style={{ color: "#52504A", fontWeight: 400 }}>{l.location ? `· ${l.location}` : ""}</span>
-                        </div>
-                        <div style={{ fontSize: 11, color: "#9B9690", marginTop: 2 }}>{l.customer || "oleh Operator"}</div>
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2, flexShrink: 0 }}>
-                        <span style={{ fontSize: 11, color: "#9B9690", whiteSpace: "nowrap" }}>{l.time || ""}</span>
-                        <span style={{ display: "inline-flex", padding: "2px 6px", borderRadius: 999, fontSize: 10, fontWeight: 500, background: sc.bg, color: sc.color, whiteSpace: "nowrap" }}>
-                          {l.status}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            <div
-              onClick={() => navigate("/log-aktivitas")}
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "#F8F6F3", borderRadius: 8, marginTop: 8, fontSize: 12, fontWeight: 500, color: "#EB5E28", cursor: "pointer", transition: "background 150ms ease" }}
-              onMouseEnter={e => { e.currentTarget.style.background = "#FEF0E8"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = "#F8F6F3"; }}
-            >
-              <span>Lihat semua aktivitas</span>
-              <CaretRight size={14} />
-            </div>
-          </div>
-
-          {/* Action Center */}
-          <div style={{ flex: 1, overflowY: "auto", background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: 14 }}>
-            <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px", color: "#9B9690", marginBottom: 8 }}>Action Center</div>
-            {[
-              { severity: "critical", count: soDraft, label: "Sales Order masih berupa Draft", icon: <Warning size={16} style={{ color: "#DC2626" }} />, iconBg: "#FEE2E2", border: "#DC2626", bg: "#FEF2F2", action: () => navigate("/sales-order") },
-              { severity: "high", count: soBelumDiinvoice, label: "SO belum diinvoice", icon: <ClipboardText size={16} style={{ color: "#EA580C" }} />, iconBg: "#FEF3C7", border: "#EA580C", bg: "#FFF7ED", action: () => navigate("/sales-order") },
-              { severity: "medium", count: soTidakAdaUpdate, label: "Shipment tidak update >12 jam", icon: <ClockCountdown size={16} style={{ color: "#D97706" }} />, iconBg: "#FEF3C7", border: "#D97706", bg: "#FFFBEB", action: () => navigate("/update-muatan") },
-              { severity: "info", count: 0, label: "Invoice jatuh tempo minggu ini", icon: <Info size={16} style={{ color: "#2563EB" }} />, iconBg: "#DBEAFE", border: "#2563EB", bg: "#EFF6FF", action: () => navigate("/invoice") },
-            ].filter(a => a.count > 0 || a.severity === "info").map((a, i) => (
-              <div
-                key={i}
-                onClick={a.action}
-                style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, marginBottom: 6, cursor: "pointer", borderLeft: `3px solid ${a.border}`, background: a.bg, transition: "all 150ms ease" }}
-              >
-                <div style={{ width: 28, height: 28, borderRadius: 6, background: a.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{a.icon}</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A1A", minWidth: 36, fontVariantNumeric: "tabular-nums" }}>{a.count}</div>
-                <div style={{ flex: 1, fontSize: 12, color: "#52504A", lineHeight: 1.3 }}>{a.label}</div>
-                <CaretRight size={14} style={{ color: "#9B9690", flexShrink: 0 }} />
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Aktivitas Terbaru */}
+        <div style={{ flexShrink: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: 14 }}>
+          <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px", color: "#9B9690", marginBottom: 8 }}>Aktivitas Terbaru</div>
+          {recentCargoActivity.length === 0 ? (
+            <div style={{ padding: "16px 0", textAlign: "center", fontSize: 13, color: "#9B9690" }}>Belum ada aktivitas</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {recentCargoActivity.map((l: any, i: number) => {
+                const ac = ACTIVITY_ICON_COLORS[l.status] || { bg: "#FEF0E8", color: "#EB5E28" };
+                const sc = STATUS_COLORS[l.status] || { bg: "#F3F4F6", color: "#6B7280" };
+                return (
+                  <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "8px 0", borderBottom: i < recentCargoActivity.length - 1 ? "1px solid #F0EBE4" : "none" }}>
+                    <div style={{ width: 28, height: 28, borderRadius: "50%", background: ac.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                      <ClipboardText size={14} style={{ color: ac.color }} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 500, color: "#1A1A1A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <button onClick={() => onSOClick?.(l.order_id)} style={{ color: "#EB5E28", fontWeight: 600, background: "none", border: "none", cursor: "pointer", padding: 0, fontSize: 12 }}>{l.order_id}</button>
+                        {" "}<span style={{ color: "#52504A", fontWeight: 400 }}>{l.location ? `· ${l.location}` : ""}</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: "#9B9690", marginTop: 2 }}>{l.customer || "oleh Operator"}</div>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2, flexShrink: 0 }}>
+                      <span style={{ fontSize: 11, color: "#9B9690", whiteSpace: "nowrap" }}>{l.time || ""}</span>
+                      <span style={{ display: "inline-flex", padding: "2px 6px", borderRadius: 999, fontSize: 10, fontWeight: 500, background: sc.bg, color: sc.color, whiteSpace: "nowrap" }}>
+                        {l.status}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <div
+            onClick={() => navigate("/activity")}
+            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "#F8F6F3", borderRadius: 8, marginTop: 8, fontSize: 12, fontWeight: 500, color: "#EB5E28", cursor: "pointer", transition: "background 150ms ease" }}
+            onMouseEnter={e => { e.currentTarget.style.background = "#FEF0E8"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "#F8F6F3"; }}
+          >
+            <span>Lihat semua aktivitas</span>
+            <CaretRight size={14} />
+          </div>
+        </div>
+
+        {/* Action Center */}
+        <div style={{ flexShrink: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: 14 }}>
+          <div style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px", color: "#9B9690", marginBottom: 8 }}>Action Center</div>
+          {[
+            { count: soDraft, label: "Sales Order masih berupa Draft", icon: <Warning size={16} style={{ color: "#DC2626" }} />, iconBg: "#FEE2E2", border: "#DC2626", bg: "#FEF2F2", action: () => navigate("/operasional/so") },
+            { count: soBelumDiinvoice, label: "SO belum diinvoice", icon: <ClipboardText size={16} style={{ color: "#EA580C" }} />, iconBg: "#FEF3C7", border: "#EA580C", bg: "#FFF7ED", action: () => navigate("/operasional/so") },
+            { count: soTidakAdaUpdate, label: "Shipment tidak update >12 jam", icon: <ClockCountdown size={16} style={{ color: "#D97706" }} />, iconBg: "#FEF3C7", border: "#D97706", bg: "#FFFBEB", action: () => navigate("/operasional/muatan") },
+            { count: 0, label: "Invoice jatuh tempo minggu ini", icon: <Info size={16} style={{ color: "#2563EB" }} />, iconBg: "#DBEAFE", border: "#2563EB", bg: "#EFF6FF", action: () => navigate("/operasional/invoice") },
+          ].map((a, i) => (
+            <div
+              key={i}
+              onClick={a.action}
+              style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, marginBottom: 6, cursor: "pointer", borderLeft: `3px solid ${a.border}`, background: a.bg, transition: "all 150ms ease" }}
+            >
+              <div style={{ width: 28, height: 28, borderRadius: 6, background: a.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{a.icon}</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: "#1A1A1A", minWidth: 36, fontVariantNumeric: "tabular-nums" }}>{a.count}</div>
+              <div style={{ flex: 1, fontSize: 12, color: "#52504A", lineHeight: 1.3 }}>{a.label}</div>
+              <CaretRight size={14} style={{ color: "#9B9690", flexShrink: 0 }} />
+            </div>
+          ))}
         </div>
       </div>
     </div>
