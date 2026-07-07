@@ -121,16 +121,33 @@ export const api = {
     if (error) throw new Error(error.message || "Gagal hapus COA");
     return [];
   },
-  getJurnal: async (companyId: string) => {
-    const { data, error } = await supabaseManual.from("jurnal").select("*, jurnal_detail(*)").eq("company_id", companyId).order("no_jurnal", { ascending: true });
+  getJurnal: async (companyId: string, coa: any[] = []) => {
+    const { data, error } = await supabaseManual
+      .from("jurnal")
+      .select("*, jurnal_detail(*)")
+      .eq("company_id", companyId)
+      .order("no_jurnal", { ascending: true });
+
     if (error) {
       console.error("getJurnal", error);
       throw new Error("Gagal memuat data jurnal: " + (error.message || JSON.stringify(error)));
     }
-    return (data || []).filter((j: any) => !j.deleted_at).map((j: any) => ({
-      ...j,
-      status: j.status || "Draft"
-    }));
+
+    const coaMap: Record<string, string> = {};
+    (coa || []).forEach((c: any) => {
+      coaMap[String(c.kode)] = c.nama || c.name || '';
+    });
+
+    return (data || [])
+      .filter((j: any) => !j.deleted_at)
+      .map((j: any) => ({
+        ...j,
+        status: j.status || "Draft",
+        jurnal_detail: (j.jurnal_detail || []).map((d: any) => ({
+          ...d,
+          nama_akun: coaMap[String(d.coa_kode)] || d.nama_akun || d.coa_kode || '',
+        })),
+      }));
   },
   bulkApproveJurnal: async (ids: string[], companyId: string) => {
     const { error } = await supabaseManual.from("jurnal").update({ status: "Posted" }).in("id", ids).eq("company_id", companyId);

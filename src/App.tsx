@@ -1290,7 +1290,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
   }, [currentUser, companyId]);
 
   const loadJurnal = async () => {
-    try { setJurnal(await api.getJurnal(companyId)); } catch (err: any) {
+    try { setJurnal(await api.getJurnal(companyId, coa)); } catch (err: any) {
       console.error('loadJurnal error:', err);
       showToast('Data jurnal gagal dimuat ulang. Refresh halaman jika data tidak akurat.', 'error');
     }
@@ -1316,7 +1316,9 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
         api.getPiutang(companyId), api.getArmada(companyId), api.getArmadaDokumen(companyId), api.getArmadaService(companyId),
         api.getSopir(companyId), authActions.getAllUsers(companyId), api.getSaldoAwal(companyId), api.getLogs(companyId)
       ]);
-      setCoa(c); setJurnal(j); setSo(s); setCustomer(cu); setPiutang(p || []);
+      // Re-enrich jurnal_detail dengan COA yang baru dimuat (c), karena getCoa dan getJurnal berjalan paralel
+      const jEnriched = await api.getJurnal(companyId, c);
+      setCoa(c); setJurnal(jEnriched); setSo(s); setCustomer(cu); setPiutang(p || []);
       setArmada(arm); setArmadaDokumen(armD); setArmadaService(armS); setSopir(sop); setUsers(usr); setSaldoAwal(sa);
       setAuditLogs(logs || []);
       setConnected(true);
