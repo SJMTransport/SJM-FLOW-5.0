@@ -234,6 +234,7 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
   const { confirm: confirmModal, Modal: ConfirmModalUI } = useConfirm();
   const { showToast, ToastUI } = useToast();
   const canEdit = ["Admin", "Operasional"].includes(currentUser?.role);
+  const [openKebabId, setOpenKebabId] = useState<string | null>(null);
   const [tab, setTab] = useState("list");
   const [search, setSearch] = useState("");
   const [period, setPeriod] = useState({ mode: "all", month: new Date().getMonth(), year: new Date().getFullYear() });
@@ -713,10 +714,40 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
                       <td style={tdS}><span style={{ padding: "4px 12px", borderRadius: 999, fontSize: 11, fontWeight: 600, whiteSpace: "nowrap", background: sc.bg, color: sc.color }}>{s.status_muatan}</span></td>
                       <td style={{ ...tdS, fontVariantNumeric: "tabular-nums", color: "#52504A" }}>{["On Going", "Loading", "Completed"].includes(s.status_muatan) ? calcDurasi(s) : "—"}</td>
                       <td style={{ ...tdS, textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>Rp{fmtNum(Number(s.total_harga_pajak || s.total_harga || s.harga_pengiriman || 0))}</td>
-                      <td style={{ ...tdS, textAlign: "center" }}>
-                        <button onClick={e => e.stopPropagation()} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#9B9690" }}>
+                      <td style={{ ...tdS, textAlign: "center", position: "relative" }}>
+                        <button
+                          onClick={e => { e.stopPropagation(); setOpenKebabId(openKebabId === s.order_id ? null : s.order_id); }}
+                          style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#9B9690", borderRadius: 4 }}
+                          onMouseEnter={e => { e.currentTarget.style.background = "#F0EBE4"; e.currentTarget.style.color = "#1A1A1A"; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#9B9690"; }}
+                        >
                           <DotsThree size={20} weight="bold" />
                         </button>
+                        {openKebabId === s.order_id && (
+                          <div style={{ position: "absolute", top: 32, right: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 8, boxShadow: "0 4px 12px rgba(0,0,0,0.10)", zIndex: 30, minWidth: 160, overflow: "hidden" }}
+                            onMouseLeave={() => setOpenKebabId(null)}
+                          >
+                            <button onClick={e => { e.stopPropagation(); onSOClick?.(s.order_id); setOpenKebabId(null); }}
+                              style={{ display: "block", width: "100%", padding: "10px 14px", border: "none", background: "white", cursor: "pointer", fontSize: 12, color: "#1A1A1A", textAlign: "left", fontWeight: 500 }}
+                              onMouseEnter={e => { e.currentTarget.style.background = "#F8F6F3"; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = "white"; }}
+                            >Lihat Detail</button>
+                            {canEdit && (
+                              <button onClick={e => { e.stopPropagation(); openEdit(s); setOpenKebabId(null); }}
+                                style={{ display: "block", width: "100%", padding: "10px 14px", border: "none", borderTop: "1px solid #F0EBE4", background: "white", cursor: "pointer", fontSize: 12, color: "#1A1A1A", textAlign: "left", fontWeight: 500 }}
+                                onMouseEnter={e => { e.currentTarget.style.background = "#F8F6F3"; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = "white"; }}
+                              >Edit SO</button>
+                            )}
+                            {canEdit && (
+                              <button onClick={e => { e.stopPropagation(); handleDelete(s.id); setOpenKebabId(null); }}
+                                style={{ display: "block", width: "100%", padding: "10px 14px", border: "none", borderTop: "1px solid #F0EBE4", background: "white", cursor: "pointer", fontSize: 12, color: "#DC2626", textAlign: "left", fontWeight: 500 }}
+                                onMouseEnter={e => { e.currentTarget.style.background = "#FEF2F2"; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = "white"; }}
+                              >Hapus SO</button>
+                            )}
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );

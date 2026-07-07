@@ -1190,6 +1190,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
   const [hpPrefill, setHpPrefill] = useState<any>(null);
   const [jurnalPrefill, setJurnalPrefill] = useState<any>(null);
   const [globalSearch, setGlobalSearch] = useState("");
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
@@ -1781,15 +1782,40 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
           <div style={{ flex: 1 }} />
 
           {/* Quick add */}
-          <button
-            style={{ height: 36, padding: '0 14px', border: '1px solid #E2DDD6', borderRadius: 8, background: 'white', fontSize: 13, fontWeight: 500, color: '#1A1A1A', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', flexShrink: 0, transition: 'all 150ms ease' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#EB5E28'; e.currentTarget.style.color = '#EB5E28'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#E2DDD6'; e.currentTarget.style.color = '#1A1A1A'; }}
-          >
-            <Plus size={14} />
-            <span>Quick add</span>
-            <CaretDown size={12} style={{ color: '#9B9690' }} />
-          </button>
+          <div style={{ position: 'relative', flexShrink: 0 }}>
+            <button
+              onClick={() => setShowQuickAdd(v => !v)}
+              style={{ height: 36, padding: '0 14px', border: `1px solid ${showQuickAdd ? '#EB5E28' : '#E2DDD6'}`, borderRadius: 8, background: 'white', fontSize: 13, fontWeight: 500, color: showQuickAdd ? '#EB5E28' : '#1A1A1A', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', transition: 'all 150ms ease' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#EB5E28'; e.currentTarget.style.color = '#EB5E28'; }}
+              onMouseLeave={e => { if (!showQuickAdd) { e.currentTarget.style.borderColor = '#E2DDD6'; e.currentTarget.style.color = '#1A1A1A'; } }}
+            >
+              <Plus size={14} />
+              <span>Quick add</span>
+              <CaretDown size={12} style={{ color: '#9B9690' }} />
+            </button>
+            {showQuickAdd && (
+              <div
+                style={{ position: 'absolute', top: 42, right: 0, background: 'white', border: '1px solid #E2DDD6', borderRadius: 10, boxShadow: '0 4px 16px rgba(0,0,0,0.10)', zIndex: 200, minWidth: 180, overflow: 'hidden' }}
+                onMouseLeave={() => setShowQuickAdd(false)}
+              >
+                {[
+                  { label: 'Sales Order Baru', path: '/sales-order' },
+                  { label: 'Jurnal Umum Baru', path: '/jurnal' },
+                  { label: 'Invoice Baru', path: '/invoice' },
+                  { label: 'Quotation Baru', path: '/quotation' },
+                ].map((item, i) => (
+                  <button key={item.path}
+                    onClick={() => { navigate(item.path); setShowQuickAdd(false); }}
+                    style={{ display: 'block', width: '100%', padding: '11px 16px', border: 'none', background: 'white', cursor: 'pointer', fontSize: 13, color: '#1A1A1A', textAlign: 'left', borderTop: i > 0 ? '1px solid #F0EBE4' : 'none', fontWeight: 500 }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#FEF0E8'; e.currentTarget.style.color = '#EB5E28'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#1A1A1A'; }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Bell */}
           <div

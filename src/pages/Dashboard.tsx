@@ -54,6 +54,9 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
   const navigate = useNavigate();
   const [shipmentFilter, setShipmentFilter] = useState("Semua");
   const [shipmentPage, setShipmentPage] = useState(1);
+  const [shipmentSearch, setShipmentSearch] = useState("");
+  const [showShipmentSearch, setShowShipmentSearch] = useState(false);
+  const [openKebabId, setOpenKebabId] = useState<string | null>(null);
   const PER_PAGE = 8;
 
   const today = new Date();
@@ -94,9 +97,21 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
   const shipmentSorted = useMemo(() =>
     [...(so || [])].sort((a: any, b: any) => String(b.tgl_muat || "").localeCompare(String(a.tgl_muat || "")))
   , [so]);
-  const shipmentFiltered = useMemo(() =>
-    shipmentFilter === "Semua" ? shipmentSorted : shipmentSorted.filter((s: any) => s.status_muatan === shipmentFilter)
-  , [shipmentSorted, shipmentFilter]);
+  const shipmentFiltered = useMemo(() => {
+    let data = shipmentFilter === "Semua" ? shipmentSorted : shipmentSorted.filter((s: any) => s.status_muatan === shipmentFilter);
+    if (shipmentSearch.trim()) {
+      const q = shipmentSearch.toLowerCase();
+      data = data.filter((s: any) =>
+        s.order_id?.toLowerCase().includes(q) ||
+        s.customer?.toLowerCase().includes(q) ||
+        s.lokasi_muat?.toLowerCase().includes(q) ||
+        s.lokasi_bongkar?.toLowerCase().includes(q) ||
+        s.nama_sopir?.toLowerCase().includes(q) ||
+        s.no_polisi?.toLowerCase().includes(q)
+      );
+    }
+    return data;
+  }, [shipmentSorted, shipmentFilter, shipmentSearch]);
   const totalPages = Math.max(1, Math.ceil(shipmentFiltered.length / PER_PAGE));
   const shipmentPaged = useMemo(() =>
     shipmentFiltered.slice((shipmentPage - 1) * PER_PAGE, shipmentPage * PER_PAGE)
@@ -234,11 +249,25 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
                   <option key={s} value={s}>{s === "Semua" ? "Semua Status" : s}</option>
                 ))}
               </select>
-              <button style={{ height: 32, padding: "0 12px", border: "1px solid #E2DDD6", borderRadius: 8, background: "white", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#52504A" }}>
+              <button
+                onClick={() => { setShowShipmentSearch(v => !v); if (showShipmentSearch) { setShipmentSearch(""); setShipmentPage(1); } }}
+                style={{ height: 32, padding: "0 12px", border: `1px solid ${showShipmentSearch ? "#EB5E28" : "#E2DDD6"}`, borderRadius: 8, background: showShipmentSearch ? "#FEF0E8" : "white", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: showShipmentSearch ? "#EB5E28" : "#52504A", transition: "all 150ms" }}
+              >
                 <Funnel size={14} /> Filter
               </button>
             </div>
           </div>
+          {showShipmentSearch && (
+            <div style={{ padding: "8px 16px", borderBottom: "1px solid #E2DDD6", background: "#FAFAF8" }}>
+              <input
+                autoFocus
+                value={shipmentSearch}
+                onChange={e => { setShipmentSearch(e.target.value); setShipmentPage(1); }}
+                placeholder="Cari order ID, customer, route, sopir, armada..."
+                style={{ width: "100%", height: 34, border: "1px solid #E2DDD6", borderRadius: 8, padding: "0 12px", fontSize: 13, outline: "none", background: "white", color: "#1A1A1A" }}
+              />
+            </div>
+          )}
 
           {/* table */}
           <div style={{ overflowX: "auto" }}>
@@ -300,7 +329,25 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
                       </td>
                       <td style={{ ...tdStyle, fontVariantNumeric: "tabular-nums", color: "#52504A" }}>{["On Going", "Loading", "Completed"].includes(s.status_muatan) ? calcDurasi(s) : "—"}</td>
                       <td style={{ ...tdStyle, textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>Rp {fmt(Number(s.total_harga_pajak || s.total_harga || s.harga_pengiriman || 0))}</td>
-                      <td style={{ ...tdStyle, textAlign: "center" }}><span style={{ fontSize: 16, color: "#9B9690", cursor: "pointer" }}>⋮</span></td>
+                      <td style={{ ...tdStyle, textAlign: "center", position: "relative" }}>
+                        <button
+                          onClick={e => { e.stopPropagation(); setOpenKebabId(openKebabId === s.order_id ? null : s.order_id); }}
+                          style={{ fontSize: 16, color: "#9B9690", cursor: "pointer", background: "none", border: "none", padding: "2px 4px", borderRadius: 4 }}
+                          onMouseEnter={e => { e.currentTarget.style.background = "#F0EBE4"; e.currentTarget.style.color = "#1A1A1A"; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#9B9690"; }}
+                        >⋮</button>
+                        {openKebabId === s.order_id && (
+                          <div style={{ position: "absolute", top: 28, right: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 8, boxShadow: "0 4px 12px rgba(0,0,0,0.10)", zIndex: 30, minWidth: 160, overflow: "hidden" }}
+                            onMouseLeave={() => setOpenKebabId(null)}
+                          >
+                            <button onClick={() => { onSOClick?.(s.order_id); setOpenKebabId(null); }}
+                              style={{ display: "block", width: "100%", padding: "10px 14px", border: "none", background: "white", cursor: "pointer", fontSize: 12, color: "#1A1A1A", textAlign: "left", fontWeight: 500 }}
+                              onMouseEnter={e => { e.currentTarget.style.background = "#F8F6F3"; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = "white"; }}
+                            >Lihat Detail SO</button>
+                          </div>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
