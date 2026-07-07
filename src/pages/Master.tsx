@@ -303,6 +303,9 @@ export const MasterPage = ({ activeSub, coa, setCoa, users, setUsers, saldoAwal,
                         </tr>
                     </thead>
                     <tbody>
+                        {coa.filter((c: any) => c.status === "Aktif").length === 0 && (
+                            <tr><td colSpan={4} className="text-center py-10 text-[12px] text-text-light">Belum ada COA aktif — tambahkan akun di menu COA terlebih dahulu</td></tr>
+                        )}
                         {coa.filter((c: any) => c.status === "Aktif").map((c: any) => {
                             const sa = saldoAwal.find((s: any) => s.coa_kode === c.kode);
                             const current = saChanges[c.kode] || { debit: sa?.debit || 0, kredit: sa?.kredit || 0 };

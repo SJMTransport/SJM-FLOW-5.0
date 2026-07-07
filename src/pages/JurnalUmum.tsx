@@ -234,10 +234,17 @@ export const JurnalUmum = ({ jurnal, setJurnal, coa, so, currentUser, prefill, o
       } else {
         await api.createJurnalWithDetails(jurnalData, details, currentUser?.company_id || "");
       }
+      // Jurnal SUDAH tersimpan di titik ini — kegagalan reload tidak boleh tampil sebagai error simpan
       setReloading(true);
-      const updated = await api.getJurnal(currentUser?.company_id || "");
-      setJurnal(updated);
-      setReloading(false);
+      try {
+        const updated = await api.getJurnal(currentUser?.company_id || "", coa);
+        setJurnal(updated);
+      } catch (reloadErr: any) {
+        console.error('reload jurnal setelah simpan gagal:', reloadErr);
+        showToast('Jurnal tersimpan, tapi refresh data gagal. Muat ulang halaman untuk melihat data terbaru.', 'error');
+      } finally {
+        setReloading(false);
+      }
       const afterSnap = { no_jurnal: nj, tanggal: t, keterangan: form.keterangan, total_debit: totalD, entries: form.entries.length };
       logAction(editJurnalId ? `Update Jurnal Umum: ${nj}` : `Buat Jurnal Umum: ${nj}`, buildMeta({
         module: 'jurnal',

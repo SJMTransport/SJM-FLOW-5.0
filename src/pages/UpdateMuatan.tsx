@@ -182,7 +182,7 @@ const TerminalPanel = ({
                   <button
                     key={btn.value}
                     onClick={() => setPanelStatus(btn.value)}
-                    className="h-7 px-3 text-[10px] font-bold rounded-full transition-all"
+                    className="h-10 px-4 text-[11px] font-bold rounded-full transition-all"
                     style={{
                       backgroundColor: isActive ? c : c + "15",
                       color: isActive ? "#fff" : c,
@@ -254,7 +254,7 @@ const TerminalPanel = ({
                 />
                 {panelFotoMuat && (
                   <a href={panelFotoMuat} target="_blank" rel="noopener noreferrer"
-                    className="h-8 w-8 flex items-center justify-center rounded-lg border border-border-main text-text-light hover:text-accent hover:border-accent transition-colors shrink-0">
+                    className="h-10 w-10 flex items-center justify-center rounded-lg border border-border-main text-text-light hover:text-accent hover:border-accent transition-colors shrink-0">
                     <Icon name="ExternalLink" size={11} />
                   </a>
                 )}
@@ -271,7 +271,7 @@ const TerminalPanel = ({
                 />
                 {panelFotoBongkar && (
                   <a href={panelFotoBongkar} target="_blank" rel="noopener noreferrer"
-                    className="h-8 w-8 flex items-center justify-center rounded-lg border border-border-main text-text-light hover:text-accent hover:border-accent transition-colors shrink-0">
+                    className="h-10 w-10 flex items-center justify-center rounded-lg border border-border-main text-text-light hover:text-accent hover:border-accent transition-colors shrink-0">
                     <Icon name="ExternalLink" size={11} />
                   </a>
                 )}
@@ -702,7 +702,7 @@ export const UpdateMuatan = ({ so, setSo, onSOClick, onArmadaClick, logAction, c
                     <td className="py-3 px-4 text-right">
                       <button
                         onClick={() => openPanel(s)}
-                        className="btn-primary h-8 px-3 text-[11px] flex items-center gap-1.5 ml-auto"
+                        className="btn-primary h-10 px-4 text-[11px] flex items-center gap-1.5 ml-auto"
                       >
                         <Icon name={isExpanded ? "ChevronUp" : "Pencil"} size={12} />
                         {isExpanded ? "Tutup" : "Update"}

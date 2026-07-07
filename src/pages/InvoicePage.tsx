@@ -41,9 +41,10 @@ interface InvoicePageProps {
   currentUser: any;
   logAction: (msg: string, meta?: any) => void;
   onSOClick?: (orderId: string) => void;
+  onInvoicesChanged?: () => void;
 }
 
-export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAction, onSOClick }) => {
+export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAction, onSOClick, onInvoicesChanged }) => {
   const { showToast, ToastUI } = useToast();
 
   const [activeTab, setActiveTab] = useState<TabType>('daftar');
@@ -97,6 +98,8 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
     try {
       const list = await api.getInvoices(currentUser?.company_id || "");
       setInvoices(list);
+      // Sinkronkan state invoices global di App agar HutangPiutang & SO Detail tidak basi
+      onInvoicesChanged?.();
       const noInvoices = list.map((inv: any) => inv.no_invoice).filter(Boolean);
       if (noInvoices.length > 0) {
         setLoadingStatus(true);
@@ -227,7 +230,8 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
       if (selectedIds.size > 1) return 'Invoice DP hanya untuk 1 SO';
       const nom = parseFloat(dpNominal);
       if (!nom || nom < 100000) return 'Nominal DP minimal Rp 100.000';
-      if (nom >= (selectedSOList[0]?.total_harga_pajak || 0)) return 'Nominal DP harus kurang dari total SO';
+      const soTotal = selectedSOList[0]?.total_harga_pajak || selectedSOList[0]?.total_harga || selectedSOList[0]?.harga_pengiriman || 0;
+      if (nom >= soTotal) return 'Nominal DP harus kurang dari total SO';
     }
     if (invoiceTipe === 'pelunasan' && selectedIds.size > 1) return 'Invoice Pelunasan hanya untuk 1 SO';
     return null;
@@ -341,25 +345,32 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
         tipe: pendingTipe,
         keterangan_invoice: pendingKeterangan,
       }, currentUser?.company_id || "");
+    } catch (err: any) {
+      showToast('Gagal membuat invoice: ' + (err.message || 'Terjadi kesalahan'), 'error');
+      throw err;
+    }
+    // Invoice sudah tersimpan — kegagalan setelah titik ini TIDAK boleh dilaporkan sebagai
+    // "gagal membuat invoice" (menyesatkan, memicu retry → invoice ganda)
+    try {
       for (const s of selectedSOList) {
         await api.updateSOInvoiceCount(s.id, (s.invoice_count || 0) + 1, currentUser?.company_id || "");
       }
       await api.updateSOInvoiceNo(selectedSOList.map(s => s.id), pendingInvoiceNo, currentUser?.company_id || "");
-      logAction(`Generate Invoice: ${pendingInvoiceNo}`, buildMeta({
-        module: 'invoice' as any, action_type: 'CREATE', record_id: pendingInvoiceNo,
-        after_data: { customer: firstSO.customer, total: previewData.total, so_count: selectedIds.size, tipe: pendingTipe },
-      }));
-      setSelectedIds(new Set());
-      setDpNominal('');
-      setDpKeterangan('');
-      await loadInvoices();
-      try {
-        const newNo = await generateInvoiceNo(new Date(tglInvoice), currentUser?.company_id || "");
-        setManualInvoiceNo(newNo);
-      } catch { }
     } catch (err: any) {
-      showToast('Gagal membuat invoice: ' + (err.message || 'Terjadi kesalahan'), 'error');
+      showToast(`Invoice ${pendingInvoiceNo} TERSIMPAN, tapi penandaan SO gagal. Refresh halaman dan periksa — JANGAN buat ulang invoice yang sama.`, 'error');
     }
+    logAction(`Generate Invoice: ${pendingInvoiceNo}`, buildMeta({
+      module: 'invoice' as any, action_type: 'CREATE', record_id: pendingInvoiceNo,
+      after_data: { customer: firstSO.customer, total: previewData.total, so_count: selectedIds.size, tipe: pendingTipe },
+    }));
+    setSelectedIds(new Set());
+    setDpNominal('');
+    setDpKeterangan('');
+    await loadInvoices();
+    try {
+      const newNo = await generateInvoiceNo(new Date(tglInvoice), currentUser?.company_id || "");
+      setManualInvoiceNo(newNo);
+    } catch { }
   };
 
   const handleDeleteInvoice = async (inv: any) => {
@@ -850,7 +861,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
                   <div>
                     <div className="text-[11px] text-text-med">{selectedIds.size} SO dipilih · {selectedSOList[0]?.customer}</div>
                     <div className="font-black text-[15px] text-accent">
-                      {invoiceTipe === 'normal' && fRp(selectedSOList.reduce((s, x) => s + (x.total_harga_pajak || 0), 0))}
+                      {invoiceTipe === 'normal' && fRp(selectedSOList.reduce((s, x) => s + Number(x.total_harga_pajak || x.total_harga || x.harga_pengiriman || 0), 0))}
                       {invoiceTipe === 'dp' && dpNominal && `DP: ${fRp(parseFloat(dpNominal) || 0)}`}
                       {invoiceTipe === 'pelunasan' && 'Lihat preview untuk nominal'}
                     </div>
@@ -916,7 +927,7 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
                       </td>
                       <td className="tabular-nums text-[11px] font-bold text-text-med italic">{s.tgl_muat}</td>
                       <td>{statusBadge(s.status_muatan)}</td>
-                      <td className="text-right font-black text-[12px] tabular-nums">{fRp(s.total_harga_pajak || 0)}</td>
+                      <td className="text-right font-black text-[12px] tabular-nums">{fRp(Number(s.total_harga_pajak || s.total_harga || s.harga_pengiriman || 0))}</td>
                     </tr>
                   );
                 })}

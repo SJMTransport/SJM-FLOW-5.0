@@ -584,11 +584,11 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
             >
               <div style={{ width: 56, height: 56, borderRadius: 14, background: k.iconBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: k.iconColor }}>{k.icon}</div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "#9B9690", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{k.title}</div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "#6B6862", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{k.title}</div>
                 <div style={{ fontSize: 32, fontWeight: 800, color: "#1A1A1A", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{k.value}</div>
                 <div style={{ fontSize: 12, color: "#52504A", marginTop: 2 }}>{k.label}</div>
               </div>
-              <CaretRight size={18} color="#9B9690" />
+              <CaretRight size={18} color="#6B6862" />
             </div>
           ))}
         </div>
@@ -596,7 +596,7 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
         {/* FILTER BAR */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0, background: "white", border: "1px solid #E2DDD6", borderRadius: 12, padding: "10px 16px" }}>
           <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, background: "#F8F6F3", borderRadius: 8, padding: "0 12px", height: 36 }}>
-            <MagnifyingGlass size={16} style={{ color: "#9B9690" }} />
+            <MagnifyingGlass size={16} style={{ color: "#6B6862" }} />
             <input
               value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
               placeholder="Cari SO, customer, route, driver, armada..."
@@ -604,7 +604,7 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
             />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <span style={{ fontSize: 11, color: "#9B9690", fontWeight: 500 }}>Status</span>
+            <span style={{ fontSize: 11, color: "#6B6862", fontWeight: 500 }}>Status</span>
             <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); setPage(1); }}
               style={{ height: 36, border: "1px solid #E2DDD6", borderRadius: 8, fontSize: 13, padding: "0 8px", background: "white", cursor: "pointer", minWidth: 110 }}
             >
@@ -613,7 +613,7 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
             </select>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <span style={{ fontSize: 11, color: "#9B9690", fontWeight: 500 }}>Customer</span>
+            <span style={{ fontSize: 11, color: "#6B6862", fontWeight: 500 }}>Customer</span>
             <select value={customerFilter} onChange={e => { setCustomerFilter(e.target.value); setPage(1); }}
               style={{ height: 36, border: "1px solid #E2DDD6", borderRadius: 8, fontSize: 13, padding: "0 8px", background: "white", cursor: "pointer", minWidth: 140, maxWidth: 200 }}
             >
@@ -622,11 +622,11 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
             </select>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <CalendarBlank size={14} style={{ color: "#9B9690" }} />
+            <CalendarBlank size={14} style={{ color: "#6B6862" }} />
             <input type="date" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setPage(1); }}
               style={{ height: 36, border: "1px solid #E2DDD6", borderRadius: 8, fontSize: 12, padding: "0 8px", background: "white", cursor: "pointer", color: "#1A1A1A" }}
             />
-            <span style={{ fontSize: 11, color: "#9B9690" }}>—</span>
+            <span style={{ fontSize: 11, color: "#6B6862" }}>—</span>
             <input type="date" value={dateTo} onChange={e => { setDateTo(e.target.value); setPage(1); }}
               style={{ height: 36, border: "1px solid #E2DDD6", borderRadius: 8, fontSize: 12, padding: "0 8px", background: "white", cursor: "pointer", color: "#1A1A1A" }}
             />
@@ -677,7 +677,7 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
                     <th key={h.label} onClick={h.sortable ? () => toggleSort(h.sortable as any) : undefined}
                       style={{
                         textAlign: h.align as any, padding: "12px 16px", fontSize: 11, fontWeight: 600,
-                        textTransform: "uppercase", letterSpacing: "0.5px", color: "#9B9690",
+                        textTransform: "uppercase", letterSpacing: "0.5px", color: "#6B6862",
                         borderBottom: "1px solid #E2DDD6", whiteSpace: "nowrap",
                         cursor: h.sortable ? "pointer" : "default",
                         background: sortKey === h.sortable ? "#F0EBE4" : undefined,
@@ -690,7 +690,7 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
               </thead>
               <tbody>
                 {paged.length === 0 ? (
-                  <tr><td colSpan={9} style={{ padding: "64px 16px", textAlign: "center", fontSize: 13, color: "#9B9690" }}>Tidak ada data Sales Order</td></tr>
+                  <tr><td colSpan={9} style={{ padding: "64px 16px", textAlign: "center", fontSize: 13, color: "#6B6862" }}>Tidak ada data Sales Order</td></tr>
                 ) : paged.map((s: any) => {
                   const sc = STATUS_COLORS[s.status_muatan] || { bg: "#F3F4F6", color: "#6B7280" };
                   return (
@@ -704,7 +704,7 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
                       <td style={{ ...tdS, fontWeight: 600 }}>{s.customer || "—"}</td>
                       <td style={tdS}>
                         <span style={{ fontSize: 13, color: "#1A1A1A", fontWeight: 600 }}>{s.lokasi_muat || "—"}</span>
-                        <span style={{ fontSize: 12, color: "#9B9690", margin: "0 6px" }}>→</span>
+                        <span style={{ fontSize: 12, color: "#6B6862", margin: "0 6px" }}>→</span>
                         <span style={{ fontSize: 13, color: "#1A1A1A" }}>{s.lokasi_bongkar || "—"}</span>
                       </td>
                       <td style={tdS}>
@@ -713,13 +713,13 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
                       </td>
                       <td style={tdS}><span style={{ padding: "4px 12px", borderRadius: 999, fontSize: 11, fontWeight: 600, whiteSpace: "nowrap", background: sc.bg, color: sc.color }}>{s.status_muatan}</span></td>
                       <td style={{ ...tdS, fontVariantNumeric: "tabular-nums", color: "#52504A" }}>{["On Going", "Loading", "Completed"].includes(s.status_muatan) ? calcDurasi(s) : "—"}</td>
-                      <td style={{ ...tdS, textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>Rp{fmtNum(Number(s.total_harga_pajak || s.total_harga || s.harga_pengiriman || 0))}</td>
+                      <td style={{ ...tdS, textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>Rp {fmtNum(Number(s.total_harga_pajak || s.total_harga || s.harga_pengiriman || 0))}</td>
                       <td style={{ ...tdS, textAlign: "center", position: "relative" }}>
                         <button
                           onClick={e => { e.stopPropagation(); setOpenKebabId(openKebabId === s.order_id ? null : s.order_id); }}
-                          style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#9B9690", borderRadius: 4 }}
+                          style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#6B6862", borderRadius: 4 }}
                           onMouseEnter={e => { e.currentTarget.style.background = "#F0EBE4"; e.currentTarget.style.color = "#1A1A1A"; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#9B9690"; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#6B6862"; }}
                         >
                           <DotsThree size={20} weight="bold" />
                         </button>
@@ -762,7 +762,7 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={pgBtn(page <= 1)}>‹ Prev</button>
               {pageNums.map((p, i) => p === "..." ? (
-                <span key={`e${i}`} style={{ padding: "0 4px", color: "#9B9690" }}>…</span>
+                <span key={`e${i}`} style={{ padding: "0 4px", color: "#6B6862" }}>…</span>
               ) : (
                 <button key={p} onClick={() => setPage(p as number)} style={{ width: 28, height: 28, borderRadius: 6, fontSize: 12, border: `1px solid ${page === p ? "#EB5E28" : "#E2DDD6"}`, background: page === p ? "#EB5E28" : "white", color: page === p ? "white" : "#1A1A1A", fontWeight: page === p ? 600 : 400, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>{p}</button>
               ))}
@@ -792,14 +792,14 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
         <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-white">
           {/* Identitas Order */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-[10px] font-bold text-[#9B9690] px-1"><Icon name="Hash" size={12} className="text-[#EB5E28]" /> Identitas Order</div>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-[#6B6862] px-1"><Icon name="Hash" size={12} className="text-[#EB5E28]" /> Identitas Order</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-[#9B9690] px-1">Order ID</label>
+                <label className="text-[10px] font-bold text-[#6B6862] px-1">Order ID</label>
                 <input className="input-field h-9 text-[11px] font-bold" value={form.order_id || ""} onChange={e => setForm((f: any) => ({ ...f, order_id: e.target.value }))} placeholder={form.is_posted ? "Wajib diisi" : "Auto-Generate"} />
               </div>
               <div className="md:col-span-2 space-y-1.5">
-                <label className="text-[10px] font-bold text-[#9B9690] px-1">Customer <span className="text-[#DC2626]">*</span></label>
+                <label className="text-[10px] font-bold text-[#6B6862] px-1">Customer <span className="text-[#DC2626]">*</span></label>
                 <div className="flex gap-2">
                   {(() => {
                     const allNames: string[] = [...customer.map((c: any) => c.nama as string), ...localCustomers.filter((n: string) => !customer.some((c: any) => c.nama === n))];
@@ -828,38 +828,38 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">PIC Customer</label><input className="input-field h-9 text-[11px] font-bold" value={form.pic_cust || ""} onChange={e => setForm((f: any) => ({ ...f, pic_cust: e.target.value }))} placeholder="Nama PIC..." /></div>
-              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">No. Telepon PIC</label><input className="input-field h-9 text-[11px] font-bold" value={form.no_pic || ""} onChange={e => setForm((f: any) => ({ ...f, no_pic: e.target.value }))} placeholder="08xx-xxxx-xxxx" /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#6B6862] px-1">PIC Customer</label><input className="input-field h-9 text-[11px] font-bold" value={form.pic_cust || ""} onChange={e => setForm((f: any) => ({ ...f, pic_cust: e.target.value }))} placeholder="Nama PIC..." /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#6B6862] px-1">No. Telepon PIC</label><input className="input-field h-9 text-[11px] font-bold" value={form.no_pic || ""} onChange={e => setForm((f: any) => ({ ...f, no_pic: e.target.value }))} placeholder="08xx-xxxx-xxxx" /></div>
             </div>
           </div>
 
           {/* Logistik & Rute */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-[10px] font-bold text-[#9B9690] px-1"><Icon name="Truck" size={12} className="text-[#EB5E28]" /> Pengiriman & Route</div>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-[#6B6862] px-1"><Icon name="Truck" size={12} className="text-[#EB5E28]" /> Pengiriman & Route</div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Jenis Truk <span className="text-[#DC2626]">*</span></label><select className="input-field h-9 text-[11px] font-bold" value={form.jenis_truk || ''} onChange={e => setForm((f: any) => ({ ...f, jenis_truk: e.target.value }))}><option value="">Pilih Jenis Truk</option><option value="Selfloader">Selfloader</option><option value="Selfloader Kecil">Selfloader Kecil</option><option value="Towing">Towing</option><option value="Lowbed">Lowbed</option><option value="Dolly">Dolly</option></select></div>
-              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Nama Sopir</label><input list="sopir-list" className="input-field h-9 text-[11px] font-bold" value={form.nama_sopir || ""} onChange={e => setForm((f: any) => ({ ...f, nama_sopir: e.target.value }))} placeholder="Cari Sopir..." /><datalist id="sopir-list">{sopir.map((s: any) => <option key={s.id} value={s.nama} />)}</datalist></div>
-              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Ekspedisi Pelaksana</label><input className="input-field h-9 text-[11px] font-bold" value={form.nama_vendor || ""} onChange={e => setForm((f: any) => ({ ...f, nama_vendor: e.target.value }))} /></div>
-              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">No. Polisi</label><input list="armada-list" className="input-field h-9 text-[11px] font-bold" value={form.no_polisi || ""} onChange={e => setForm((f: any) => ({ ...f, no_polisi: e.target.value }))} /><datalist id="armada-list">{armada.map((a: any) => <option key={a.id} value={a.no_polisi} />)}</datalist></div>
-              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Lokasi Muat <span className="text-[#DC2626]">*</span></label><input className="input-field h-9 text-[11px] font-bold" value={form.lokasi_muat || ""} onChange={e => setForm((f: any) => ({ ...f, lokasi_muat: e.target.value }))} /></div>
-              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Lokasi Tujuan <span className="text-[#DC2626]">*</span></label><input className="input-field h-9 text-[11px] font-bold" value={form.lokasi_bongkar || ""} onChange={e => setForm((f: any) => ({ ...f, lokasi_bongkar: e.target.value }))} /></div>
-              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Tgl Muat <span className="text-[#DC2626]">*</span></label><input type="date" className="input-field h-9 text-[11px] font-bold" value={form.tgl_muat || ""} onChange={e => handleNumChange("tgl_muat", e.target.value)} /></div>
-              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Tgl Bongkar</label><input type="date" className="input-field h-9 text-[11px] font-bold" value={form.tgl_bongkar || ""} onChange={e => setForm((f: any) => ({ ...f, tgl_bongkar: e.target.value }))} /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#6B6862] px-1">Jenis Truk <span className="text-[#DC2626]">*</span></label><select className="input-field h-9 text-[11px] font-bold" value={form.jenis_truk || ''} onChange={e => setForm((f: any) => ({ ...f, jenis_truk: e.target.value }))}><option value="">Pilih Jenis Truk</option><option value="Selfloader">Selfloader</option><option value="Selfloader Kecil">Selfloader Kecil</option><option value="Towing">Towing</option><option value="Lowbed">Lowbed</option><option value="Dolly">Dolly</option></select></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#6B6862] px-1">Nama Sopir</label><input list="sopir-list" className="input-field h-9 text-[11px] font-bold" value={form.nama_sopir || ""} onChange={e => setForm((f: any) => ({ ...f, nama_sopir: e.target.value }))} placeholder="Cari Sopir..." /><datalist id="sopir-list">{sopir.map((s: any) => <option key={s.id} value={s.nama} />)}</datalist></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#6B6862] px-1">Ekspedisi Pelaksana</label><input className="input-field h-9 text-[11px] font-bold" value={form.nama_vendor || ""} onChange={e => setForm((f: any) => ({ ...f, nama_vendor: e.target.value }))} /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#6B6862] px-1">No. Polisi</label><input list="armada-list" className="input-field h-9 text-[11px] font-bold" value={form.no_polisi || ""} onChange={e => setForm((f: any) => ({ ...f, no_polisi: e.target.value }))} /><datalist id="armada-list">{armada.map((a: any) => <option key={a.id} value={a.no_polisi} />)}</datalist></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#6B6862] px-1">Lokasi Muat <span className="text-[#DC2626]">*</span></label><input className="input-field h-9 text-[11px] font-bold" value={form.lokasi_muat || ""} onChange={e => setForm((f: any) => ({ ...f, lokasi_muat: e.target.value }))} /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#6B6862] px-1">Lokasi Tujuan <span className="text-[#DC2626]">*</span></label><input className="input-field h-9 text-[11px] font-bold" value={form.lokasi_bongkar || ""} onChange={e => setForm((f: any) => ({ ...f, lokasi_bongkar: e.target.value }))} /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#6B6862] px-1">Tgl Muat <span className="text-[#DC2626]">*</span></label><input type="date" className="input-field h-9 text-[11px] font-bold" value={form.tgl_muat || ""} onChange={e => handleNumChange("tgl_muat", e.target.value)} /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#6B6862] px-1">Tgl Bongkar</label><input type="date" className="input-field h-9 text-[11px] font-bold" value={form.tgl_bongkar || ""} onChange={e => setForm((f: any) => ({ ...f, tgl_bongkar: e.target.value }))} /></div>
             </div>
           </div>
 
           {/* Detail Muatan */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-[10px] font-bold text-[#9B9690] px-1"><Icon name="Package" size={12} className="text-[#EB5E28]" /> Detail Muatan</div>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-[#6B6862] px-1"><Icon name="Package" size={12} className="text-[#EB5E28]" /> Detail Muatan</div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Jenis Muatan</label><div className="flex gap-2"><input className="input-field h-9 flex-1 text-[11px] font-bold" value={form.muatan || ""} onChange={e => setForm((f: any) => ({ ...f, muatan: e.target.value }))} placeholder="Jenis" /><input className="input-field h-9 w-20 text-[11px] font-bold" value={form.unit_muatan || ""} onChange={e => setForm((f: any) => ({ ...f, unit_muatan: e.target.value }))} placeholder="Unit" /></div></div>
-              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">SN / Serial Number</label><input className="input-field h-9 text-[11px] font-bold" value={form.sn || ""} onChange={e => setForm((f: any) => ({ ...f, sn: e.target.value }))} /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#6B6862] px-1">Jenis Muatan</label><div className="flex gap-2"><input className="input-field h-9 flex-1 text-[11px] font-bold" value={form.muatan || ""} onChange={e => setForm((f: any) => ({ ...f, muatan: e.target.value }))} placeholder="Jenis" /><input className="input-field h-9 w-20 text-[11px] font-bold" value={form.unit_muatan || ""} onChange={e => setForm((f: any) => ({ ...f, unit_muatan: e.target.value }))} placeholder="Unit" /></div></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#6B6862] px-1">SN / Serial Number</label><input className="input-field h-9 text-[11px] font-bold" value={form.sn || ""} onChange={e => setForm((f: any) => ({ ...f, sn: e.target.value }))} /></div>
             </div>
           </div>
 
           {/* Biaya */}
           <div className="space-y-4 p-5 bg-[#F8F6F3] rounded-xl border border-[#E2DDD6]">
-            <div className="flex items-center gap-2 text-[10px] font-bold text-[#9B9690] px-1"><Icon name="DollarSign" size={12} className="text-[#EB5E28]" /> Biaya & Keuangan</div>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-[#6B6862] px-1"><Icon name="DollarSign" size={12} className="text-[#EB5E28]" /> Biaya & Keuangan</div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#1A1A1A] px-1">Harga Pengiriman</label><CurrencyInput value={form.harga_pengiriman} onChange={(v: any) => handleNumChange("harga_pengiriman", v)} className="h-11 text-[13px] font-black bg-white" /></div>
               <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#1A1A1A] px-1">Asuransi</label><CurrencyInput value={form.harga_asuransi} onChange={(v: any) => handleNumChange("harga_asuransi", v)} className="h-11 text-[13px] font-black bg-white" /></div>
@@ -873,7 +873,7 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
 
           {/* Dokumen */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-[10px] font-bold text-[#9B9690] px-1"><Icon name="Paperclip" size={12} className="text-[#EB5E28]" /> Dokumen Pendukung</div>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-[#6B6862] px-1"><Icon name="Paperclip" size={12} className="text-[#EB5E28]" /> Dokumen Pendukung</div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
                 { key: "surat_jalan", label: "Surat Jalan" }, { key: "foto_bongkar", label: "Bongkar / POD" },
@@ -882,7 +882,7 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
                 { key: "foto_muat", label: "Foto Muat" }, { key: "spk", label: "No. SPK" },
               ].map(d => (
                 <div key={d.key} className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-[#9B9690] px-1">{d.label}</label>
+                  <label className="text-[10px] font-bold text-[#6B6862] px-1">{d.label}</label>
                   <input className="input-field h-9 text-[11px] font-bold" value={form[d.key] || ""} onChange={e => setForm((f: any) => ({ ...f, [d.key]: e.target.value }))} placeholder="Link GDrive atau filename..." />
                 </div>
               ))}
@@ -891,9 +891,9 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
 
           {/* Catatan */}
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-[#9B9690] px-1">Catatan</label>
+            <label className="text-[10px] font-bold text-[#6B6862] px-1">Catatan</label>
             <textarea className="input-field h-20 pt-2 text-[11px] resize-none font-bold" value={form.keterangan || ""} onChange={e => setForm((f: any) => ({ ...f, keterangan: e.target.value }))} placeholder="Catatan tambahan (opsional)..." maxLength={500} />
-            <div className="text-right text-[10px] text-[#9B9690]">{(form.keterangan || "").length} / 500</div>
+            <div className="text-right text-[10px] text-[#6B6862]">{(form.keterangan || "").length} / 500</div>
           </div>
 
           {err && (
@@ -906,7 +906,7 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
         <div className="p-4 border-t border-[#E2DDD6] bg-[#F8F6F3] flex gap-3">
           <button className="h-10 px-6 rounded-xl text-[#52504A] font-bold text-[11px] hover:bg-white transition-colors" onClick={() => setTab("list")}>Batal</button>
           <div className="flex-1" />
-          <button className="h-10 px-6 rounded-xl border border-[#E2DDD6] bg-white text-[#1A1A1A] font-bold text-[11px] hover:bg-[#F8F6F3] transition-colors" onClick={() => submit(false)} disabled={saving}>Simpan Draft</button>
+          <button className="h-10 px-6 rounded-xl border border-[#E2DDD6] bg-white text-[#1A1A1A] font-bold text-[11px] hover:bg-[#F8F6F3] transition-colors disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => submit(false)} disabled={saving}>Simpan Draft</button>
           <FeedbackButton className="h-10 px-6 rounded-xl bg-[#EB5E28] text-white font-bold text-[11px] flex items-center gap-2" onClick={() => submit(true)} loading={saving} success={saveSuccess} error={saveError}>
             Simpan
           </FeedbackButton>

@@ -21,15 +21,17 @@ const InvoicePreviewModal: React.FC<InvoicePreviewModalProps> = ({
     setError(null);
     setDownloading(true);
     try {
+      // Simpan ke database DULU — PDF hanya diunduh jika invoice benar-benar tercatat.
+      // Urutan sebaliknya berisiko PDF diserahkan ke customer padahal tidak ada di sistem.
+      await onConfirm();
       const doc = await generateInvoicePDF(data);
       const filename = `Invoice_${invoiceNumber.replace(/\//g, '_')}.pdf`;
       doc.save(filename);
-      await onConfirm();
-      showToast(`Invoice ${invoiceNumber} berhasil diunduh dan disimpan!`, 'success');
+      showToast(`Invoice ${invoiceNumber} berhasil disimpan dan diunduh!`, 'success');
       setSuccess(true);
       setTimeout(onClose, 2000);
     } catch (err: any) {
-      setError(err.message || 'Gagal generate PDF');
+      setError(err.message || 'Gagal menyimpan invoice');
     } finally {
       setDownloading(false);
     }

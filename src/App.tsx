@@ -1200,10 +1200,6 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
     return () => document.removeEventListener('click', handleClick);
   }, [showUserMenu]);
 
-  // Load invoices on mount
-  useEffect(() => {
-    api.getInvoices(currentUser?.company_id || "").then(setInvoices).catch((err: any) => { console.error('Gagal load invoice:', err); });
-  }, [currentUser]);
 
   const pushModal = useCallback((type: string, data: any) => {
     setActiveModals(prev => {
@@ -1307,18 +1303,28 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
   const loadAuditLogs = async () => {
     try { setAuditLogs(await api.getLogs(companyId)); } catch { /* silent */ }
   };
+  // Load invoices — ikut companyId aktif agar tidak basi / lintas-tenant saat switch perusahaan
+  const loadInvoices = async () => {
+    try { setInvoices(await api.getInvoices(companyId)); } catch (err: any) {
+      console.error('loadInvoices error:', err);
+      showToast('Data invoice gagal dimuat. Laporan piutang bisa tidak akurat.', 'error');
+    }
+  };
+  useEffect(() => {
+    if (companyId) loadInvoices();
+  }, [companyId]);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [c, j, s, cu, p, arm, armD, armS, sop, usr, sa, logs] = await Promise.all([
-        api.getCoa(companyId), api.getJurnal(companyId), api.getSO(companyId), api.getCustomer(companyId),
+      const [c, s, cu, p, arm, armD, armS, sop, usr, sa, logs] = await Promise.all([
+        api.getCoa(companyId), api.getSO(companyId), api.getCustomer(companyId),
         api.getPiutang(companyId), api.getArmada(companyId), api.getArmadaDokumen(companyId), api.getArmadaService(companyId),
         api.getSopir(companyId), authActions.getAllUsers(companyId), api.getSaldoAwal(companyId), api.getLogs(companyId)
       ]);
-      // Re-enrich jurnal_detail dengan COA yang baru dimuat (c), karena getCoa dan getJurnal berjalan paralel
-      const jEnriched = await api.getJurnal(companyId, c);
-      setCoa(c); setJurnal(jEnriched); setSo(s); setCustomer(cu); setPiutang(p || []);
+      // Jurnal di-fetch setelah COA tersedia agar nama_akun ter-enrich (satu kali, tidak dobel)
+      const j = await api.getJurnal(companyId, c);
+      setCoa(c); setJurnal(j); setSo(s); setCustomer(cu); setPiutang(p || []);
       setArmada(arm); setArmadaDokumen(armD); setArmadaService(armS); setSopir(sop); setUsers(usr); setSaldoAwal(sa);
       setAuditLogs(logs || []);
       setConnected(true);
@@ -1379,7 +1385,9 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
       supabase.removeChannel(coaChannel);
       supabase.removeChannel(auditChannel);
     };
-  }, [session]);
+    // companyId & coa di deps: handler refetch memakai closure — tanpa ini, switch perusahaan
+    // membuat realtime memuat data tenant lama (stale closure)
+  }, [session, companyId, coa]);
 
   const handleSOClick = useCallback((id: string) => {
     const s = (so || []).find((x: any) => x.order_id === id);
@@ -1933,13 +1941,13 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
                   jurnal={jurnal} so={so} coa={coa} piutang={piutang}
                   armada={armada} sopir={sopir} armadaDokumen={armadaDokumen}
                   saldoAwal={saldoAwal}
-                  currentUser={currentUser}
+                  currentUser={effectiveUser}
                   onSOClick={handleSOClick}
                   onJurnalClick={canView(currentUser.role, "jurnal") ? handleJurnalClick : undefined}
                 />} />
                 <Route path="/sales-order" element={<SalesOrderPage so={so} setSo={setSo} customer={customer} armada={armada} sopir={sopir} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} pendingEditSO={pendingEditSO} setPendingEditSO={setPendingEditSO} />} />
                 <Route path="/update-muatan" element={<UpdateMuatan so={so} setSo={setSo} onSOClick={handleSOClick} onArmadaClick={handleArmadaClick} logAction={logAction} currentUser={effectiveUser} />} />
-                <Route path="/invoice" element={<InvoicePage so={so} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} />} />
+                <Route path="/invoice" element={<InvoicePage so={so} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} onInvoicesChanged={loadInvoices} />} />
                 <Route path="/quotation" element={<QuotationPage currentUser={effectiveUser} logAction={logAction} />} />
                 <Route path="/approval" element={<ApprovalPage jurnal={jurnal} setJurnal={setJurnal} currentUser={effectiveUser} onJurnalClick={handleJurnalClick} logAction={logAction} />} />
                 <Route path="/jurnal" element={<JurnalUmum jurnal={jurnal} setJurnal={setJurnal} coa={coa} so={so} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} prefill={jurnalPrefill} onPrefillUsed={() => setJurnalPrefill(null)} />} />

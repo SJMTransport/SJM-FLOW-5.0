@@ -133,9 +133,10 @@ export const api = {
       throw new Error("Gagal memuat data jurnal: " + (error.message || JSON.stringify(error)));
     }
 
+    // Key di-trim: coa_kode di jurnal_detail bisa mengandung spasi (aturan: matching trim-safe)
     const coaMap: Record<string, string> = {};
     (coa || []).forEach((c: any) => {
-      coaMap[String(c.kode)] = c.nama || c.name || '';
+      coaMap[String(c.kode).trim()] = c.nama || c.name || '';
     });
 
     return (data || [])
@@ -145,7 +146,7 @@ export const api = {
         status: j.status || "Draft",
         jurnal_detail: (j.jurnal_detail || []).map((d: any) => ({
           ...d,
-          nama_akun: coaMap[String(d.coa_kode)] || d.nama_akun || d.coa_kode || '',
+          nama_akun: coaMap[String(d.coa_kode).trim()] || d.nama_akun || d.coa_kode || '',
         })),
       }));
   },
