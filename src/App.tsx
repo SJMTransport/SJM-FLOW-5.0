@@ -1932,6 +1932,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
                 <Route path="/" element={<Dashboard
                   jurnal={jurnal} so={so} coa={coa} piutang={piutang}
                   armada={armada} sopir={sopir} armadaDokumen={armadaDokumen}
+                  saldoAwal={saldoAwal}
                   currentUser={currentUser}
                   onSOClick={handleSOClick}
                   onJurnalClick={canView(currentUser.role, "jurnal") ? handleJurnalClick : undefined}

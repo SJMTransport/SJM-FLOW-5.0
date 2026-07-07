@@ -6,6 +6,7 @@ import { ACTION_COLORS, ACTION_LABELS, MODULE_LABELS, type ActionType, type Modu
 import { buildMeta } from "@/src/lib/activityLogger";
 
 import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -17,6 +18,18 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
   const [search, setSearch] = useState("");
   const [auditDetailLog, setAuditDetailLog] = useState<any>(null);
   const [exporting, setExporting] = useState<string | null>(null);
+  const coaKelompokMap = useMemo(() => {
+    const map = new Map<string, string>();
+    (coa || []).forEach((c: any) => { map.set(c.kode, c.kelompok || ""); });
+    return map;
+  }, [coa]);
+
+  const coaSubKelMap = useMemo(() => {
+    const map = new Map<string, string>();
+    (coa || []).forEach((c: any) => { map.set(c.kode, (c.sub_kelompok || "").toLowerCase()); });
+    return map;
+  }, [coa]);
+
   const filteredJurnal = useMemo(() => filterByPeriod(jurnal || [], period), [jurnal, period]);
   const cumulativeJurnal = useMemo(() => filterUpToPeriod(jurnal || [], period), [jurnal, period]);
 
@@ -34,21 +47,58 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
     try {
     const periodText = getPeriodText();
     const now = new Date();
+    const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const footerTS = `Dicetak: ${dateStr} pukul ${timeStr}`;
+    const ncols = columns.length;
+    const lastCol = String.fromCharCode(64 + ncols);
 
-    const wsData: any[][] = [
-      ["PT SUGIARTO JAYA MANDIRI"],
-      [title],
-      [`Periode: ${periodText} — Dicetak: ${now.toLocaleDateString('id-ID')}`],
-      [],
-      columns.map(c => c.replace('_', ' ').toUpperCase()),
-      ...data.map(row => columns.map(col => row[col])),
-    ];
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet(title.substring(0, 31));
 
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    ws['!cols'] = columns.map((_, i) => ({ wch: i === 3 ? 40 : 18 }));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, title.substring(0, 31));
-    XLSX.writeFile(wb, `${title}_${now.toISOString().slice(0,10)}.xlsx`);
+    const addMR = (text: string, opts: any = {}) => {
+      const r = ws.addRow([text, ...Array(ncols - 1).fill('')]);
+      ws.mergeCells(`A${r.number}:${lastCol}${r.number}`);
+      r.font = { bold: opts.bold, size: opts.size, color: opts.color ? { argb: opts.color } : undefined, italic: opts.italic };
+      if (opts.align) r.getCell(1).alignment = { horizontal: opts.align };
+      return r;
+    };
+    addMR('PT SUGIARTO JAYA MANDIRI', { bold: true, size: 14, color: 'FFFF8F00' });
+    addMR(title, { bold: true, size: 12 });
+    addMR(`Periode: ${periodText}`, { size: 10 });
+    ws.addRow([]);
+
+    const hdr = ws.addRow(columns.map(c => c.replace('_', ' ').toUpperCase()));
+    hdr.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    hdr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF8F00' } };
+    hdr.eachCell(c => {
+      c.border = { top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
+      c.alignment = { horizontal: 'center' };
+    });
+
+    data.forEach(row => {
+      const vals = columns.map(col => row[col]);
+      const r = ws.addRow(vals);
+      r.eachCell({ includeEmpty: true }, (c, ci) => {
+        c.border = { top:{style:'hair'}, bottom:{style:'hair'}, left:{style:'hair'}, right:{style:'hair'} };
+        if (typeof vals[ci - 1] === 'number') { c.numFmt = '#,##0.00'; c.alignment = { horizontal: 'right' }; }
+      });
+    });
+
+    ws.addRow([]);
+    const tsRow = ws.addRow([footerTS, ...Array(ncols - 1).fill('')]);
+    ws.mergeCells(`A${tsRow.number}:${lastCol}${tsRow.number}`);
+    tsRow.font = { italic: true, size: 9, color: { argb: 'FF888888' } };
+    tsRow.getCell(1).alignment = { horizontal: 'right' };
+
+    columns.forEach((_, i) => { ws.getColumn(i + 1).width = i === 3 ? 40 : 18; });
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = `${title}_${now.toISOString().slice(0,10)}.xlsx`;
+    a.click(); URL.revokeObjectURL(url);
     showToast('File Excel berhasil diunduh!', 'success');
     } catch (err: any) {
       console.error('Export Excel error:', err);
@@ -314,22 +364,22 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
               ? Number(soVals[orderId]) / Number(totalSoVals)
               : 1 / nHeader;
 
-          // Pendapatan: akun 4xx, ambil kredit bersih
-          if (kode.startsWith("4") && Number(d.kredit) > 0) {
+          const kel = coaKelompokMap.get(kode);
+          const subKel = coaSubKelMap.get(kode);
+          
+          const isPendapatan = kel === "Pendapatan" || (!kel && kode.startsWith("4"));
+          const isDirectCost = kel === "Beban" && (subKel === "bpp" || subKel === "asuransi" || kode.startsWith("5") || kode.startsWith("67"));
+
+          // Pendapatan: ambil kredit bersih
+          if (isPendapatan && Number(d.kredit) > 0) {
             const pendVal = (!d.no_so && soVals[orderId] && Number(totalSoVals) > 0)
               ? Number(soVals[orderId])
               : Number(d.kredit) * factor;
             map[orderId].revenue += pendVal;
           }
 
-          // Beban operasional (5xx, kecuali PPN 553) — gunakan debit-kredit agar reversal benar
-          if (kode.startsWith("5") && kode !== "553") {
-            const bVal = (Number(d.debit || 0) - Number(d.kredit || 0)) * factor;
-            map[orderId].expense += bVal;
-          }
-
-          // Beban asuransi (67x)
-          if (kode.startsWith("67")) {
+          // Beban operasional & asuransi (kecuali PPN 553) — gunakan debit-kredit agar reversal benar
+          if (isDirectCost && kode !== "553") {
             const bVal = (Number(d.debit || 0) - Number(d.kredit || 0)) * factor;
             map[orderId].expense += bVal;
           }
@@ -390,10 +440,18 @@ export const LaporanPage = ({ activeSub, jurnal, coa, so, armada, auditLogs, sal
     // Avoids dependency on COA kelompok label matching.
     const _cumDetails = cumulativeJurnal.flatMap((j: any) => j.jurnal_detail || []);
     const totalPnd = _cumDetails
-      .filter((d: any) => (d.coa_kode || "").startsWith("4"))
+      .filter((d: any) => {
+        const k = d.coa_kode || "";
+        const kel = coaKelompokMap.get(k);
+        return kel === "Pendapatan" || (!kel && k.startsWith("4"));
+      })
       .reduce((s: number, d: any) => s + Number(d.kredit || 0) - Number(d.debit || 0), 0);
     const totalBbn = _cumDetails
-      .filter((d: any) => { const k = d.coa_kode || ""; return k.startsWith("5") || k.startsWith("6"); })
+      .filter((d: any) => {
+        const k = d.coa_kode || "";
+        const kel = coaKelompokMap.get(k);
+        return kel === "Beban" || (!kel && (k.startsWith("5") || k.startsWith("6")));
+      })
       .reduce((s: number, d: any) => s + Number(d.debit || 0) - Number(d.kredit || 0), 0);
     const netLR = totalPnd - totalBbn;
 

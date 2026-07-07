@@ -8,6 +8,7 @@ import { Loader2, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { buildMeta } from "@/src/lib/activityLogger";
 
 import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -226,6 +227,7 @@ export const JurnalUmum = ({ jurnal, setJurnal, coa, so, currentUser, prefill, o
         coa_kode: e.coa, nama_akun: e.akun,
         debit: parseFloat(e.debit) || 0, kredit: parseFloat(e.kredit) || 0,
         no_so: e.no_so || null,
+        company_id: currentUser?.company_id || null,
       }));
       if (editJurnalId) {
         await api.updateJurnalWithDetails(editJurnalId, jurnalData, details, currentUser?.company_id || "");
@@ -319,43 +321,77 @@ export const JurnalUmum = ({ jurnal, setJurnal, coa, so, currentUser, prefill, o
   const exportExcel = async () => {
     try {
       const periodText = getPeriodText();
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const footerTS = `Dicetak: ${dateStr} pukul ${timeStr}`;
 
       if (filtered.length === 0) { showToast("Tidak ada data untuk di-export", "info"); return; }
 
-      const wsData: any[][] = [
-        ["PT SUGIARTO JAYA MANDIRI"],
-        ["JURNAL UMUM"],
-        [`Periode: ${periodText} — Dicetak: ${new Date().toLocaleDateString('id-ID')}`],
-        [],
-        ['TANGGAL', 'NO JURNAL', 'NO SO', 'KETERANGAN', 'KODE AKUN', 'NAMA AKUN', 'DEBIT', 'KREDIT'],
-      ];
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet('Jurnal');
+
+      const addMR = (text: string, opts: any = {}) => {
+        const r = ws.addRow([text, '', '', '', '', '', '', '']);
+        ws.mergeCells(`A${r.number}:H${r.number}`);
+        r.font = { bold: opts.bold, size: opts.size, color: opts.color ? { argb: opts.color } : undefined, italic: opts.italic };
+        if (opts.align) r.getCell(1).alignment = { horizontal: opts.align };
+        return r;
+      };
+      addMR('PT SUGIARTO JAYA MANDIRI', { bold: true, size: 14, color: 'FFFF8F00' });
+      addMR('JURNAL UMUM', { bold: true, size: 12 });
+      addMR(`Periode: ${periodText}`, { size: 10 });
+      ws.addRow([]);
+
+      const hdr = ws.addRow(['TANGGAL', 'NO JURNAL', 'NO SO', 'KETERANGAN', 'KODE AKUN', 'NAMA AKUN', 'DEBIT', 'KREDIT']);
+      hdr.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      hdr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFF8F00' } };
+      hdr.eachCell(c => {
+        c.border = { top:{style:'thin'}, bottom:{style:'thin'}, left:{style:'thin'}, right:{style:'thin'} };
+        c.alignment = { horizontal: 'center' };
+      });
 
       filtered.forEach((j: any) => {
         (j.jurnal_detail || []).forEach((e: any, i: number) => {
           const dr = Number(e.debit || 0);
           const kr = Number(e.kredit || 0);
-          wsData.push([
+          const row = ws.addRow([
             i === 0 ? (j.tanggal || '') : '',
             i === 0 ? (j.no_jurnal || '') : '',
             i === 0 ? (j.no_so || '') : '',
             i === 0 ? (j.keterangan || '') : '',
             e.coa_kode || '',
             e.nama_akun || '',
-            dr > 0 ? Math.round(dr * 100) / 100 : '',
-            kr > 0 ? Math.round(kr * 100) / 100 : '',
+            dr > 0 ? Math.round(dr * 100) / 100 : null,
+            kr > 0 ? Math.round(kr * 100) / 100 : null,
           ]);
+          row.eachCell({ includeEmpty: true }, c => {
+            c.border = { top:{style:'hair'}, bottom:{style:'hair'}, left:{style:'hair'}, right:{style:'hair'} };
+          });
+          const dCell = row.getCell(7); dCell.numFmt = '#,##0.00'; dCell.alignment = { horizontal: 'right' };
+          const kCell = row.getCell(8); kCell.numFmt = '#,##0.00'; kCell.alignment = { horizontal: 'right' };
+          if (dr > 0) { dCell.font = { color: { argb: 'FF1B5E20' } }; dCell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFE8F5E9' } }; }
+          if (kr > 0) { kCell.font = { color: { argb: 'FFB71C1C' } }; kCell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:'FFFFEBEE' } }; }
         });
       });
 
-      const ws = XLSX.utils.aoa_to_sheet(wsData);
-      ws['!cols'] = [
-        { wch: 14 }, { wch: 20 }, { wch: 18 }, { wch: 42 },
-        { wch: 12 }, { wch: 32 }, { wch: 18 }, { wch: 18 },
-      ];
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Jurnal");
+      ws.addRow([]);
+      const tsRow = ws.addRow([footerTS, '', '', '', '', '', '', '']);
+      ws.mergeCells(`A${tsRow.number}:H${tsRow.number}`);
+      tsRow.font = { italic: true, size: 9, color: { argb: 'FF888888' } };
+      tsRow.getCell(1).alignment = { horizontal: 'right' };
+
+      ws.getColumn(1).width = 14; ws.getColumn(2).width = 20; ws.getColumn(3).width = 18;
+      ws.getColumn(4).width = 42; ws.getColumn(5).width = 12; ws.getColumn(6).width = 32;
+      ws.getColumn(7).width = 18; ws.getColumn(8).width = 18;
+
+      const buffer = await wb.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url;
       const fileSuffix = period.mode === 'day' ? period.day : period.mode === 'month' ? `${period.year}-${period.month + 1}` : period.year;
-      XLSX.writeFile(wb, `Jurnal_Umum_${fileSuffix}.xlsx`);
+      a.download = `Jurnal_Umum_${fileSuffix}.xlsx`;
+      a.click(); URL.revokeObjectURL(url);
       showToast("Download Excel dimulai...");
     } catch (err: any) {
       console.error("Export XLS Error:", err);

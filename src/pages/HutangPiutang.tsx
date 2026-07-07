@@ -220,6 +220,9 @@ export const HutangPiutangPage = ({ jurnal, coa, so, armada, onSOClick, onJurnal
   const [customerFilter, setCustomerFilter] = useState("all");
   const [vendorFilter, setVendorFilter] = useState("all");
   const [notifDays, setNotifDays] = useState(30);
+  const piutangCoas = useMemo(() => {
+    return (coa || []).filter((c: any) => c.sub_kelompok === "Piutang Usaha" || c.kode === "112").map((c: any) => c.kode);
+  }, [coa]);
 
   // Prefill logic
   const [showPrefillBanner, setShowPrefillBanner] = useState(false);
@@ -259,7 +262,6 @@ export const HutangPiutangPage = ({ jurnal, coa, so, armada, onSOClick, onJurnal
 
   const piutangRows = useMemo(() => {
     const map: any = {};
-    const piutangCoas = (coa || []).filter((c: any) => c.sub_kelompok === "Piutang Usaha" || c.kode === "112").map((c: any) => c.kode);
 
     // BUG #5 fix: COA 112 adalah balance sheet account — harus kumulatif dari semua waktu.
     // Pakai semua jurnal (bukan filterByPeriod) agar piutang lama yang belum lunas tetap muncul.
@@ -291,7 +293,7 @@ export const HutangPiutangPage = ({ jurnal, coa, so, armada, onSOClick, onJurnal
       saldo: r.debit - r.kredit,
       status: (r.debit - r.kredit) <= 0 ? "Lunas" : r.kredit > 0 ? "Parsial" : "Belum Lunas"
     }));
-  }, [jurnal, coa, soMap]);
+  }, [jurnal, piutangCoas, soMap]);
 
   const hutangRows = useMemo(() => {
     const map: any = {};
@@ -391,7 +393,7 @@ export const HutangPiutangPage = ({ jurnal, coa, so, armada, onSOClick, onJurnal
     const map: any = {};
     jurnal.forEach((j: any) => {
       (j.jurnal_detail || []).forEach((d: any) => {
-        if (d.coa_kode === "112") {
+        if (piutangCoas.includes(d.coa_kode)) {
           const key = j.no_so || j.no_bukti || j.id;
           if (!map[key]) {
             const soRef = (so || []).find((s: any) => s.order_id === j.no_so || s.no_invoice === j.no_bukti);
@@ -408,7 +410,7 @@ export const HutangPiutangPage = ({ jurnal, coa, so, armada, onSOClick, onJurnal
       const umur = Math.floor((todayDate.getTime() - tgl.getTime()) / (1000 * 60 * 60 * 24));
       return { ...r, saldo, umur };
     }).filter((r: any) => r.saldo > 0).sort((a: any, b: any) => b.umur - a.umur);
-  }, [jurnal, piutang, so]);
+  }, [jurnal, piutang, so, piutangCoas]);
 
   const hutangVendorOutstanding = useMemo(() => {
     const todayDate = new Date();

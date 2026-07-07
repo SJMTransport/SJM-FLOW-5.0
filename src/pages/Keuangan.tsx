@@ -8,9 +8,10 @@ export const KeuanganPage = ({ activeSub, jurnal, coa, so, connected }: any) => 
   const [search, setSearch] = useState("");
 
   const vendorRows = useMemo(() => {
+    const apCoas = (coa || []).filter((c: any) => c.sub_kelompok === "Hutang Usaha" || c.kode.startsWith("211")).map((c: any) => c.kode);
     const rows: any[] = [];
     filterByPeriod(jurnal || [], period).flatMap((j: any) => (j.jurnal_detail || [])
-      .filter((d: any) => d.coa_kode.startsWith("211")) // Sub-accounts of Account Payable or the main one
+      .filter((d: any) => apCoas.includes(d.coa_kode))
       .map((d: any) => ({ ...d, tanggal: j.tanggal, no_jurnal: j.no_jurnal, keterangan: j.keterangan }))
     ).filter((r: any) => 
       !search || 
@@ -22,17 +23,20 @@ export const KeuanganPage = ({ activeSub, jurnal, coa, so, connected }: any) => 
     return rows;
   }, [jurnal, period, search, coa]);
 
-  const ujData = useMemo(() => (so || [])
-    .filter((s: any) => s.status_muatan !== "Cancelled")
-    .filter((s: any) => !search || s.order_id?.toLowerCase().includes(search.toLowerCase()) || s.no_polisi?.toLowerCase().includes(search.toLowerCase()) || s.nama_sopir?.toLowerCase().includes(search.toLowerCase()))
-    .map((s: any) => {
-      // Improved logic for UJ (Uang Jalan) - 511 is default but ideally we should check COA group
-      const relatedUJ = ((jurnal || []).filter((j: any) => s.order_id && (j.keterangan || "").includes(s.order_id))
-        .flatMap((j: any) => (j.jurnal_detail || []))
-        .filter((d: any) => d.coa_kode === "511" || d.nama_akun?.toLowerCase().includes("uang jalan"))
-        .reduce((sum: number, d: any) => sum + (Number(d.debit) - Number(d.kredit)), 0));
-      return { ...s, uj: relatedUJ };
-  }), [so, jurnal, search]);
+  const ujData = useMemo(() => {
+    const ujCoas = (coa || []).filter((c: any) => (c.sub_kelompok || "").toLowerCase().includes("uang jalan") || c.nama?.toLowerCase().includes("uang jalan") || c.kode === "511").map((c: any) => c.kode);
+    
+    return (so || [])
+      .filter((s: any) => s.status_muatan !== "Cancelled")
+      .filter((s: any) => !search || s.order_id?.toLowerCase().includes(search.toLowerCase()) || s.no_polisi?.toLowerCase().includes(search.toLowerCase()) || s.nama_sopir?.toLowerCase().includes(search.toLowerCase()))
+      .map((s: any) => {
+        const relatedUJ = ((jurnal || []).filter((j: any) => s.order_id && (j.keterangan || "").includes(s.order_id))
+          .flatMap((j: any) => (j.jurnal_detail || []))
+          .filter((d: any) => ujCoas.includes(d.coa_kode) || d.nama_akun?.toLowerCase().includes("uang jalan"))
+          .reduce((sum: number, d: any) => sum + (Number(d.debit) - Number(d.kredit)), 0));
+        return { ...s, uj: relatedUJ };
+      });
+  }, [so, jurnal, search, coa]);
 
   if (activeSub === "hutangvendor") {
       return (

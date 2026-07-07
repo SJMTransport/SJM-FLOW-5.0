@@ -306,15 +306,60 @@ export const api = {
   getSaldoAwal: async (companyId: string) => {
     const { data, error } = await supabaseManual.from("saldo_awal").select("*").eq("company_id", companyId);
     if (error) return [];
-    return data || [];
+    
+    // Fetch coa list to resolve debit/kredit from saldo if columns are missing in DB
+    const coaList = await api.getAllCoa(companyId);
+    const coaMap = new Map<string, string>();
+    coaList.forEach((c: any) => { coaMap.set(c.kode, c.normal_balance || "Debit"); });
+
+    return (data || []).map((s: any) => {
+      // If debit/kredit exist in database, use them
+      if (s.debit !== undefined && s.kredit !== undefined) {
+        return s;
+      }
+      // Otherwise, map single saldo back to debit/kredit based on normal_balance
+      const normalBal = coaMap.get(s.coa_kode) || "Debit";
+      const isD = normalBal === "Debit";
+      const val = Number(s.saldo || 0);
+      
+      return {
+        ...s,
+        debit: isD ? (val >= 0 ? val : 0) : (val < 0 ? -val : 0),
+        kredit: isD ? (val < 0 ? -val : 0) : (val >= 0 ? val : 0),
+      };
+    });
   },
   upsertSaldoAwal: async (rows: any[], companyId: string) => {
     for (const r of rows) {
       const { data: existing } = await supabaseManual.from("saldo_awal").select("id").eq("coa_kode", r.coa_kode).eq("company_id", companyId).single().catch(() => ({ data: null }));
-      if (existing?.id) {
-        await supabaseManual.from("saldo_awal").update({ debit: r.debit, kredit: r.kredit }).eq("id", existing.id).eq("company_id", companyId);
-      } else {
-        await supabaseManual.from("saldo_awal").insert([{ ...r, company_id: companyId }]);
+      
+      const payloadA = { debit: r.debit, kredit: r.kredit, company_id: companyId };
+      try {
+        if (existing?.id) {
+          const { error } = await supabaseManual.from("saldo_awal").update(payloadA).eq("id", existing.id).eq("company_id", companyId);
+          if (error) throw error;
+        } else {
+          const { error } = await supabaseManual.from("saldo_awal").insert([{ ...r, company_id: companyId }]);
+          if (error) throw error;
+        }
+      } catch (err: any) {
+        // If columns 'debit' or 'kredit' do not exist in DB, fall back to 'saldo'
+        if (err.message && (err.message.includes("debit") || err.message.includes("kredit") || err.message.includes("column"))) {
+          const { data: coaItem } = await supabaseManual.from("coa").select("normal_balance").eq("kode", r.coa_kode).eq("company_id", companyId).single().catch(() => ({ data: null }));
+          const isD = coaItem?.normal_balance === "Debit";
+          const saldoVal = isD ? (r.debit - r.kredit) : (r.kredit - r.debit);
+          const payloadB = { coa_kode: r.coa_kode, saldo: saldoVal, company_id: companyId };
+          
+          if (existing?.id) {
+            const { error: errB } = await supabaseManual.from("saldo_awal").update(payloadB).eq("id", existing.id).eq("company_id", companyId);
+            if (errB) throw errB;
+          } else {
+            const { error: errB } = await supabaseManual.from("saldo_awal").insert([payloadB]);
+            if (errB) throw errB;
+          }
+        } else {
+          throw err;
+        }
       }
     }
     return [];

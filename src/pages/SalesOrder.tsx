@@ -313,9 +313,9 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
   };
   const [form, setForm] = useState<any>(emptyForm);
 
-  const isPajakApply = (tgl_order: string) => {
-    if (!tgl_order) return false;
-    const d = new Date(tgl_order);
+  const isPajakApply = (tgl_muat: string) => {
+    if (!tgl_muat) return false;
+    const d = new Date(tgl_muat);
     if (isNaN(d.getTime())) return false;
     if (d.getFullYear() < 2026) return false;
     if (d.getFullYear() === 2026 && d.getMonth() === 0) return false;
@@ -326,7 +326,7 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
     const ins = parseFloat(f.harga_asuransi) || 0;
     const pengiriman = parseFloat(f.harga_pengiriman) || 0;
     const total = ins + pengiriman;
-    const pajakApply = isPajakApply(f.tgl_order);
+    const pajakApply = isPajakApply(f.tgl_muat);
     const tax = pajakApply ? Math.round((pengiriman + ins) * 0.011) : 0;
     const totalPajak = total + tax;
     return { total_harga: total, total_harga_pajak: totalPajak, nilai_pajak: tax, nilai_asuransi: ins };
@@ -843,7 +843,7 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
               <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">No. Polisi</label><input list="armada-list" className="input-field h-9 text-[11px] font-bold" value={form.no_polisi || ""} onChange={e => setForm((f: any) => ({ ...f, no_polisi: e.target.value }))} /><datalist id="armada-list">{armada.map((a: any) => <option key={a.id} value={a.no_polisi} />)}</datalist></div>
               <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Lokasi Muat <span className="text-[#DC2626]">*</span></label><input className="input-field h-9 text-[11px] font-bold" value={form.lokasi_muat || ""} onChange={e => setForm((f: any) => ({ ...f, lokasi_muat: e.target.value }))} /></div>
               <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Lokasi Tujuan <span className="text-[#DC2626]">*</span></label><input className="input-field h-9 text-[11px] font-bold" value={form.lokasi_bongkar || ""} onChange={e => setForm((f: any) => ({ ...f, lokasi_bongkar: e.target.value }))} /></div>
-              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Tgl Muat <span className="text-[#DC2626]">*</span></label><input type="date" className="input-field h-9 text-[11px] font-bold" value={form.tgl_muat || ""} onChange={e => setForm((f: any) => ({ ...f, tgl_muat: e.target.value }))} /></div>
+              <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Tgl Muat <span className="text-[#DC2626]">*</span></label><input type="date" className="input-field h-9 text-[11px] font-bold" value={form.tgl_muat || ""} onChange={e => handleNumChange("tgl_muat", e.target.value)} /></div>
               <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#9B9690] px-1">Tgl Bongkar</label><input type="date" className="input-field h-9 text-[11px] font-bold" value={form.tgl_bongkar || ""} onChange={e => setForm((f: any) => ({ ...f, tgl_bongkar: e.target.value }))} /></div>
             </div>
           </div>
@@ -866,7 +866,7 @@ export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, ar
               <div className="space-y-1.5"><label className="text-[10px] font-bold text-[#1A1A1A] px-1">PPN (1,1%)</label><CurrencyInput value={form.nilai_pajak} readOnly className="h-11 text-[13px] font-black bg-[#F0EBE4]" /></div>
               <div className="md:col-span-3 p-5 bg-[#1A1A1A] rounded-xl flex items-center justify-between mt-2">
                 <div><span className="text-[10px] text-white/40 uppercase tracking-widest block">Total Tagihan</span><span className="text-2xl font-black text-[#EB5E28] tabular-nums">{fmt(form.total_harga_pajak || form.total_harga || 0)}</span></div>
-                <span className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase ${isPajakApply(form.tgl_order) ? "bg-[#EB5E28] text-white" : "bg-white/10 text-white/40"}`}>{isPajakApply(form.tgl_order) ? "Taxable (1,1%)" : "Non-Taxable"}</span>
+                <span className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase ${isPajakApply(form.tgl_muat) ? "bg-[#EB5E28] text-white" : "bg-white/10 text-white/40"}`}>{isPajakApply(form.tgl_muat) ? "Taxable (1,1%)" : "Non-Taxable"}</span>
               </div>
             </div>
           </div>
