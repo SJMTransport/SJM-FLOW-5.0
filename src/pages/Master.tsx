@@ -6,7 +6,7 @@ import { fmt } from "@/src/utils";
 import { api, authActions, supabaseManual } from "@/src/api";
 import { buildMeta } from "@/src/lib/activityLogger";
 
-export const MasterPage = ({ activeSub, coa, setCoa, users, setUsers, saldoAwal, setSaldoAwal, logAction, currentUser }: any) => {
+export const MasterPage = ({ activeSub, coa, setCoa, users, setUsers, saldoAwal, setSaldoAwal, logAction, currentUser, auditLogs }: any) => {
   const { showToast, ToastUI } = useToast();
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);

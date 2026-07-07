@@ -213,7 +213,7 @@ const RekapPiutangPanel = ({ rows, fmt, fmtShort }: any) => {
   );
 };
 
-export const HutangPiutangPage = ({ jurnal, coa, so, armada, connected, onSOClick, onJurnalClick, piutang = [], invoices = [], onGoToJurnal, prefill, onPrefillUsed }: any) => {
+export const HutangPiutangPage = ({ jurnal, coa, so, armada, onSOClick, onJurnalClick, piutang = [], invoices = [], onGoToJurnal, prefill, onPrefillUsed }: any) => {
   const [tab, setTab] = useState("piutang");
   const [period, setPeriod] = useState({ mode: "all", month: new Date().getMonth(), year: new Date().getFullYear() });
   const [search, setSearch] = useState("");

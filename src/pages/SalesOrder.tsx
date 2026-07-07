@@ -230,7 +230,7 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   "Hold":            { bg: "#FEE2E2", color: "#DC2626" },
 };
 
-export const SalesOrderPage = ({ so, setSo, jurnal, customer, connected, currentUser, onSOClick, onArmadaClick, armada, sopir, logAction, pendingEditSO, setPendingEditSO, onGoToHP }: any) => {
+export const SalesOrderPage = ({ so, setSo, customer, currentUser, onSOClick, armada, sopir, logAction, pendingEditSO, setPendingEditSO }: any) => {
   const { confirm: confirmModal, Modal: ConfirmModalUI } = useConfirm();
   const { showToast, ToastUI } = useToast();
   const canEdit = ["Admin", "Operasional"].includes(currentUser?.role);

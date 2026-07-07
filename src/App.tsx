@@ -1201,7 +1201,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
 
   // Load invoices on mount
   useEffect(() => {
-    api.getInvoices(currentUser?.company_id || "").then(setInvoices).catch(() => {});
+    api.getInvoices(currentUser?.company_id || "").then(setInvoices).catch((err: any) => { console.error('Gagal load invoice:', err); });
   }, [currentUser]);
 
   const pushModal = useCallback((type: string, data: any) => {
@@ -1258,7 +1258,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
       user_email: profile.email,
       action: "User Login",
       metadata: JSON.stringify(buildMeta({ module: 'auth', action_type: 'LOGIN', record_id: profile.email, after_data: { role: profile.role } })),
-    }, profile?.company_id || "");
+    }, profile?.company_id || "").catch((err: any) => { console.error('Gagal log login:', err); });
   };
 
   const handleLogout = () => {
@@ -1273,7 +1273,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
           user_email: currentUser.email,
           action: "User Logout",
           metadata: JSON.stringify(buildMeta({ module: 'auth', action_type: 'LOGOUT', record_id: currentUser.email })),
-        }, currentUser?.company_id || "");
+        }, currentUser?.company_id || "").catch((err: any) => { console.error('Gagal log logout:', err); });
         setSession(null);
         setCurrentUser(null);
         localStorage.removeItem('sjm_active_company');
@@ -1908,13 +1908,13 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
                   onSOClick={handleSOClick}
                   onJurnalClick={canView(currentUser.role, "jurnal") ? handleJurnalClick : undefined}
                 />} />
-                <Route path="/sales-order" element={<SalesOrderPage so={so} setSo={setSo} jurnal={jurnal} customer={customer} armada={armada} sopir={sopir} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} onArmadaClick={handleArmadaClick} pendingEditSO={pendingEditSO} setPendingEditSO={setPendingEditSO} onGoToHP={handleGoToHP} />} />
+                <Route path="/sales-order" element={<SalesOrderPage so={so} setSo={setSo} customer={customer} armada={armada} sopir={sopir} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} pendingEditSO={pendingEditSO} setPendingEditSO={setPendingEditSO} />} />
                 <Route path="/update-muatan" element={<UpdateMuatan so={so} setSo={setSo} onSOClick={handleSOClick} onArmadaClick={handleArmadaClick} logAction={logAction} currentUser={effectiveUser} />} />
                 <Route path="/invoice" element={<InvoicePage so={so} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} />} />
                 <Route path="/quotation" element={<QuotationPage currentUser={effectiveUser} logAction={logAction} />} />
                 <Route path="/approval" element={<ApprovalPage jurnal={jurnal} setJurnal={setJurnal} currentUser={effectiveUser} onJurnalClick={handleJurnalClick} logAction={logAction} />} />
-                <Route path="/jurnal" element={<JurnalUmum jurnal={jurnal} setJurnal={setJurnal} coa={coa} so={so} connected={connected} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} prefill={jurnalPrefill} onPrefillUsed={() => setJurnalPrefill(null)} />} />
-                <Route path="/hutang-piutang" element={<HutangPiutangPage jurnal={jurnal} coa={coa} so={so} armada={armada} connected={connected} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} piutang={piutang} invoices={invoices} onGoToJurnal={handleGoToJurnal} prefill={hpPrefill} onPrefillUsed={() => setHpPrefill(null)} />} />
+                <Route path="/jurnal" element={<JurnalUmum jurnal={jurnal} setJurnal={setJurnal} coa={coa} so={so} currentUser={effectiveUser} logAction={logAction} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} prefill={jurnalPrefill} onPrefillUsed={() => setJurnalPrefill(null)} />} />
+                <Route path="/hutang-piutang" element={<HutangPiutangPage jurnal={jurnal} coa={coa} so={so} armada={armada} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} piutang={piutang} invoices={invoices} onGoToJurnal={handleGoToJurnal} prefill={hpPrefill} onPrefillUsed={() => setHpPrefill(null)} />} />
                 <Route path="/laporan" element={<LaporanPage activeSub={activeSub} jurnal={jurnal} coa={coa} so={so} armada={armada} auditLogs={auditLogs} saldoAwal={saldoAwal} onSOClick={handleSOClick} onJurnalClick={handleJurnalClick} logAction={logAction} />} />
                 <Route path="/armada" element={<ArmadaPage activeSub={activeSub} armada={armada} setArmada={setArmada} dokumen={armadaDokumen} setDokumen={setArmadaDokumen} service={armadaService} setService={setArmadaService} sopir={sopir} setSopir={setSopir} onArmadaClick={handleArmadaClick} onSopirClick={handleSopirClick} jurnal={jurnal} coa={coa} logAction={logAction} so={so} currentUser={effectiveUser} />} />
                 <Route path="/master" element={

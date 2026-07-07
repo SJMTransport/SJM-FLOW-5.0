@@ -1174,14 +1174,18 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
                         {inv.status_dokumen === 'Terkirim' && (
                           <button
                             onClick={async () => {
-                              await api.updateInvoiceDokumen(inv.id, { status_dokumen: 'Diterima Customer' }, currentUser?.company_id || "");
-                              logAction(`Invoice Diterima Customer: ${inv.no_invoice}`, buildMeta({
-                                module: 'invoice', action_type: 'UPDATE', record_id: inv.no_invoice,
-                                after_data: { status_dokumen: 'Diterima Customer' },
-                              }));
-                              setSelectedPaymentInv((prev: any) => prev ? { ...prev, status_dokumen: 'Diterima Customer' } : prev);
-                              setInvoices(prev => prev.map((i: any) => i.id === inv.id ? { ...i, status_dokumen: 'Diterima Customer' } : i));
-                              showToast('Status diupdate', 'success');
+                              try {
+                                await api.updateInvoiceDokumen(inv.id, { status_dokumen: 'Diterima Customer' }, currentUser?.company_id || "");
+                                logAction(`Invoice Diterima Customer: ${inv.no_invoice}`, buildMeta({
+                                  module: 'invoice', action_type: 'UPDATE', record_id: inv.no_invoice,
+                                  after_data: { status_dokumen: 'Diterima Customer' },
+                                }));
+                                setSelectedPaymentInv((prev: any) => prev ? { ...prev, status_dokumen: 'Diterima Customer' } : prev);
+                                setInvoices(prev => prev.map((i: any) => i.id === inv.id ? { ...i, status_dokumen: 'Diterima Customer' } : i));
+                                showToast('Status diupdate', 'success');
+                              } catch (err: any) {
+                                showToast('Gagal update status: ' + (err.message || 'Terjadi kesalahan'), 'error');
+                              }
                             }}
                             className="btn-ghost h-6 px-2 text-[9px] flex items-center gap-1 text-success"
                           >

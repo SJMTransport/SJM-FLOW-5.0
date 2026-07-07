@@ -42,7 +42,7 @@ const getFriendlyError = (err: any): string => {
   return 'Terjadi kesalahan. Coba lagi atau hubungi admin.';
 };
 
-export const JurnalUmum = ({ jurnal, setJurnal, coa, so, connected, currentUser, prefill, onPrefillUsed, onSOClick, onJurnalClick, logAction }: any) => {
+export const JurnalUmum = ({ jurnal, setJurnal, coa, so, currentUser, prefill, onPrefillUsed, onSOClick, onJurnalClick, logAction }: any) => {
   const { confirm: askConfirmJurnal, Modal: ConfirmJurnalModal } = useConfirm();
   const { showToast, ToastUI } = useToast();
   const [tab, setTab] = useState("list");

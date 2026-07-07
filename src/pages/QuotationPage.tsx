@@ -73,7 +73,7 @@ export const QuotationPage: React.FC<QuotationPageProps> = ({ currentUser, logAc
       try {
         const no = await generateQuotationNo(new Date(form.tgl_quotation), currentUser?.company_id || "");
         setForm(f => ({ ...f, no_quotation: no }));
-      } catch { } finally { setLoadingNo(false); }
+      } catch (err: any) { console.error('Gagal generate nomor quotation:', err); } finally { setLoadingNo(false); }
     };
     suggest();
   }, [activeTab, form.tgl_quotation]);
