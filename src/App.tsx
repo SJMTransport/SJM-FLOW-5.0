@@ -1678,7 +1678,7 @@ function AppContent({ session, setSession, currentUser, setCurrentUser }: any) {
                   {canView(currentUser.role, "users") && (
                     <NavItem icon={<UsersIcon size={18} />} label="Users" path="/users" indent={1} />
                   )}
-                  <NavItem icon={<ClockClockwise size={18} />} label="Log Aktivitas" path="/activity" indent={1} />
+                  <NavItem icon={<ClockClockwise size={18} />} label="Log Aktivitas" path="/log-aktivitas" indent={1} />
                 </>)}
               </>
             );

@@ -326,35 +326,39 @@ export const InvoicePage: React.FC<InvoicePageProps> = ({ so, currentUser, logAc
   const handleConfirmInvoice = async () => {
     if (!previewData) return;
     const firstSO = selectedSOList[0];
-    await api.addInvoice({
-      no_invoice: pendingInvoiceNo,
-      tgl_invoice: tglInvoice,
-      customer: firstSO.customer,
-      pic_cust: `${firstSO.pic_cust || ''} ${firstSO.no_pic || ''}`.trim(),
-      so_ids: selectedSOList.map(s => s.id),
-      so_order_ids: selectedSOList.map(s => s.order_id),
-      total_sebelum_pajak: previewData.subTotal,
-      ppn: previewData.ppn,
-      total_setelah_pajak: previewData.total,
-      tipe: pendingTipe,
-      keterangan_invoice: pendingKeterangan,
-    }, currentUser?.company_id || "");
-    for (const s of selectedSOList) {
-      await api.updateSOInvoiceCount(s.id, (s.invoice_count || 0) + 1, currentUser?.company_id || "");
-    }
-    await api.updateSOInvoiceNo(selectedSOList.map(s => s.id), pendingInvoiceNo, currentUser?.company_id || "");
-    logAction(`Generate Invoice: ${pendingInvoiceNo}`, buildMeta({
-      module: 'invoice' as any, action_type: 'CREATE', record_id: pendingInvoiceNo,
-      after_data: { customer: firstSO.customer, total: previewData.total, so_count: selectedIds.size, tipe: pendingTipe },
-    }));
-    setSelectedIds(new Set());
-    setDpNominal('');
-    setDpKeterangan('');
-    await loadInvoices();
     try {
-      const newNo = await generateInvoiceNo(new Date(tglInvoice), currentUser?.company_id || "");
-      setManualInvoiceNo(newNo);
-    } catch { }
+      await api.addInvoice({
+        no_invoice: pendingInvoiceNo,
+        tgl_invoice: tglInvoice,
+        customer: firstSO.customer,
+        pic_cust: `${firstSO.pic_cust || ''} ${firstSO.no_pic || ''}`.trim(),
+        so_ids: selectedSOList.map(s => s.id),
+        so_order_ids: selectedSOList.map(s => s.order_id),
+        total_sebelum_pajak: previewData.subTotal,
+        ppn: previewData.ppn,
+        total_setelah_pajak: previewData.total,
+        tipe: pendingTipe,
+        keterangan_invoice: pendingKeterangan,
+      }, currentUser?.company_id || "");
+      for (const s of selectedSOList) {
+        await api.updateSOInvoiceCount(s.id, (s.invoice_count || 0) + 1, currentUser?.company_id || "");
+      }
+      await api.updateSOInvoiceNo(selectedSOList.map(s => s.id), pendingInvoiceNo, currentUser?.company_id || "");
+      logAction(`Generate Invoice: ${pendingInvoiceNo}`, buildMeta({
+        module: 'invoice' as any, action_type: 'CREATE', record_id: pendingInvoiceNo,
+        after_data: { customer: firstSO.customer, total: previewData.total, so_count: selectedIds.size, tipe: pendingTipe },
+      }));
+      setSelectedIds(new Set());
+      setDpNominal('');
+      setDpKeterangan('');
+      await loadInvoices();
+      try {
+        const newNo = await generateInvoiceNo(new Date(tglInvoice), currentUser?.company_id || "");
+        setManualInvoiceNo(newNo);
+      } catch { }
+    } catch (err: any) {
+      showToast('Gagal membuat invoice: ' + (err.message || 'Terjadi kesalahan'), 'error');
+    }
   };
 
   const handleDeleteInvoice = async (inv: any) => {

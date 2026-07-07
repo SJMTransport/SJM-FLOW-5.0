@@ -200,7 +200,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
             <div style={sectionLabel}>Ringkasan Keuangan</div>
             <div style={{ display: "flex", gap: 12 }}>
               {[
-                { icon: <ChartLineUp size={28} weight="fill" />, iconBg: "#DCFCE7", iconColor: "#16A34A", value: `Rp ${fmt(revenueBulanIni)}`, label: "Revenue Bulan Ini", to: "/laporan/laba-rugi", isRp: true },
+                { icon: <ChartLineUp size={28} weight="fill" />, iconBg: "#DCFCE7", iconColor: "#16A34A", value: `Rp ${fmt(revenueBulanIni)}`, label: "Revenue Bulan Ini", to: "/laporan", isRp: true },
                 { icon: <Receipt size={28} weight="fill" />, iconBg: "#FEE2E2", iconColor: "#DC2626", value: fmt(totalPiutang), label: "Invoice Belum Lunas", to: "/invoice", isRp: false },
                 { icon: <ClipboardText size={28} weight="fill" />, iconBg: "#FEF3C7", iconColor: "#D97706", value: String(soBelumInvoice), label: "SO Belum Diinvoice", to: "/sales-order", isRp: false },
               ].map((k) => (
@@ -377,7 +377,7 @@ export const Dashboard = ({ jurnal, so, coa, piutang, armada = [], sopir = [], a
               })}
             </div>
           )}
-          <div onClick={() => navigate("/activity")}
+          <div onClick={() => navigate("/log-aktivitas")}
             style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 12px", background: "#F0EEE9", borderRadius: 8, marginTop: 10, fontSize: 12, fontWeight: 500, color: "#EB5E28", cursor: "pointer", transition: "background 150ms" }}
             onMouseEnter={e => { e.currentTarget.style.background = "#FEF0E8"; }}
             onMouseLeave={e => { e.currentTarget.style.background = "#F0EEE9"; }}
